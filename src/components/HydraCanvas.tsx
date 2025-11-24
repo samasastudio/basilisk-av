@@ -15,6 +15,10 @@ type Props = {
      * Visual mode selector – can be used to switch shader behaviours.
      */
     visualMode?: 'default' | 'bass';
+    /**
+     * Callback when Hydra is initialized.
+     */
+    onInit?: (synth: any) => void;
 };
 
 export default function HydraCanvas(props: Props) {
@@ -23,7 +27,7 @@ export default function HydraCanvas(props: Props) {
     const hydraInstance = useRef<any>(null);
 
     useEffect(() => {
-        if (!canvasRef.current || hydraInstance.current) return;
+        if (!canvasRef.current) return;
 
         const canvas = canvasRef.current;
 
@@ -31,6 +35,17 @@ export default function HydraCanvas(props: Props) {
         const rect = canvas.getBoundingClientRect();
         canvas.width = rect.width * window.devicePixelRatio;
         canvas.height = rect.height * window.devicePixelRatio;
+
+        // If an instance already exists, we might need to clean it up or just update it.
+        // Since Hydra doesn't support hot-swapping audio context easily, we'll recreate it.
+        // We try to be gentle by hushing the old one if it exists.
+        if (hydraInstance.current) {
+            try {
+                hydraInstance.current.hush();
+            } catch (e) {
+                console.warn("Failed to hush previous Hydra instance", e);
+            }
+        }
 
         // Initialise Hydra scoped to this component (no global namespace pollution)
         hydraInstance.current = new Hydra({
@@ -43,25 +58,11 @@ export default function HydraCanvas(props: Props) {
             height: canvas.height,
         }).synth;
 
-        // Initial visual: "Egg of the Phoenix" by Alexandre Rangel
-        // Licensed with CC BY-NC-SA 4.0 https://creativecommons.org/licenses/by-nc-sa/4.0/
-        // www.alexandrerangel.art.br/hydra.html
-        hydraInstance.current.speed = 1.2;
+        if (props.onInit) {
+            props.onInit(hydraInstance.current);
+        }
 
-        hydraInstance.current
-            .shape(99, .15, .5)
-            .color(0, 1, 2)
-            .diff(hydraInstance.current.shape(240, .5, 0).scrollX(.05).rotate(() => hydraInstance.current.time / 10).color(1, 0, .75))
-            .diff(hydraInstance.current.shape(99, .4, .002).scrollX(.10).rotate(() => hydraInstance.current.time / 20).color(1, 0, .75))
-            .diff(hydraInstance.current.shape(99, .3, .002).scrollX(.15).rotate(() => hydraInstance.current.time / 30).color(1, 0, .75))
-            .diff(hydraInstance.current.shape(99, .2, .002).scrollX(.20).rotate(() => hydraInstance.current.time / 40).color(1, 0, .75))
-            .diff(hydraInstance.current.shape(99, .1, .002).scrollX(.25).rotate(() => hydraInstance.current.time / 50).color(1, 0, .75))
-            .modulateScale(
-                hydraInstance.current.shape(240, .5, 0).scrollX(.05).rotate(() => hydraInstance.current.time / 10),
-                () => (Math.sin(hydraInstance.current.time / 3) * .2) + .2
-            )
-            .scale(1.6, .6, 1)
-            .out();
+        // Hydra initialized. Waiting for commands from REPL.
 
         const handleResize = () => {
             if (hydraInstance.current && canvasRef.current) {
@@ -79,50 +80,8 @@ export default function HydraCanvas(props: Props) {
     }, [audioContext]);
 
     // Update visuals when audioData or visualMode changes
-    useEffect(() => {
-        if (!hydraInstance.current || !props.audioData) return;
-
-        const avgAmplitude = props.audioData.reduce((sum: number, val: number) => sum + val, 0) / props.audioData.length / 255;
-        const mode = props.visualMode ?? 'default';
-
-        if (mode === 'bass') {
-            // Bass-responsive: modulate speed and scale of the Phoenix
-            hydraInstance.current.speed = 1.2 + avgAmplitude * 2;
-
-            hydraInstance.current
-                .shape(99, .15, .5)
-                .color(0, 1, 2)
-                .diff(hydraInstance.current.shape(240, .5, 0).scrollX(.05).rotate(() => hydraInstance.current.time / 10).color(1, 0, .75))
-                .diff(hydraInstance.current.shape(99, .4, .002).scrollX(.10).rotate(() => hydraInstance.current.time / 20).color(1, 0, .75))
-                .diff(hydraInstance.current.shape(99, .3, .002).scrollX(.15).rotate(() => hydraInstance.current.time / 30).color(1, 0, .75))
-                .diff(hydraInstance.current.shape(99, .2, .002).scrollX(.20).rotate(() => hydraInstance.current.time / 40).color(1, 0, .75))
-                .diff(hydraInstance.current.shape(99, .1, .002).scrollX(.25).rotate(() => hydraInstance.current.time / 50).color(1, 0, .75))
-                .modulateScale(
-                    hydraInstance.current.shape(240, .5, 0).scrollX(.05).rotate(() => hydraInstance.current.time / 10),
-                    () => (Math.sin(hydraInstance.current.time / 3) * .2) + .2 + avgAmplitude * 0.5
-                )
-                .scale(1.6 + avgAmplitude * 0.4, .6 + avgAmplitude * 0.2, 1)
-                .out();
-        } else {
-            // Default: subtle speed modulation
-            hydraInstance.current.speed = 1.2 + avgAmplitude * 0.3;
-
-            hydraInstance.current
-                .shape(99, .15, .5)
-                .color(0, 1, 2)
-                .diff(hydraInstance.current.shape(240, .5, 0).scrollX(.05).rotate(() => hydraInstance.current.time / 10).color(1, 0, .75))
-                .diff(hydraInstance.current.shape(99, .4, .002).scrollX(.10).rotate(() => hydraInstance.current.time / 20).color(1, 0, .75))
-                .diff(hydraInstance.current.shape(99, .3, .002).scrollX(.15).rotate(() => hydraInstance.current.time / 30).color(1, 0, .75))
-                .diff(hydraInstance.current.shape(99, .2, .002).scrollX(.20).rotate(() => hydraInstance.current.time / 40).color(1, 0, .75))
-                .diff(hydraInstance.current.shape(99, .1, .002).scrollX(.25).rotate(() => hydraInstance.current.time / 50).color(1, 0, .75))
-                .modulateScale(
-                    hydraInstance.current.shape(240, .5, 0).scrollX(.05).rotate(() => hydraInstance.current.time / 10),
-                    () => (Math.sin(hydraInstance.current.time / 3) * .2) + .2
-                )
-                .scale(1.6, .6, 1)
-                .out();
-        }
-    }, [props.audioData, props.visualMode]);
+    // Visual updates are now handled entirely by the REPL executing code against the hydra instance.
+    // We no longer automatically update visuals based on props to avoid overwriting user code.
 
     return <canvas ref={canvasRef} className={`block w-full h-full object-cover ${className}`} />;
 }

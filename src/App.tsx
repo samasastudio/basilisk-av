@@ -1,6 +1,7 @@
-import { useState, useEffect, useRef } from 'react';
+import { useState, useEffect, useRef, useCallback } from 'react';
 import HydraCanvas from './components/HydraCanvas';
 import StrudelRepl from './components/StrudelRepl';
+import HydraRepl from './components/HydraRepl';
 import { Monitor } from 'lucide-react';
 import { initStrudel } from '@strudel/web';
 
@@ -12,6 +13,30 @@ function App() {
   const [visualMode, setVisualMode] = useState<'default' | 'bass'>('default');
   const analyserRef = useRef<AnalyserNode | null>(null);
   const animationRef = useRef<number | null>(null);
+  const hydraInstanceRef = useRef<any>(null);
+
+  const handleHydraInit = useCallback((synth: any) => {
+    hydraInstanceRef.current = synth;
+  }, []);
+
+  const handleHydraExecute = useCallback((code: string) => {
+    if (!hydraInstanceRef.current) return;
+
+    try {
+      // Execute code within the context of the Hydra instance
+      // We use a Function constructor to create a scope where 'h' is the hydra instance
+      // and we use 'with(h)' to expose all hydra functions globally within that scope
+      const run = new Function('h', `
+        with (h) {
+          ${code}
+        }
+      `);
+      run(hydraInstanceRef.current);
+    } catch (e) {
+      console.error("Hydra execution error:", e);
+      // Could add a toast or UI error indication here
+    }
+  }, []);
 
   const startEngine = async () => {
     if (engineInitialized || isInitializing) return;
@@ -120,19 +145,12 @@ function App() {
         <div className="w-1/2 h-full border-r border-pm-border flex flex-col">
           <StrudelRepl className="flex-1" engineReady={engineInitialized} />
 
-          {/* Hydra Editor Placeholder (Future) */}
+          {/* Hydra Editor */}
           <div className="h-1/2 border-t border-pm-border flex flex-col">
-            <div className="flex justify-between items-center p-2 bg-pm-panel border-b border-pm-border select-none">
-              <div className="flex items-center gap-2">
-                <div className="w-3 h-3 rounded-full bg-blue-500/50"></div>
-                <span className="text-pm-secondary font-mono text-sm tracking-wider">HYDRA_VISUALS</span>
-              </div>
-              <button className="text-xs hover:text-pm-secondary">[COMPILE]</button>
-            </div>
-            <div className="p-4 text-gray-500 text-sm">
-                    // Hydra code editor coming soon...
-            // Visuals currently running default script.
-            </div>
+            <HydraRepl
+              className="flex-1"
+              onExecute={handleHydraExecute}
+            />
           </div>
         </div>
 
@@ -165,6 +183,7 @@ function App() {
             audioContext={(window as any).replAudio}
             audioData={audioData}
             visualMode={visualMode}
+            onInit={handleHydraInit}
           />
 
           {/* Overlay UI elements could go here */}
