@@ -47,19 +47,39 @@ export default function HydraCanvas(props: Props) {
             }
         }
 
-        // Initialise Hydra scoped to this component (no global namespace pollution)
-        hydraInstance.current = new Hydra({
+        // Initialise Hydra
+        const hydra = new Hydra({
             canvas: canvas,
             audioContext,
-            detectAudio: false, // Strudel handles audio
-            makeGlobal: false,
+            detectAudio: true,
+            makeGlobal: true,
             enableStreamCapture: false,
             width: canvas.width,
             height: canvas.height,
-        }).synth;
+        });
+
+        hydraInstance.current = hydra;
 
         if (props.onInit) {
-            props.onInit(hydraInstance.current);
+            props.onInit(hydra.synth);
+        }
+
+        // Expose Hydra globals for debugging
+        if (typeof window !== 'undefined') {
+            console.log("Hydra initialized:", hydra);
+            (window as any).hydra = hydra;
+            (window as any).h = hydra;
+            // 'a' should be automatically exposed by makeGlobal: true, but let's force it if needed
+            // In some versions 'a' is on the hydra instance, in others it's internal.
+            // We'll try to find it.
+            if ((hydra as any).a) {
+                (window as any).a = (hydra as any).a;
+                console.log("Exposed 'a' from hydra.a");
+            } else if ((hydra as any).audio) {
+                // Sometimes it's hydra.audio
+                (window as any).a = (hydra as any).audio;
+                console.log("Exposed 'a' from hydra.audio");
+            }
         }
 
         // Hydra initialized. Waiting for commands from REPL.
