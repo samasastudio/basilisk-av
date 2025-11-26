@@ -3,7 +3,9 @@ import HydraCanvas from './components/HydraCanvas';
 import StrudelRepl from './components/StrudelRepl';
 import HydraRepl from './components/HydraRepl';
 import { Monitor } from 'lucide-react';
+import DebugPanel from './components/DebugPanel';
 import { initStrudel } from '@strudel/web';
+import { initHydra } from '@strudel/hydra';
 
 function App() {
   const [showHydraWindow, setShowHydraWindow] = useState(false);
@@ -23,15 +25,21 @@ function App() {
     if (!hydraInstanceRef.current) return;
 
     try {
+      // Debug: Check if 'a' exists
+      const audioObj = (window as any).a;
+      console.log('Hydra execution - window.a:', audioObj);
+      console.log('Hydra execution - typeof window.a:', typeof audioObj);
+
       // Execute code within the context of the Hydra instance
       // We use a Function constructor to create a scope where 'h' is the hydra instance
+      // and 'a' is the audio object (created by initHydra in Strudel)
       // and we use 'with(h)' to expose all hydra functions globally within that scope
-      const run = new Function('h', `
+      const run = new Function('h', 'a', `
         with (h) {
           ${code}
         }
       `);
-      run(hydraInstanceRef.current);
+      run(hydraInstanceRef.current, audioObj);
     } catch (e) {
       console.error("Hydra execution error:", e);
       // Could add a toast or UI error indication here
@@ -52,7 +60,14 @@ function App() {
 
       // Extract or create a shared AudioContext for Hydra
       const sharedAudioContext = (repl as any).audioContext || (repl as any).context || new (window as any).AudioContext();
+
+      // Ensure the audio context is resumed (browser requirement)
+      await sharedAudioContext.resume();
+
       (window as any).replAudio = sharedAudioContext;
+
+      // Expose initHydra globally so Strudel patterns can use it
+      (window as any).initHydra = initHydra;
 
       // Set up analyser node for audio data extraction
       const analyser = sharedAudioContext.createAnalyser();
@@ -86,6 +101,65 @@ function App() {
       };
       updateAudioData();
 
+      // Manually create Hydra's 'a' audio object
+      // Since @strudel/hydra doesn't expose 'a' globally in our setup,
+      // we create it ourselves with the same API
+      const createHydraAudio = () => {
+        const hydraAnalyser = sharedAudioContext.createAnalyser();
+        hydraAnalyser.fftSize = 256;
+        hydraAnalyser.smoothingTimeConstant = 0.8;
+
+        // Connect Strudel's output to hydra analyser
+        if ((repl as any).output) {
+          (repl as any).output.connect(hydraAnalyser);
+        }
+
+        const fftSize = hydraAnalyser.frequencyBinCount;
+        const dataArray = new Uint8Array(fftSize);
+
+        // Create the 'a' object that Hydra expects
+        const audioObject = {
+          fft: [0, 0, 0, 0],
+          _bins: 4,
+          _analyser: hydraAnalyser,
+          _dataArray: dataArray,
+
+          setBins(num: number) {
+            this._bins = Math.min(num, fftSize);
+            this.fft = new Array(this._bins).fill(0);
+          },
+
+          _update() {
+            this._analyser.getByteFrequencyData(this._dataArray);
+            const binSize = Math.floor(this._dataArray.length / this._bins);
+            for (let i = 0; i < this._bins; i++) {
+              let sum = 0;
+              for (let j = 0; j < binSize; j++) {
+                sum += this._dataArray[i * binSize + j];
+              }
+              // Normalize to 0-1 range (Hydra expects 0-1)
+              this.fft[i] = (sum / binSize) / 255;
+            }
+          }
+        };
+
+        // Expose globally
+        (window as any).a = audioObject;
+
+        // Animation loop to update FFT
+        const updateHydraAudio = () => {
+          if ((window as any).a && (window as any).a._update) {
+            (window as any).a._update();
+          }
+          requestAnimationFrame(updateHydraAudio);
+        };
+        updateHydraAudio();
+
+        console.log('✓ Created Hydra audio object (window.a) manually');
+      };
+
+      createHydraAudio();
+
       setEngineInitialized(true);
       console.log('Strudel engine initialized successfully', repl, { sharedAudioContext });
     } catch (error) {
@@ -102,6 +176,36 @@ function App() {
     // Implementation for pop-out window will go here
     setShowHydraWindow(!showHydraWindow);
     alert("Pop-out functionality coming in next phase!");
+  };
+
+  // Helper to play Strudel test pattern
+  const playTestPattern = () => {
+    const repl = (window as any).repl;
+    if (repl && repl.evaluate) {
+      repl.evaluate(`$: s("bd*4").bank("RolandTR909").gain(0.8)`);
+    } else {
+      console.warn('Strudel REPL not available');
+    }
+  };
+
+  // Helper to load a Hydra audio test snippet
+  const loadHydraTest = () => {
+    const code = `if (typeof a !== 'undefined') {
+  a.setBins(4)
+  
+  osc(10, 0, () => a.fft[0] * 4)
+    .rotate(0, () => a.fft[1] * 0.3)
+    .modulateScale(noise(3, 0.1), () => a.fft[2] * 0.2)
+    .color(
+      () => a.fft[0] * 2,
+      () => a.fft[1] * 1.5,
+      () => a.fft[2] * 3
+    )
+    .out()
+} else {
+  osc(10, 0.1, 2).kaleid(4).color(1, 0.5, 0.8).out()
+}`;
+    handleHydraExecute(code);
   };
 
   // Cleanup on unmount
@@ -185,6 +289,13 @@ function App() {
             visualMode={visualMode}
             onInit={handleHydraInit}
           />
+
+          {/* Debug Panel */}
+          {engineInitialized && (
+            <div className="absolute bottom-16 left-4 z-20">
+              <DebugPanel onPlayStrudel={playTestPattern} onLoadHydraTest={loadHydraTest} />
+            </div>
+          )}
 
           {/* Overlay UI elements could go here */}
           <div className="absolute bottom-4 left-4 pointer-events-none">

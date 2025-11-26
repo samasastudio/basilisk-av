@@ -9,24 +9,33 @@ type Props = {
     initialCode?: string;
 };
 
-const DEFAULT_CODE = `// Hydra Visuals
+const DEFAULT_CODE = `// Audio-Reactive Hydra Visuals
 // Ctrl+Enter to run
+// IMPORTANT: Run the Strudel code first to initialize audio!
 
-// "Egg of the Phoenix" by Alexandre Rangel
-speed = 1.2
-shape(99, .15, .5)
-  .color(0, 1, 2)
-  .diff(shape(240, .5, 0).scrollX(.05).rotate(() => time / 10).color(1, 0, .75))
-  .diff(shape(99, .4, .002).scrollX(.10).rotate(() => time / 20).color(1, 0, .75))
-  .diff(shape(99, .3, .002).scrollX(.15).rotate(() => time / 30).color(1, 0, .75))
-  .diff(shape(99, .2, .002).scrollX(.20).rotate(() => time / 40).color(1, 0, .75))
-  .diff(shape(99, .1, .002).scrollX(.25).rotate(() => time / 50).color(1, 0, .75))
-  .modulateScale(
-      shape(240, .5, 0).scrollX(.05).rotate(() => time / 10),
-      () => (Math.sin(time / 3) * .2) + .2
-  )
-  .scale(1.6, .6, 1)
-  .out()`;
+// Check if 'a' is initialized
+if (typeof a !== 'undefined') {
+  a.setBins(4)
+  
+  osc(10, 0, () => a.fft[0] * 4)
+    .rotate(0, () => a.fft[1] * 0.3)
+    .modulateScale(
+      noise(3, 0.1), 
+      () => a.fft[2] * 0.2
+    )
+    .color(
+      () => a.fft[0] * 2,
+      () => a.fft[1] * 1.5,
+      () => a.fft[2] * 3
+    )
+    .out()
+} else {
+  // Fallback: non-audio-reactive visual
+  osc(10, 0.1, 2)
+    .kaleid(4)
+    .color(1, 0.5, 0.8)
+    .out()
+}`;
 
 export default function HydraRepl({ className, onExecute, initialCode = DEFAULT_CODE }: Props) {
     const [code, setCode] = useState(initialCode);

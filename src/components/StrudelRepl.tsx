@@ -7,7 +7,10 @@ import * as Strudel from '@strudel/core';
 // Expose Strudel functions globally for the REPL
 Object.assign(window, Strudel, { samples });
 
-const defaultCode = `s("bd sd")`;
+// Strudel Pattern
+// The audio object 'a' is automatically available for Hydra
+const defaultCode = `// Test pattern: kick and snare
+$: s("bd sd").gain(0.8)`;
 
 export default function StrudelRepl({ className, engineReady }: { className?: string; engineReady: boolean }) {
     const [code, setCode] = useState(defaultCode);

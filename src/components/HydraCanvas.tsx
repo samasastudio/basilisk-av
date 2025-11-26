@@ -1,57 +1,46 @@
+// HydraCanvas.tsx – renders a Hydra canvas and wires Strudel audio output
 import { useEffect, useRef } from 'react';
 import Hydra from 'hydra-synth';
 
+/** Props for the Hydra canvas component */
 type Props = {
     className?: string;
-    /**
-     * Optional shared AudioContext from Strudel. If not provided, Hydra will create its own.
-     */
+    /** Optional shared AudioContext from Strudel */
     audioContext?: AudioContext;
-    /**
-     * Optional Uint8Array of frequency data from an AnalyserNode.
-     */
+    /** Optional Uint8Array of frequency data from an AnalyserNode */
     audioData?: Uint8Array;
-    /**
-     * Visual mode selector – can be used to switch shader behaviours.
-     */
+    /** Visual mode selector – can be used to switch shader behaviours */
     visualMode?: 'default' | 'bass';
-    /**
-     * Callback when Hydra is initialized.
-     */
+    /** Callback when Hydra is initialized */
     onInit?: (synth: any) => void;
 };
 
-export default function HydraCanvas(props: Props) {
-    const { className, audioContext } = props;
+export default function HydraCanvas({ className, audioContext, onInit }: Props) {
     const canvasRef = useRef<HTMLCanvasElement>(null);
     const hydraInstance = useRef<any>(null);
 
     useEffect(() => {
         if (!canvasRef.current) return;
-
         const canvas = canvasRef.current;
-
-        // Set canvas resolution to match its display size for crisp rendering
+        // Set canvas resolution to match display size for crisp rendering
         const rect = canvas.getBoundingClientRect();
         canvas.width = rect.width * window.devicePixelRatio;
         canvas.height = rect.height * window.devicePixelRatio;
 
-        // If an instance already exists, we might need to clean it up or just update it.
-        // Since Hydra doesn't support hot-swapping audio context easily, we'll recreate it.
-        // We try to be gentle by hushing the old one if it exists.
+        // Clean up any previous Hydra instance
         if (hydraInstance.current) {
             try {
                 hydraInstance.current.hush();
             } catch (e) {
-                console.warn("Failed to hush previous Hydra instance", e);
+                console.warn('Failed to hush previous Hydra instance', e);
             }
         }
 
-        // Initialise Hydra
+        // Initialise Hydra – disable its own microphone capture
         const hydra = new Hydra({
-            canvas: canvas,
+            canvas,
             audioContext,
-            detectAudio: true,
+            detectAudio: false,
             makeGlobal: true,
             enableStreamCapture: false,
             width: canvas.width,
@@ -59,49 +48,38 @@ export default function HydraCanvas(props: Props) {
         });
 
         hydraInstance.current = hydra;
+        if (onInit) onInit(hydra.synth);
 
-        if (props.onInit) {
-            props.onInit(hydra.synth);
-        }
-
-        // Expose Hydra globals for debugging
+        // Expose globals for debugging / user code (a, h, hydra)
         if (typeof window !== 'undefined') {
-            console.log("Hydra initialized:", hydra);
             (window as any).hydra = hydra;
             (window as any).h = hydra;
-            // 'a' should be automatically exposed by makeGlobal: true, but let's force it if needed
-            // In some versions 'a' is on the hydra instance, in others it's internal.
-            // We'll try to find it.
+            // `a` is exposed by makeGlobal, but ensure it exists
             if ((hydra as any).a) {
                 (window as any).a = (hydra as any).a;
-                console.log("Exposed 'a' from hydra.a");
             } else if ((hydra as any).audio) {
-                // Sometimes it's hydra.audio
                 (window as any).a = (hydra as any).audio;
-                console.log("Exposed 'a' from hydra.audio");
             }
         }
 
-        // Hydra initialized. Waiting for commands from REPL.
-
+        // Resize handling – keep canvas and Hydra resolution in sync
         const handleResize = () => {
-            if (hydraInstance.current && canvasRef.current) {
-                const rect = canvasRef.current.getBoundingClientRect();
-                canvasRef.current.width = rect.width * window.devicePixelRatio;
-                canvasRef.current.height = rect.height * window.devicePixelRatio;
-                hydraInstance.current.setResolution(canvasRef.current.width, canvasRef.current.height);
-            }
+            if (!canvasRef.current) return;
+            const rect = canvasRef.current.getBoundingClientRect();
+            canvasRef.current.width = rect.width * window.devicePixelRatio;
+            canvasRef.current.height = rect.height * window.devicePixelRatio;
+            hydraInstance.current?.setResolution(canvasRef.current.width, canvasRef.current.height);
         };
         window.addEventListener('resize', handleResize);
         return () => {
             window.removeEventListener('resize', handleResize);
-            // Hydra does not expose a formal destroy API; letting the instance be GC'd is fine.
         };
     }, [audioContext]);
 
-    // Update visuals when audioData or visualMode changes
-    // Visual updates are now handled entirely by the REPL executing code against the hydra instance.
-    // We no longer automatically update visuals based on props to avoid overwriting user code.
-
-    return <canvas ref={canvasRef} className={`block w-full h-full object-cover ${className}`} />;
+    return (
+        <canvas
+            ref={canvasRef}
+            className={className ? `block w-full h-full object-cover ${className}` : 'block w-full h-full object-cover'}
+        />
+    );
 }
