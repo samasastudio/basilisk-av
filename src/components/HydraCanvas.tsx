@@ -6,7 +6,7 @@ type Props = {
     /**
      * Optional shared AudioContext from Strudel. If not provided, Hydra will create its own.
      */
-    audioContext?: AudioContext;
+    audioContext?: AudioContext | null;
     /**
      * Optional Uint8Array of frequency data from an AnalyserNode.
      */
@@ -27,7 +27,7 @@ export default function HydraCanvas(props: Props) {
     const hydraInstance = useRef<any>(null);
 
     useEffect(() => {
-        if (!canvasRef.current) return;
+        if (!canvasRef.current || !audioContext) return;
 
         const canvas = canvasRef.current;
 
@@ -51,7 +51,7 @@ export default function HydraCanvas(props: Props) {
         const hydra = new Hydra({
             canvas: canvas,
             audioContext,
-            detectAudio: true,
+            detectAudio: false,
             makeGlobal: true,
             enableStreamCapture: false,
             width: canvas.width,
@@ -61,7 +61,7 @@ export default function HydraCanvas(props: Props) {
         hydraInstance.current = hydra;
 
         if (props.onInit) {
-            props.onInit(hydra.synth);
+            props.onInit(hydra);
         }
 
         // Expose Hydra globals for debugging
