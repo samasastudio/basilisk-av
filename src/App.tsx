@@ -1,7 +1,6 @@
 import { useState, useEffect, useRef, useCallback } from 'react';
 import HydraCanvas from './components/HydraCanvas';
 import StrudelRepl from './components/StrudelRepl';
-import HydraRepl from './components/HydraRepl';
 import { Monitor } from 'lucide-react';
 import { initStrudel } from '@strudel/web';
 import { initHydraBridge, type HydraBridge } from './utils/strudelHydraBridge';
@@ -23,25 +22,6 @@ function App() {
   const handleHydraInit = useCallback((hydra: any) => {
     hydraInstanceRef.current = hydra;
     setHydraReady(true);
-  }, []);
-
-  const handleHydraExecute = useCallback((code: string) => {
-    if (!hydraInstanceRef.current) return;
-
-    try {
-      // Execute code within the context of the Hydra instance
-      // We use a Function constructor to create a scope where 'h' is the hydra instance
-      // and we use 'with(h)' to expose all hydra functions globally within that scope
-      const run = new Function('h', `
-        with (h) {
-          ${code}
-        }
-      `);
-      run(hydraInstanceRef.current);
-    } catch (e) {
-      console.error("Hydra execution error:", e);
-      // Could add a toast or UI error indication here
-    }
   }, []);
 
   const startEngine = async () => {
@@ -84,7 +64,7 @@ function App() {
     if (!hydraInstanceRef.current || !strudelReplRef.current) return;
 
     const ctx = (strudelReplRef.current as any).audioContext || (strudelReplRef.current as any).context || audioContext;
-    if (!ctx || !(strudelReplRef.current as any).output) return;
+    if (!ctx) return;
 
     const bridge = initHydraBridge({
       hydra: hydraInstanceRef.current,
@@ -96,6 +76,7 @@ function App() {
       hydraBridgeRef.current = bridge;
       setHydraLinked(true);
       setHydraStatus('Hydra audio source: Strudel (a.fft)');
+      console.log('✅ Hydra bridge initialized!', bridge);
     }
 
     return () => {
@@ -165,34 +146,24 @@ function App() {
             >
               {engineInitialized ? 'Audio running' : isInitializing ? 'Starting…' : 'Start audio engine'}
             </button>
-            <div className="text-pm-secondary">Shared AudioContext → Strudel + Hydra</div>
+            <div className="text-pm-secondary">Unified: Strudel + Hydra → Audio + Visuals</div>
           </div>
-          <div className="text-pm-secondary">Hydra link status: {hydraLinked ? 'linked' : 'not linked'}</div>
+          <div className="text-pm-secondary">Write both patterns and visuals in one editor!</div>
         </div>
       </header>
 
       {/* Main Workspace */}
       <div className="flex-1 flex relative">
 
-        {/* Left Pane: Code (Strudel) */}
+        {/* Left Pane: Unified Code Editor (Strudel + Hydra) */}
         <div className="w-1/2 h-full border-r border-pm-border flex flex-col">
           <StrudelRepl
             className="flex-1"
             engineReady={engineInitialized}
             onTestPattern={playTestPattern}
             onHalt={hushAudio}
-            statusLabel={engineInitialized && hydraLinked ? 'Output: speakers + Hydra' : 'Output: waiting for engine'}
+            statusLabel="Unified: Strudel + Hydra"
           />
-
-          {/* Hydra Editor */}
-          <div className="h-1/2 border-t border-pm-border flex flex-col">
-            <HydraRepl
-              className="flex-1"
-              onExecute={handleHydraExecute}
-              onLoadPreset={handleHydraExecute}
-              linkStatus={hydraStatus}
-            />
-          </div>
         </div>
 
         {/* Right Pane: Visual Output */}

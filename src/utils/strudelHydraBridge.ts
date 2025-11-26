@@ -54,6 +54,9 @@ export function initHydraBridge({
             hydraAudio.fft = Array(hydraAudio.bins).fill(0);
         },
         tick: () => {
+            // Skip ticking if in test mode
+            if ((hydraAudio as any).testMode) return;
+
             analyser.getByteFrequencyData(dataArray);
             const chunk = dataArray.length / hydraAudio.bins;
             hydraAudio.fft = hydraAudio.fft.map((_, idx) => {

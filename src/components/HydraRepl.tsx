@@ -105,6 +105,41 @@ export default function HydraRepl({ className, onExecute, initialCode = DEFAULT_
                 >
                     Reset
                 </button>
+                <button
+                    className={`px-2 py-1 rounded border border-yellow-500 text-yellow-400 hover:bg-yellow-500 hover:text-black`}
+                    onClick={() => {
+                        const a = (window as any).a;
+                        if (!a) {
+                            console.error('Bridge not initialized');
+                            return;
+                        }
+
+                        // Enable test mode to stop tick() from overwriting values
+                        a.testMode = true;
+                        console.log('🧪 Generating fake FFT data for 10 seconds...');
+
+                        // Generate oscillating fake data
+                        let phase = 0;
+                        const interval = setInterval(() => {
+                            phase += 0.1;
+                            a.fft = [
+                                Math.abs(Math.sin(phase)) * 0.8,
+                                Math.abs(Math.sin(phase + 1)) * 0.6,
+                                Math.abs(Math.sin(phase + 2)) * 0.7,
+                                Math.abs(Math.sin(phase + 3)) * 0.5
+                            ];
+                        }, 50);
+
+                        // Stop after 10 seconds and resume normal operation
+                        setTimeout(() => {
+                            clearInterval(interval);
+                            a.testMode = false;
+                            console.log('✅ Test mode ended, resuming normal operation');
+                        }, 10000);
+                    }}
+                >
+                    🧪 Test (Fake Audio Data)
+                </button>
             </div>
             <div className="flex-1 overflow-hidden relative" onKeyDown={handleKeyDown}>
                 <CodeMirror

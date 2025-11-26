@@ -7,7 +7,25 @@ import * as Strudel from '@strudel/core';
 // Expose Strudel functions globally for the REPL
 Object.assign(window, Strudel, { samples });
 
-const defaultCode = `s("bd sd")`;
+const defaultCode = `// BASILISK Audio-Visual Test
+// Strudel patterns + Hydra visuals in one place!
+
+// === AUDIO PATTERN ===
+// Drums with bass and snare
+s("bd sd, hh*8")
+  .bank("RolandTR808")
+  .gain(0.7)
+
+// === HYDRA VISUALS ===
+// Audio-reactive kaleidoscope
+osc(10, 0.1, 0.8)
+  .rotate(0.5, 0.1)
+  .kaleid(4)
+  .color(1.0, 0.5, 0.8)
+  .out()
+
+// To run: Click EXECUTE
+// Visuals will react to the beat!`;
 
 type Props = {
     className?: string;
