@@ -12,6 +12,7 @@
   "dependencies": {
     "@codemirror/lang-javascript": "^6.2.4",
     "@strudel/core": "^1.2.5",
+    "@strudel/hydra": "^1.2.5",
     "@strudel/transpiler": "^1.2.5",
     "@strudel/web": "^1.2.6",
     "@strudel/webaudio": "^1.2.6",

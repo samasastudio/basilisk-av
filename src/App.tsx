@@ -41,6 +41,25 @@ function App() {
       setAudioContext(sharedAudioContext);
       (window as any).replAudio = sharedAudioContext;
 
+      // Initialize the audio bridge BEFORE any audio plays
+      // This intercepts the audio destination so we can analyze it for Hydra
+      const bridge = initHydraBridge(sharedAudioContext);
+      if (bridge) {
+        hydraBridgeRef.current = bridge;
+        setHydraLinked(true);
+        setHydraStatus('Hydra audio source: Strudel (a.fft)');
+        console.log('✅ Audio bridge ready - Hydra will react to Strudel audio');
+
+        // CRITICAL: Replace the AudioContext destination with our gain node
+        // This must be done BEFORE Strudel's AudioWorklet connects
+        // Strudel's supradough will connect to audioContext.destination
+        // We override destination to point to our gainNode instead
+        Object.defineProperty(sharedAudioContext, 'destination', {
+          get: () => bridge.gainNode,
+          configurable: true
+        });
+      }
+
       setEngineInitialized(true);
       console.log('Strudel engine initialized successfully', repl, { sharedAudioContext });
     } catch (error) {
@@ -59,33 +78,13 @@ function App() {
     alert("Pop-out functionality coming in next phase!");
   };
 
+  // Cleanup bridge on unmount
   useEffect(() => {
-    if (!engineInitialized || !hydraReady || hydraLinked) return;
-    if (!hydraInstanceRef.current || !strudelReplRef.current) return;
-
-    const ctx = (strudelReplRef.current as any).audioContext || (strudelReplRef.current as any).context || audioContext;
-    if (!ctx) return;
-
-    const bridge = initHydraBridge({
-      hydra: hydraInstanceRef.current,
-      strudel: strudelReplRef.current,
-      audioContext: ctx,
-    });
-
-    if (bridge) {
-      hydraBridgeRef.current = bridge;
-      setHydraLinked(true);
-      setHydraStatus('Hydra audio source: Strudel (a.fft)');
-      console.log('✅ Hydra bridge initialized!', bridge);
-    }
-
     return () => {
-      hydraBridgeRef.current?.analyser.disconnect();
+      hydraBridgeRef.current?.disconnect();
       hydraBridgeRef.current = null;
-      setHydraLinked(false);
-      setHydraStatus('Hydra audio source: none');
     };
-  }, [engineInitialized, audioContext, hydraReady]);
+  }, []);
 
   useEffect(() => {
     if (!import.meta.env.DEV) return;
@@ -167,7 +166,7 @@ function App() {
         </div>
 
         {/* Right Pane: Visual Output */}
-        <div className="w-1/2 h-full relative bg-black">
+        <div className="w-1/2 h-full relative bg-black" id="hydra-container">
           <div className="absolute top-4 right-4 z-10 flex gap-2">
             <button
               onClick={togglePopOut}
@@ -178,11 +177,10 @@ function App() {
             </button>
           </div>
 
-          <HydraCanvas
-            className="w-full h-full"
-            audioContext={audioContext ?? (window as any).replAudio}
-            onInit={handleHydraInit}
-          />
+          {/* Strudel's initHydra() will inject a canvas with id="hydra-canvas" here */}
+          <div className="w-full h-full flex items-center justify-center text-gray-500 text-sm">
+            Run code with <code className="mx-1 px-2 py-1 bg-gray-800 rounded">await initHydra()</code> to start visuals
+          </div>
 
           <div className="absolute bottom-4 left-4 pointer-events-none">
             <div className="text-xs text-pm-secondary opacity-70">
