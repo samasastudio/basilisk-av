@@ -7,9 +7,35 @@ import * as Strudel from '@strudel/core';
 // Expose Strudel functions globally for the REPL
 Object.assign(window, Strudel, { samples });
 
-const defaultCode = `s("bd sd")`;
+const defaultCode = `// BASILISK Audio-Visual Test
+// Strudel patterns + Hydra visuals in one place!
 
-export default function StrudelRepl({ className, engineReady }: { className?: string; engineReady: boolean }) {
+// === AUDIO PATTERN ===
+// Drums with bass and snare
+s("bd sd, hh*8")
+  .bank("RolandTR808")
+  .gain(0.7)
+
+// === HYDRA VISUALS ===
+// Audio-reactive kaleidoscope
+osc(10, 0.1, 0.8)
+  .rotate(0.5, 0.1)
+  .kaleid(4)
+  .color(1.0, 0.5, 0.8)
+  .out()
+
+// To run: Click EXECUTE
+// Visuals will react to the beat!`;
+
+type Props = {
+    className?: string;
+    engineReady: boolean;
+    onTestPattern?: () => void;
+    onHalt?: () => void;
+    statusLabel?: string;
+};
+
+export default function StrudelRepl({ className, engineReady, onTestPattern, onHalt, statusLabel }: Props) {
     const [code, setCode] = useState(defaultCode);
 
     const runCode = async () => {
@@ -41,6 +67,10 @@ export default function StrudelRepl({ className, engineReady }: { className?: st
     };
 
     const stopCode = () => {
+        if (onHalt) {
+            onHalt();
+            return;
+        }
         const repl = (window as any).repl;
         if (repl && repl.stop) {
             repl.stop();
@@ -54,7 +84,10 @@ export default function StrudelRepl({ className, engineReady }: { className?: st
                     <div className="w-3 h-3 rounded-full bg-red-500/50"></div>
                     <span className="text-pm-accent font-mono text-sm tracking-wider">STRUDEL_CORE</span>
                 </div>
-                <div className="space-x-2 font-mono text-xs">
+                <div className="flex items-center gap-2 font-mono text-xs">
+                    <span className={`px-2 py-1 rounded ${engineReady ? 'bg-green-500/20 text-green-400' : 'bg-yellow-500/20 text-yellow-300'}`}>
+                        {statusLabel ?? (engineReady ? 'Engine: ready' : 'Engine: stopped')}
+                    </span>
                     <button
                         onClick={runCode}
                         disabled={!engineReady}
@@ -71,6 +104,16 @@ export default function StrudelRepl({ className, engineReady }: { className?: st
                         className="px-3 py-1 bg-pm-border hover:bg-red-500 hover:text-black transition-colors border border-pm-border"
                     >
                         HALT
+                    </button>
+                    <button
+                        onClick={onTestPattern}
+                        disabled={!engineReady}
+                        className={`px-3 py-1 transition-colors border border-pm-border ${engineReady
+                            ? 'bg-pm-border hover:bg-pm-accent hover:text-black cursor-pointer'
+                            : 'bg-pm-border/50 text-gray-600 cursor-not-allowed'
+                            }`}
+                    >
+                        Debug: Play test pattern
                     </button>
                 </div>
             </div>

@@ -4,21 +4,13 @@ import Hydra from 'hydra-synth';
 type Props = {
     className?: string;
     /**
+     * Callback when Hydra is initialized.
+     */
+    onInit?: (hydra: any) => void;
+    /**
      * Optional shared AudioContext from Strudel. If not provided, Hydra will create its own.
      */
     audioContext?: AudioContext;
-    /**
-     * Optional Uint8Array of frequency data from an AnalyserNode.
-     */
-    audioData?: Uint8Array;
-    /**
-     * Visual mode selector – can be used to switch shader behaviours.
-     */
-    visualMode?: 'default' | 'bass';
-    /**
-     * Callback when Hydra is initialized.
-     */
-    onInit?: (synth: any) => void;
 };
 
 export default function HydraCanvas(props: Props) {
@@ -49,9 +41,9 @@ export default function HydraCanvas(props: Props) {
 
         // Initialise Hydra
         const hydra = new Hydra({
-            canvas: canvas,
+            canvas,
             audioContext,
-            detectAudio: true,
+            detectAudio: false,
             makeGlobal: true,
             enableStreamCapture: false,
             width: canvas.width,
@@ -61,7 +53,7 @@ export default function HydraCanvas(props: Props) {
         hydraInstance.current = hydra;
 
         if (props.onInit) {
-            props.onInit(hydra.synth);
+            props.onInit(hydra);
         }
 
         // Expose Hydra globals for debugging

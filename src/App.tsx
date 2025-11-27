@@ -1,41 +1,27 @@
 import { useState, useEffect, useRef, useCallback } from 'react';
 import HydraCanvas from './components/HydraCanvas';
 import StrudelRepl from './components/StrudelRepl';
-import HydraRepl from './components/HydraRepl';
 import { Monitor } from 'lucide-react';
 import { initStrudel } from '@strudel/web';
+import { initHydraBridge, type HydraBridge } from './utils/strudelHydraBridge';
 
 function App() {
   const [showHydraWindow, setShowHydraWindow] = useState(false);
   const [engineInitialized, setEngineInitialized] = useState(false);
   const [isInitializing, setIsInitializing] = useState(false);
-  const [audioData, setAudioData] = useState<Uint8Array | undefined>(undefined);
-  const [visualMode, setVisualMode] = useState<'default' | 'bass'>('default');
-  const analyserRef = useRef<AnalyserNode | null>(null);
-  const animationRef = useRef<number | null>(null);
+  const [hydraLinked, setHydraLinked] = useState(false);
+  const [audioContext, setAudioContext] = useState<AudioContext | null>(null);
+  const [hydraStatus, setHydraStatus] = useState('Hydra audio source: none');
+  const [hydraHudValue, setHydraHudValue] = useState(0);
+  const [hydraReady, setHydraReady] = useState(false);
   const hydraInstanceRef = useRef<any>(null);
+  const strudelReplRef = useRef<any>(null);
+  const hydraBridgeRef = useRef<HydraBridge | null>(null);
+  const hudAnimationRef = useRef<number | null>(null);
 
-  const handleHydraInit = useCallback((synth: any) => {
-    hydraInstanceRef.current = synth;
-  }, []);
-
-  const handleHydraExecute = useCallback((code: string) => {
-    if (!hydraInstanceRef.current) return;
-
-    try {
-      // Execute code within the context of the Hydra instance
-      // We use a Function constructor to create a scope where 'h' is the hydra instance
-      // and we use 'with(h)' to expose all hydra functions globally within that scope
-      const run = new Function('h', `
-        with (h) {
-          ${code}
-        }
-      `);
-      run(hydraInstanceRef.current);
-    } catch (e) {
-      console.error("Hydra execution error:", e);
-      // Could add a toast or UI error indication here
-    }
+  const handleHydraInit = useCallback((hydra: any) => {
+    hydraInstanceRef.current = hydra;
+    setHydraReady(true);
   }, []);
 
   const startEngine = async () => {
@@ -47,44 +33,13 @@ function App() {
         prebake: () => (window as any).samples('github:tidalcycles/dirt-samples')
       });
 
-      // Make REPL globally accessible
       (window as any).repl = repl;
+      strudelReplRef.current = repl;
 
-      // Extract or create a shared AudioContext for Hydra
       const sharedAudioContext = (repl as any).audioContext || (repl as any).context || new (window as any).AudioContext();
+      await sharedAudioContext.resume();
+      setAudioContext(sharedAudioContext);
       (window as any).replAudio = sharedAudioContext;
-
-      // Set up analyser node for audio data extraction
-      const analyser = sharedAudioContext.createAnalyser();
-      analyser.fftSize = 256; // reasonable resolution for visual sync
-      analyserRef.current = analyser;
-
-      // Connect analyser properly - it should be in the audio chain
-      // We'll connect it to the destination so it can analyze the output
-      analyser.connect(sharedAudioContext.destination);
-
-      // Try to find and connect Strudel's output to our analyser
-      // This allows us to analyze the audio without breaking the chain
-      if ((repl as any).output) {
-        try {
-          (repl as any).output.connect(analyser);
-          console.log('Connected Strudel output to analyser');
-        } catch (e) {
-          console.warn('Could not connect Strudel output to analyser:', e);
-        }
-      }
-
-      // Start animation loop to pull frequency data
-      const updateAudioData = () => {
-        if (analyserRef.current) {
-          const bufferLength = analyserRef.current.frequencyBinCount;
-          const dataArray = new Uint8Array(bufferLength);
-          analyserRef.current.getByteFrequencyData(dataArray);
-          setAudioData(dataArray);
-        }
-        animationRef.current = requestAnimationFrame(updateAudioData);
-      };
-      updateAudioData();
 
       setEngineInitialized(true);
       console.log('Strudel engine initialized successfully', repl, { sharedAudioContext });
@@ -104,54 +59,111 @@ function App() {
     alert("Pop-out functionality coming in next phase!");
   };
 
-  // Cleanup on unmount
   useEffect(() => {
+    if (!engineInitialized || !hydraReady || hydraLinked) return;
+    if (!hydraInstanceRef.current || !strudelReplRef.current) return;
+
+    const ctx = (strudelReplRef.current as any).audioContext || (strudelReplRef.current as any).context || audioContext;
+    if (!ctx) return;
+
+    const bridge = initHydraBridge({
+      hydra: hydraInstanceRef.current,
+      strudel: strudelReplRef.current,
+      audioContext: ctx,
+    });
+
+    if (bridge) {
+      hydraBridgeRef.current = bridge;
+      setHydraLinked(true);
+      setHydraStatus('Hydra audio source: Strudel (a.fft)');
+      console.log('✅ Hydra bridge initialized!', bridge);
+    }
+
     return () => {
-      if (animationRef.current) cancelAnimationFrame(animationRef.current);
-      if (analyserRef.current) analyserRef.current.disconnect();
+      hydraBridgeRef.current?.analyser.disconnect();
+      hydraBridgeRef.current = null;
+      setHydraLinked(false);
+      setHydraStatus('Hydra audio source: none');
+    };
+  }, [engineInitialized, audioContext, hydraReady]);
+
+  useEffect(() => {
+    if (!import.meta.env.DEV) return;
+
+    const updateHud = () => {
+      const val = (window as any).a?.fft?.[0] ?? 0;
+      setHydraHudValue(val);
+      hudAnimationRef.current = requestAnimationFrame(updateHud);
+    };
+
+    updateHud();
+
+    return () => {
+      if (hudAnimationRef.current) cancelAnimationFrame(hudAnimationRef.current);
     };
   }, []);
+
+  const playTestPattern = () => {
+    const repl = (window as any).repl;
+    if (!repl || !repl.evaluate) return;
+    repl.evaluate('s("bd*4").gain(0.8)');
+  };
+
+  const hushAudio = () => {
+    const repl = (window as any).repl;
+    if (repl && repl.stop) repl.stop();
+  };
 
   return (
     <div className="w-screen h-screen bg-pm-bg text-pm-text overflow-hidden flex flex-col font-mono">
       {/* Header / Status Bar */}
-      <header className="h-8 bg-pm-panel border-b border-pm-border flex items-center justify-between px-4 select-none">
-        <div className="flex items-center gap-4">
-          <span className="text-pm-secondary font-bold tracking-widest">BASILISK</span>
-          <span className="text-xs text-gray-500">v0.1.0-alpha</span>
+      <header className="bg-pm-panel border-b border-pm-border flex flex-col">
+        <div className="h-10 flex items-center justify-between px-4 select-none">
+          <div className="flex items-center gap-4">
+            <span className="text-pm-secondary font-bold tracking-widest">BASILISK</span>
+            <span className="text-xs text-gray-500">v0.1.0-alpha</span>
+          </div>
+          <div className="flex items-center gap-4 text-xs">
+            <span className={engineInitialized ? 'text-green-400' : 'text-red-400'}>
+              Audio: {engineInitialized ? 'running' : 'stopped'}
+            </span>
+            <span className={hydraLinked ? 'text-green-400' : 'text-yellow-400'}>
+              {hydraStatus}
+            </span>
+          </div>
         </div>
-        <div className="flex items-center gap-4 text-xs">
-          <button
-            onClick={startEngine}
-            disabled={isInitializing || engineInitialized}
-            className={`px-3 py-1 font-mono tracking-wider transition-colors border border-pm-border ${engineInitialized
-              ? 'bg-green-500/20 text-green-500 cursor-default'
-              : isInitializing
-                ? 'bg-yellow-500/20 text-yellow-500 cursor-wait'
-                : 'bg-pm-border hover:bg-pm-accent hover:text-black cursor-pointer'
-              }`}
-          >
-            {engineInitialized ? 'ENGINE: READY' : isInitializing ? 'STARTING...' : 'START_ENGINE'}
-          </button>
-          <span className="text-green-500">SYSTEM: ONLINE</span>
-          <span>MEM: 64K</span>
+        <div className="flex items-center justify-between px-4 pb-2 text-xs gap-4">
+          <div className="flex items-center gap-2">
+            <button
+              onClick={startEngine}
+              disabled={isInitializing || engineInitialized}
+              className={`px-3 py-2 font-mono tracking-wider transition-colors border border-pm-border rounded ${engineInitialized
+                ? 'bg-green-500/20 text-green-500 cursor-default'
+                : isInitializing
+                  ? 'bg-yellow-500/20 text-yellow-500 cursor-wait'
+                  : 'bg-pm-border hover:bg-pm-accent hover:text-black cursor-pointer'
+                }`}
+            >
+              {engineInitialized ? 'Audio running' : isInitializing ? 'Starting…' : 'Start audio engine'}
+            </button>
+            <div className="text-pm-secondary">Unified: Strudel + Hydra → Audio + Visuals</div>
+          </div>
+          <div className="text-pm-secondary">Write both patterns and visuals in one editor!</div>
         </div>
       </header>
 
       {/* Main Workspace */}
       <div className="flex-1 flex relative">
 
-        {/* Left Pane: Code (Strudel) */}
+        {/* Left Pane: Unified Code Editor (Strudel + Hydra) */}
         <div className="w-1/2 h-full border-r border-pm-border flex flex-col">
-          <StrudelRepl className="flex-1" engineReady={engineInitialized} />
-
-          {/* Hydra Editor */}
-          <div className="h-1/2 border-t border-pm-border flex flex-col">
-            <HydraRepl
-              className="flex-1"
-              onExecute={handleHydraExecute}
-            />
-          </div>
+          <StrudelRepl
+            className="flex-1"
+            engineReady={engineInitialized}
+            onTestPattern={playTestPattern}
+            onHalt={hushAudio}
+            statusLabel="Unified: Strudel + Hydra"
+          />
         </div>
 
         {/* Right Pane: Visual Output */}
@@ -166,34 +178,32 @@ function App() {
             </button>
           </div>
 
-          {/* Visual mode selector */}
-          <div className="absolute top-4 left-4 z-10 flex gap-2">
-            <select
-              value={visualMode}
-              onChange={(e) => setVisualMode(e.target.value as 'default' | 'bass')}
-              className="bg-pm-panel text-pm-text border border-pm-border rounded px-2 py-1"
-            >
-              <option value="default">Default</option>
-              <option value="bass">Bass‑Responsive</option>
-            </select>
-          </div>
-
           <HydraCanvas
             className="w-full h-full"
-            audioContext={(window as any).replAudio}
-            audioData={audioData}
-            visualMode={visualMode}
+            audioContext={audioContext ?? (window as any).replAudio}
             onInit={handleHydraInit}
           />
 
-          {/* Overlay UI elements could go here */}
           <div className="absolute bottom-4 left-4 pointer-events-none">
-            <div className="text-xs text-pm-secondary opacity-50">
-              FPS: 60.0
-              <br />
-              RES: 1920x1080
+            <div className="text-xs text-pm-secondary opacity-70">
+              {hydraStatus}
             </div>
           </div>
+
+          {import.meta.env.DEV && (
+            <div className="absolute bottom-4 right-4 z-50 rounded bg-black/70 px-2 py-1 text-xs text-white pointer-events-none w-48">
+              <div className="flex items-center justify-between">
+                <span className="opacity-70">a.fft[0]</span>
+                <span>{hydraHudValue.toFixed(3)}</span>
+              </div>
+              <div className="mt-1 h-1.5 w-full bg-neutral-700 overflow-hidden rounded">
+                <div
+                  className="h-full bg-green-400"
+                  style={{ width: `${Math.min(100, Math.max(0, hydraHudValue * 100))}%` }}
+                />
+              </div>
+            </div>
+          )}
         </div>
 
       </div>
