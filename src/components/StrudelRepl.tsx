@@ -44,12 +44,7 @@ export default function StrudelRepl({ className, engineReady, onTestPattern, onH
         }
 
         try {
-            console.log("Evaluating code:", code);
-            console.log("Audio bridge status:", (window as any).a ? "Connected" : "Not connected");
-
-            // Use Strudel's built-in evaluate method - it handles everything
             await repl.evaluate(code);
-
         } catch (e) {
             console.error("Evaluation Error:", e);
         }

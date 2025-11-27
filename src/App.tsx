@@ -1,10 +1,8 @@
-import { useState, useEffect, useRef, useCallback } from 'react';
-import HydraCanvas from './components/HydraCanvas';
+import { useState, useEffect, useRef } from 'react';
 import StrudelRepl from './components/StrudelRepl';
 import { Monitor } from 'lucide-react';
 import './utils/patchSuperdough'; // MUST be imported BEFORE @strudel/web
 import { initStrudel } from '@strudel/web';
-import { type HydraBridge } from './utils/strudelHydraBridge';
 import { setBridgeInitializer } from './utils/patchSuperdough';
 
 function App() {
@@ -15,45 +13,29 @@ function App() {
   const [audioContext, setAudioContext] = useState<AudioContext | null>(null);
   const [hydraStatus, setHydraStatus] = useState('Hydra audio source: none');
   const [hydraHudValue, setHydraHudValue] = useState(0);
-  const [hydraReady, setHydraReady] = useState(false);
-  const hydraInstanceRef = useRef<any>(null);
   const strudelReplRef = useRef<any>(null);
-  const hydraBridgeRef = useRef<HydraBridge | null>(null);
   const hudAnimationRef = useRef<number | null>(null);
-
-  const handleHydraInit = useCallback((hydra: any) => {
-    hydraInstanceRef.current = hydra;
-    setHydraReady(true);
-  }, []);
 
   const startEngine = async () => {
     if (engineInitialized || isInitializing) return;
 
     setIsInitializing(true);
     try {
-      console.log('🎵 Step 1: Registering bridge initializer...');
-
-      // Register a callback that will be called when the patcher detects the AudioContext
+      // Register bridge initializer callback (invoked when audio first connects)
       setBridgeInitializer((audioContext) => {
-        console.log('🎹 Bridge initializer called with AudioContext:', audioContext);
         setAudioContext(audioContext);
         setHydraLinked(true);
         setHydraStatus('Hydra audio source: Strudel (a.fft)');
         (window as any).replAudio = audioContext;
       });
 
-      console.log('🎹 Step 2: Initializing Strudel (first connection will trigger bridge creation)...');
-
-      // Now initialize Strudel - the patcher will create the bridge on first connection
+      // Initialize Strudel (audio bridge created on first connection)
       const repl = await initStrudel({
         prebake: () => (window as any).samples('github:tidalcycles/dirt-samples')
       });
 
       (window as any).repl = repl;
       strudelReplRef.current = repl;
-
-      console.log('✅ Step 3: Strudel initialized - waiting for first audio connection...');
-
       setEngineInitialized(true);
     } catch (error) {
       console.error('Failed to initialize Strudel engine:', error);
@@ -66,19 +48,11 @@ function App() {
 
   // Placeholder for the pop-out logic
   const togglePopOut = () => {
-    // Implementation for pop-out window will go here
     setShowHydraWindow(!showHydraWindow);
     alert("Pop-out functionality coming in next phase!");
   };
 
-  // Cleanup bridge on unmount
-  useEffect(() => {
-    return () => {
-      hydraBridgeRef.current?.disconnect();
-      hydraBridgeRef.current = null;
-    };
-  }, []);
-
+  // HUD animation for dev mode
   useEffect(() => {
     if (!import.meta.env.DEV) return;
 

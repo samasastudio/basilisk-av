@@ -9,13 +9,20 @@ export type HydraBridge = {
 };
 
 /**
- * Creates a bridge that routes Strudel's audio through an AnalyserNode to provide
- * FFT data for Hydra's audio reactivity (a.fft[0-3]).
+ * Strudel → Hydra Audio Bridge
  *
- * This works by intercepting the AudioContext destination chain:
- * Strudel AudioWorklet -> GainNode -> AnalyserNode -> AudioContext.destination
+ * Routes Strudel's audio through an AnalyserNode to provide real-time frequency
+ * data for Hydra's audio-reactive visuals via window.a.fft[0-3].
  *
- * The AnalyserNode captures frequency data without affecting audio playback.
+ * Audio Flow:
+ * Strudel AudioWorklet → GainNode → AnalyserNode → AudioContext.destination
+ *                           ↑            ↓
+ *                      (intercept)   (analyze)
+ *                                      ↓
+ *                                  window.a.fft
+ *
+ * @param audioContext - The AudioContext from Strudel (must be the same instance)
+ * @returns Bridge object with analyser and gain nodes, or null on failure
  */
 export function initHydraBridge(audioContext: AudioContext): HydraBridge | null {
     if (!audioContext) {
@@ -23,17 +30,16 @@ export function initHydraBridge(audioContext: AudioContext): HydraBridge | null 
         return null;
     }
 
-    // Create the analyser node that will capture frequency data
+    // Create analyser to capture frequency data
     const analyser = audioContext.createAnalyser();
     analyser.fftSize = 1024;
     analyser.smoothingTimeConstant = 0.8;
 
-    // Create a gain node to sit between Strudel's output and the analyser
-    // This will be the new "destination" for Strudel's audio
+    // Create gain node as the interception point
     const gainNode = audioContext.createGain();
     gainNode.gain.value = 1.0;
 
-    // Connect the chain: GainNode -> AnalyserNode -> Destination
+    // Connect: GainNode → AnalyserNode → Destination
     gainNode.connect(analyser);
     analyser.connect(audioContext.destination);
 
@@ -57,7 +63,7 @@ export function initHydraBridge(audioContext: AudioContext): HydraBridge | null 
                 const slice = dataArray.slice(start, end);
                 const sum = slice.reduce((acc, val) => acc + val, 0);
                 const avg = slice.length ? sum / slice.length : 0;
-                return avg / 255; // normalize 0-1
+                return avg / 255; // Normalize to 0-1 range
             });
         },
         disconnect: () => {
@@ -66,22 +72,15 @@ export function initHydraBridge(audioContext: AudioContext): HydraBridge | null 
         }
     };
 
-    // Expose the audio object globally so Hydra code can access a.fft
+    // Expose globally for Hydra code to access
     (window as any).a = hydraAudio;
 
-    // Start the animation loop to continuously update FFT data
+    // Start continuous FFT updates
     const tick = () => {
         hydraAudio.tick();
         requestAnimationFrame(tick);
     };
     tick();
-
-    console.log('✅ Audio bridge initialized - Strudel audio will feed Hydra a.fft', {
-        analyser,
-        gainNode,
-        fftSize: analyser.fftSize,
-        frequencyBinCount: analyser.frequencyBinCount
-    });
 
     return hydraAudio;
 }
