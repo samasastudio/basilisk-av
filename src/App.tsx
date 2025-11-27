@@ -2,8 +2,10 @@ import { useState, useEffect, useRef, useCallback } from 'react';
 import HydraCanvas from './components/HydraCanvas';
 import StrudelRepl from './components/StrudelRepl';
 import { Monitor } from 'lucide-react';
+import './utils/patchSuperdough'; // MUST be imported BEFORE @strudel/web
 import { initStrudel } from '@strudel/web';
-import { initHydraBridge, type HydraBridge } from './utils/strudelHydraBridge';
+import { type HydraBridge } from './utils/strudelHydraBridge';
+import { setBridgeInitializer } from './utils/patchSuperdough';
 
 function App() {
   const [showHydraWindow, setShowHydraWindow] = useState(false);
@@ -29,6 +31,20 @@ function App() {
 
     setIsInitializing(true);
     try {
+      console.log('🎵 Step 1: Registering bridge initializer...');
+
+      // Register a callback that will be called when the patcher detects the AudioContext
+      setBridgeInitializer((audioContext) => {
+        console.log('🎹 Bridge initializer called with AudioContext:', audioContext);
+        setAudioContext(audioContext);
+        setHydraLinked(true);
+        setHydraStatus('Hydra audio source: Strudel (a.fft)');
+        (window as any).replAudio = audioContext;
+      });
+
+      console.log('🎹 Step 2: Initializing Strudel (first connection will trigger bridge creation)...');
+
+      // Now initialize Strudel - the patcher will create the bridge on first connection
       const repl = await initStrudel({
         prebake: () => (window as any).samples('github:tidalcycles/dirt-samples')
       });
@@ -36,32 +52,9 @@ function App() {
       (window as any).repl = repl;
       strudelReplRef.current = repl;
 
-      const sharedAudioContext = (repl as any).audioContext || (repl as any).context || new (window as any).AudioContext();
-      await sharedAudioContext.resume();
-      setAudioContext(sharedAudioContext);
-      (window as any).replAudio = sharedAudioContext;
-
-      // Initialize the audio bridge BEFORE any audio plays
-      // This intercepts the audio destination so we can analyze it for Hydra
-      const bridge = initHydraBridge(sharedAudioContext);
-      if (bridge) {
-        hydraBridgeRef.current = bridge;
-        setHydraLinked(true);
-        setHydraStatus('Hydra audio source: Strudel (a.fft)');
-        console.log('✅ Audio bridge ready - Hydra will react to Strudel audio');
-
-        // CRITICAL: Replace the AudioContext destination with our gain node
-        // This must be done BEFORE Strudel's AudioWorklet connects
-        // Strudel's supradough will connect to audioContext.destination
-        // We override destination to point to our gainNode instead
-        Object.defineProperty(sharedAudioContext, 'destination', {
-          get: () => bridge.gainNode,
-          configurable: true
-        });
-      }
+      console.log('✅ Step 3: Strudel initialized - waiting for first audio connection...');
 
       setEngineInitialized(true);
-      console.log('Strudel engine initialized successfully', repl, { sharedAudioContext });
     } catch (error) {
       console.error('Failed to initialize Strudel engine:', error);
       alert('Failed to initialize audio engine. Check console for details.');
