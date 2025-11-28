@@ -55,7 +55,7 @@ const transparentTheme = EditorView.theme({
     color: 'rgba(255, 255, 255, 0.65) !important'
   },
   '.cm-activeLineGutter': {
-    backgroundColor: 'rgba(255, 255, 255, 0.3) !important',
+    backgroundColor: 'rgba(255, 255, 255, 0.2) !important',
     borderRadius: '2px'
   },
   '.cm-activeLine': {
