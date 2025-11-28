@@ -67,3 +67,44 @@
   height: 100% !important;
   object-fit: cover !important;
 }
+
+/* CodeMirror glassmorphic gutter styling */
+.cm-editor .cm-gutters {
+  background-color: rgba(26, 26, 26, 0.85) !important; /* bg-basilisk-gray-900/85 */
+  backdrop-filter: blur(8px) !important;
+  border-right: 1px solid #3a3a3a !important; /* border-basilisk-gray-700 */
+  color: #aaaaaa !important; /* text-basilisk-gray-300 */
+}
+
+.cm-editor .cm-activeLineGutter {
+  background-color: rgba(42, 42, 42, 0.6) !important; /* bg-basilisk-gray-800/60 */
+}
+
+.cm-editor .cm-gutterElement {
+  color: #6a6a6a !important; /* text-basilisk-gray-500 */
+}
+
+.cm-editor .cm-activeLineGutter .cm-gutterElement {
+  color: #cacaca !important; /* text-basilisk-gray-200 */
+}
+
+/* CodeMirror editor background - subtle glassmorphism */
+.cm-editor {
+  background-color: transparent !important;
+}
+
+.cm-editor .cm-scroller {
+  background-color: rgba(10, 10, 10, 0.7) !important; /* bg-basilisk-near-black/70 */
+}
+
+.cm-editor .cm-content {
+  caret-color: #4d80cc !important; /* cursor color - accent-cool */
+}
+
+.cm-editor .cm-activeLine {
+  background-color: rgba(42, 42, 42, 0.3) !important; /* subtle highlight */
+}
+
+.cm-editor .cm-selectionBackground {
+  background-color: rgba(77, 128, 204, 0.2) !important; /* accent-cool selection */
+}
