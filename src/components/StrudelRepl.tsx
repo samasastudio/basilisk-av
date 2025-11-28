@@ -1,6 +1,7 @@
 import { useState } from 'react';
 import CodeMirror from '@uiw/react-codemirror';
 import { javascript } from '@codemirror/lang-javascript';
+import { EditorView } from '@codemirror/view';
 import { samples } from '@strudel/webaudio';
 import * as Strudel from '@strudel/core';
 import { initHydra, H } from '@strudel/hydra';
@@ -9,17 +10,55 @@ import Button from './ui/Button';
 // Expose Strudel functions globally for the REPL
 Object.assign(window, Strudel, { samples, initHydra, H });
 
-const defaultCode = `// Initialize Hydra (no microphone needed!)
-await initHydra()
+// Transparent glassmorphic theme for CodeMirror
+const transparentTheme = EditorView.theme({
+  '&': {
+    backgroundColor: 'transparent !important',
+    height: '100%'
+  },
+  '.cm-scroller': {
+    backgroundColor: 'transparent !important',
+    fontFamily: 'JetBrains Mono, Fira Code, SF Mono, Consolas, Monaco, monospace',
+    fontSize: '14px',
+    lineHeight: '1.6'
+  },
+  '.cm-gutters': {
+    backgroundColor: 'rgba(255, 255, 255, 0.05)',
+    color: 'rgba(255, 255, 255, 0.3)',
+    border: 'none'
+  },
+  '.cm-activeLineGutter': {
+    backgroundColor: 'rgba(255, 255, 255, 0.1)'
+  },
+  '.cm-activeLine': {
+    backgroundColor: 'rgba(255, 255, 255, 0.05)'
+  },
+  '.cm-content': {
+    caretColor: '#ffffff',
+    color: '#ffffff',
+    padding: '8px 0'
+  },
+  '.cm-cursor': {
+    borderLeftColor: '#ffffff'
+  },
+  '.cm-selectionBackground, &.cm-focused .cm-selectionBackground': {
+    backgroundColor: 'rgba(255, 255, 255, 0.2) !important'
+  }
+});
 
-// Minimal audio-reactive visual (Algorithmic Minimalism)
-osc(2, 0.02, 0)
-  .rotate(0.01)
-  .modulateScale(osc(0.5), () => a.fft[0] * 0.3)
+const defaultCode = `// Initialize Hydra
+await initHydra({
+  width: window.innerWidth,
+  height: window.innerHeight
+})
+
+// Slow breathing circle (Algorithmic Minimalism)
+osc(1, 0.01, 0.5)
+  .rotate(0.02)
   .out()
 
-// Strudel audio pattern
-s("bd sd, hh*4, ~ sd")`;
+// Audio pattern
+s("bd sd, hh*4")`;
 
 type Props = {
     className?: string;
@@ -63,50 +102,51 @@ export default function StrudelRepl({ className, engineReady, onTestPattern, onH
     };
 
     return (
-        <div className={`flex flex-col ${className}`}>
-            <div className="flex justify-between items-center px-4 py-2 bg-basilisk-gray-900/70 backdrop-blur-md border-b border-basilisk-gray-700/50 select-none shadow-lg">
-                <div className="flex items-center gap-2">
-                    <div className="w-2 h-2 rounded-full bg-basilisk-white"></div>
-                    <span className="font-sans font-medium text-sm text-basilisk-white">Editor</span>
-                </div>
+        <div className={`flex flex-col h-full w-full ${className || ''}`}>
+            <div className="drag-handle h-10 flex items-center justify-between px-3 bg-basilisk-gray-800/50 border-b border-basilisk-gray-700 cursor-move flex-shrink-0">
                 <div className="flex items-center gap-2 text-xs">
-                    <span className="px-2 py-1 rounded font-sans bg-basilisk-gray-800/50 text-basilisk-white border border-basilisk-gray-700 flex items-center gap-1.5">
-                        <span className="text-base leading-none">{engineReady ? '●' : '○'}</span>
-                        {statusLabel ?? (engineReady ? 'Engine: ready' : 'Engine: stopped')}
-                    </span>
-                    <Button
-                        onClick={runCode}
-                        disabled={!engineReady}
-                        variant="primary"
-                        size="sm"
-                    >
-                        Execute
+                    <span className="text-basilisk-gray-400">{engineReady ? '●' : '○'}</span>
+                    <span className="text-basilisk-gray-400">{statusLabel || 'Editor'}</span>
+                </div>
+                <div className="flex items-center gap-1.5">
+                    <Button onClick={runCode} disabled={!engineReady} variant="secondary" size="sm">
+                        Execute ▶
                     </Button>
-                    <Button
-                        onClick={stopCode}
-                        variant="secondary"
-                        size="sm"
-                    >
-                        Halt
+                    <Button onClick={stopCode} variant="secondary" size="sm">
+                        Halt ■
                     </Button>
-                    <Button
-                        onClick={onTestPattern}
-                        disabled={!engineReady}
-                        variant="secondary"
-                        size="sm"
-                    >
-                        Test
-                    </Button>
+                    {onTestPattern && (
+                        <Button onClick={onTestPattern} disabled={!engineReady} variant="secondary" size="sm">
+                            Test
+                        </Button>
+                    )}
                 </div>
             </div>
-            <div className="flex-1 overflow-hidden bg-basilisk-near-black/85 backdrop-blur-sm relative border-t border-basilisk-gray-800/30">
+            <div className="flex-1 overflow-hidden relative min-h-0">
                 <CodeMirror
                     value={code}
                     height="100%"
                     theme="dark"
-                    extensions={[javascript()]}
+                    extensions={[javascript(), transparentTheme]}
                     onChange={(val) => setCode(val)}
-                    className="h-full text-base font-mono"
+                    className="h-full font-mono"
+                    basicSetup={{
+                        lineNumbers: true,
+                        highlightActiveLineGutter: true,
+                        highlightActiveLine: true,
+                        foldGutter: false,
+                        drawSelection: true,
+                        dropCursor: true,
+                        allowMultipleSelections: true,
+                        indentOnInput: true,
+                        bracketMatching: true,
+                        closeBrackets: true,
+                        autocompletion: true,
+                        rectangularSelection: true,
+                        crosshairCursor: false,
+                        highlightSelectionMatches: false,
+                        syntaxHighlighting: true
+                    }}
                     onKeyDown={(e) => {
                         if (e.shiftKey && e.key === 'Enter') {
                             e.preventDefault();
