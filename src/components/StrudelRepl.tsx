@@ -23,22 +23,22 @@ const transparentTheme = EditorView.theme({
     lineHeight: '1.6',
     scrollbarWidth: 'thin',
     scrollbarColor: 'rgba(255, 255, 255, 0.1) transparent',
-    '&::-webkit-scrollbar': {
-      width: '8px',
-      height: '8px'
-    },
-    '&::-webkit-scrollbar-track': {
-      background: 'transparent'
-    },
-    '&::-webkit-scrollbar-thumb': {
-      backgroundColor: 'rgba(255, 255, 255, 0.1)',
-      borderRadius: '4px',
-      border: '2px solid transparent',
-      backgroundClip: 'padding-box'
-    },
-    '&::-webkit-scrollbar-thumb:hover': {
-      backgroundColor: 'rgba(255, 255, 255, 0.15)'
-    }
+  },
+  '.cm-scroller::-webkit-scrollbar': {
+    width: '8px',
+    height: '8px'
+  },
+  '.cm-scroller::-webkit-scrollbar-track': {
+    background: 'transparent'
+  },
+  '.cm-scroller::-webkit-scrollbar-thumb': {
+    backgroundColor: 'rgba(255, 255, 255, 0.1)',
+    borderRadius: '4px',
+    border: '2px solid transparent',
+    backgroundClip: 'padding-box'
+  },
+  '.cm-scroller::-webkit-scrollbar-thumb:hover': {
+    backgroundColor: 'rgba(255, 255, 255, 0.15)'
   },
   '.cm-gutters': {
     backgroundColor: 'transparent !important',
@@ -49,8 +49,6 @@ const transparentTheme = EditorView.theme({
   },
   '.cm-gutter, .cm-lineNumbers': {
     backgroundColor: 'rgba(15, 23, 42, 0.15) !important',
-    backdropFilter: 'blur(8px)',
-    WebkitBackdropFilter: 'blur(8px)',
     color: 'rgba(255, 255, 255, 0.65) !important'
   },
   '.cm-gutterElement': {
@@ -85,7 +83,7 @@ await initHydra({
   height: window.innerHeight
 })
 
-// Slow breathing circle (Algorithmic Minimalism)
+// Audio-reactive kaleidoscope (Algorithmic Minimalism)
 osc(3.762, () => (a.fft[3] * 0.05) + 0.01, -3.794)
     .rotate()
     .kaleid()
