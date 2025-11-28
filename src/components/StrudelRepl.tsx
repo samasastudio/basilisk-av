@@ -65,9 +65,12 @@ await initHydra({
 })
 
 // Slow breathing circle (Algorithmic Minimalism)
-osc(1, 0.01, 0.5)
-  .rotate(0.02)
-  .out()
+osc(3.762, () => (a.fft[3] * 0.05) + 0.01, -3.794)
+    .rotate()
+    .kaleid()
+    .colorama(() => a.fft[0] / 1e4)
+    .pixelate(128)
+    .out();
 
 // Audio pattern
 s("bd sd, hh*4")`;
