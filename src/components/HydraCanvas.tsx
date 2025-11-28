@@ -74,6 +74,17 @@ export default function HydraCanvas(props: Props) {
             }
         }
 
+        // Set up audio tick loop - this updates a.fft values every frame
+        let animationId: number;
+        const tickAudio = () => {
+            const a = (window as any).a;
+            if (a && typeof a.tick === 'function') {
+                a.tick();
+            }
+            animationId = requestAnimationFrame(tickAudio);
+        };
+        tickAudio();
+
         // Hydra initialized. Waiting for commands from REPL.
 
         const handleResize = () => {
@@ -87,6 +98,7 @@ export default function HydraCanvas(props: Props) {
         window.addEventListener('resize', handleResize);
         return () => {
             window.removeEventListener('resize', handleResize);
+            cancelAnimationFrame(animationId);
             // Hydra does not expose a formal destroy API; letting the instance be GC'd is fine.
         };
     }, [audioContext]);

@@ -3,29 +3,22 @@ import CodeMirror from '@uiw/react-codemirror';
 import { javascript } from '@codemirror/lang-javascript';
 import { samples } from '@strudel/webaudio';
 import * as Strudel from '@strudel/core';
+import { initHydra, H } from '@strudel/hydra';
 
 // Expose Strudel functions globally for the REPL
-Object.assign(window, Strudel, { samples });
+Object.assign(window, Strudel, { samples, initHydra, H });
 
-const defaultCode = `// BASILISK Audio-Visual Test
-// Strudel patterns + Hydra visuals in one place!
+const defaultCode = `// Initialize Hydra (no microphone needed!)
+await initHydra()
 
-// === AUDIO PATTERN ===
-// Drums with bass and snare
-s("bd sd, hh*8")
-  .bank("RolandTR808")
-  .gain(0.7)
-
-// === HYDRA VISUALS ===
-// Audio-reactive kaleidoscope
-osc(10, 0.1, 0.8)
-  .rotate(0.5, 0.1)
+// Audio-reactive visual - reacts to Strudel's output
+osc(10, 0.1, () => a.fft[0] * 2)
+  .rotate(() => a.fft[1], 0.1)
   .kaleid(4)
-  .color(1.0, 0.5, 0.8)
   .out()
 
-// To run: Click EXECUTE
-// Visuals will react to the beat!`;
+// Strudel audio pattern
+s("bd sd, hh*8, ~ sd")`;
 
 type Props = {
     className?: string;
@@ -51,18 +44,9 @@ export default function StrudelRepl({ className, engineReady, onTestPattern, onH
         }
 
         try {
-            console.log("Evaluating code:", code);
-            // Sanitize code: remove comments and trailing semicolon
-            const cleanCode = code
-                .replace(/\/\/.*$/gm, '') // Remove line comments
-                .replace(/\/\*[\s\S]*?\*\//g, '') // Remove block comments
-                .trim();
-
-            const finalCode = cleanCode.endsWith(';') ? cleanCode.slice(0, -1) : cleanCode;
-
-            repl.evaluate(finalCode);
+            await repl.evaluate(code);
         } catch (e) {
-            console.error("Strudel Error:", e);
+            console.error("Evaluation Error:", e);
         }
     };
 
