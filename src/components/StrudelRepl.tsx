@@ -20,23 +20,54 @@ const transparentTheme = EditorView.theme({
     backgroundColor: 'transparent !important',
     fontFamily: 'JetBrains Mono, Fira Code, SF Mono, Consolas, Monaco, monospace',
     fontSize: '14px',
-    lineHeight: '1.6'
+    lineHeight: '1.6',
+    scrollbarWidth: 'thin',
+    scrollbarColor: 'rgba(255, 255, 255, 0.1) transparent',
+  },
+  '.cm-scroller::-webkit-scrollbar': {
+    width: '8px',
+    height: '8px'
+  },
+  '.cm-scroller::-webkit-scrollbar-track': {
+    background: 'transparent'
+  },
+  '.cm-scroller::-webkit-scrollbar-thumb': {
+    backgroundColor: 'rgba(255, 255, 255, 0.1)',
+    borderRadius: '4px',
+    border: '2px solid transparent',
+    backgroundClip: 'padding-box'
+  },
+  '.cm-scroller::-webkit-scrollbar-thumb:hover': {
+    backgroundColor: 'rgba(255, 255, 255, 0.15)'
   },
   '.cm-gutters': {
-    backgroundColor: 'rgba(255, 255, 255, 0.05)',
-    color: 'rgba(255, 255, 255, 0.3)',
-    border: 'none'
+    backgroundColor: 'transparent !important',
+    backdropFilter: 'blur(8px)',
+    WebkitBackdropFilter: 'blur(8px)',
+    border: 'none',
+    borderRight: '1px solid rgba(71, 85, 105, 0.3)'
+  },
+  '.cm-gutter, .cm-lineNumbers': {
+    backgroundColor: 'rgba(15, 23, 42, 0.15) !important',
+    color: 'rgba(255, 255, 255, 0.65) !important'
+  },
+  '.cm-gutterElement': {
+    color: 'rgba(255, 255, 255, 0.65) !important'
   },
   '.cm-activeLineGutter': {
-    backgroundColor: 'rgba(255, 255, 255, 0.1)'
+    backgroundColor: 'rgba(255, 255, 255, 0.2) !important',
+    borderRadius: '2px'
   },
   '.cm-activeLine': {
     backgroundColor: 'rgba(255, 255, 255, 0.05)'
   },
   '.cm-content': {
     caretColor: '#ffffff',
-    color: '#ffffff',
+    color: 'rgba(255, 255, 255, 0.95)',
     padding: '8px 0'
+  },
+  '.cm-line': {
+    color: 'rgba(255, 255, 255, 0.95) !important'
   },
   '.cm-cursor': {
     borderLeftColor: '#ffffff'
@@ -52,10 +83,13 @@ await initHydra({
   height: window.innerHeight
 })
 
-// Slow breathing circle (Algorithmic Minimalism)
-osc(1, 0.01, 0.5)
-  .rotate(0.02)
-  .out()
+// Audio-reactive kaleidoscope (Algorithmic Minimalism)
+osc(3.762, () => (a.fft[3] * 0.05) + 0.01, -3.794)
+    .rotate()
+    .kaleid()
+    .colorama(() => a.fft[0] / 1e4)
+    .pixelate(128)
+    .out();
 
 // Audio pattern
 s("bd sd, hh*4")`;
