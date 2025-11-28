@@ -30,13 +30,13 @@ const transparentTheme = EditorView.theme({
     borderRight: '1px solid rgba(71, 85, 105, 0.3)'
   },
   '.cm-gutter, .cm-lineNumbers': {
-    backgroundColor: 'rgba(15, 23, 42, 0.6) !important',
+    backgroundColor: 'rgba(15, 23, 42, 0.3) !important',
     backdropFilter: 'blur(8px)',
     WebkitBackdropFilter: 'blur(8px)',
-    color: 'rgba(255, 255, 255, 0.4) !important'
+    color: 'rgba(255, 255, 255, 0.65) !important'
   },
   '.cm-gutterElement': {
-    color: 'rgba(255, 255, 255, 0.4) !important'
+    color: 'rgba(255, 255, 255, 0.65) !important'
   },
   '.cm-activeLineGutter': {
     backgroundColor: 'rgba(255, 255, 255, 0.08)',
@@ -47,8 +47,11 @@ const transparentTheme = EditorView.theme({
   },
   '.cm-content': {
     caretColor: '#ffffff',
-    color: '#ffffff',
+    color: 'rgba(255, 255, 255, 0.95)',
     padding: '8px 0'
+  },
+  '.cm-line': {
+    color: 'rgba(255, 255, 255, 0.95) !important'
   },
   '.cm-cursor': {
     borderLeftColor: '#ffffff'
