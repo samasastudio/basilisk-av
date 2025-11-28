@@ -2,19 +2,44 @@
 @tailwind components;
 @tailwind utilities;
 
-:root {
-  font-family: 'Fira Code', monospace;
-  background-color: #0a0a0a;
-  color: #e0e0e0;
+/* Custom base styles */
+@layer base {
+  body {
+    margin: 0;
+    padding: 0;
+    overflow: hidden; /* Prevent scrollbars for full-screen app */
+    background-color: #000000;
+    color: #FFFFFF;
+    font-family: 'Inter', system-ui, -apple-system, sans-serif;
+  }
+
+  code {
+    font-family: 'JetBrains Mono', 'Fira Code', 'SF Mono', 'Consolas', 'Monaco', monospace;
+  }
 }
 
-body {
-  margin: 0;
-  padding: 0;
-  overflow: hidden; /* Prevent scrollbars for full-screen app */
+/* Custom scrollbar (minimal) */
+@layer utilities {
+  .scrollbar-minimal::-webkit-scrollbar {
+    width: 8px;
+    height: 8px;
+  }
+
+  .scrollbar-minimal::-webkit-scrollbar-track {
+    background: #2a2a2a;
+  }
+
+  .scrollbar-minimal::-webkit-scrollbar-thumb {
+    background: #4a4a4a;
+    border-radius: 4px;
+  }
+
+  .scrollbar-minimal::-webkit-scrollbar-thumb:hover {
+    background: #6a6a6a;
+  }
 }
 
-/* Custom scrollbar for postmodern look */
+/* Global scrollbar styling */
 ::-webkit-scrollbar {
   width: 8px;
   height: 8px;
@@ -25,12 +50,12 @@ body {
 }
 
 ::-webkit-scrollbar-thumb {
-  background: #333;
+  background: #4a4a4a;
   border-radius: 4px;
 }
 
 ::-webkit-scrollbar-thumb:hover {
-  background: #555;
+  background: #6a6a6a;
 }
 
 /* Hydra canvas positioning */
