@@ -12,14 +12,14 @@ Object.assign(window, Strudel, { samples, initHydra, H });
 const defaultCode = `// Initialize Hydra (no microphone needed!)
 await initHydra()
 
-// Audio-reactive visual - reacts to Strudel's output
-osc(10, 0.1, () => a.fft[0] * 2)
-  .rotate(() => a.fft[1], 0.1)
-  .kaleid(4)
+// Minimal audio-reactive visual (Algorithmic Minimalism)
+osc(2, 0.02, 0)
+  .rotate(0.01)
+  .modulateScale(osc(0.5), () => a.fft[0] * 0.3)
   .out()
 
 // Strudel audio pattern
-s("bd sd, hh*8, ~ sd")`;
+s("bd sd, hh*4, ~ sd")`;
 
 type Props = {
     className?: string;
@@ -64,19 +64,20 @@ export default function StrudelRepl({ className, engineReady, onTestPattern, onH
 
     return (
         <div className={`flex flex-col ${className}`}>
-            <div className="flex justify-between items-center px-4 py-2 bg-basilisk-gray-900/85 backdrop-blur border-b border-basilisk-gray-700 select-none">
+            <div className="flex justify-between items-center px-4 py-2 bg-basilisk-gray-900/70 backdrop-blur-md border-b border-basilisk-gray-700/50 select-none shadow-lg">
                 <div className="flex items-center gap-2">
-                    <div className="w-2 h-2 rounded-full bg-basilisk-accent-cool"></div>
+                    <div className="w-2 h-2 rounded-full bg-basilisk-white"></div>
                     <span className="font-sans font-medium text-sm text-basilisk-white">Editor</span>
                 </div>
                 <div className="flex items-center gap-2 text-xs">
-                    <span className={`px-2 py-1 rounded font-sans ${engineReady ? 'bg-basilisk-success/20 text-basilisk-success' : 'bg-basilisk-warning/20 text-basilisk-warning'}`}>
+                    <span className="px-2 py-1 rounded font-sans bg-basilisk-gray-800/50 text-basilisk-white border border-basilisk-gray-700 flex items-center gap-1.5">
+                        <span className="text-base leading-none">{engineReady ? '●' : '○'}</span>
                         {statusLabel ?? (engineReady ? 'Engine: ready' : 'Engine: stopped')}
                     </span>
                     <Button
                         onClick={runCode}
                         disabled={!engineReady}
-                        variant="accent-cool"
+                        variant="primary"
                         size="sm"
                     >
                         Execute
@@ -98,7 +99,7 @@ export default function StrudelRepl({ className, engineReady, onTestPattern, onH
                     </Button>
                 </div>
             </div>
-            <div className="flex-1 overflow-hidden bg-basilisk-near-black relative">
+            <div className="flex-1 overflow-hidden bg-basilisk-near-black/85 backdrop-blur-sm relative border-t border-basilisk-gray-800/30">
                 <CodeMirror
                     value={code}
                     height="100%"

@@ -84,17 +84,19 @@ function App() {
   return (
     <div className="w-screen h-screen bg-basilisk-black text-basilisk-white overflow-hidden flex flex-col">
       {/* Header / Status Bar */}
-      <header className="bg-basilisk-gray-900/85 backdrop-blur border-b border-basilisk-gray-700 flex flex-col">
+      <header className="relative z-30 bg-basilisk-gray-900/70 backdrop-blur-md border-b border-basilisk-gray-700/50 flex flex-col shadow-lg">
         <div className="h-10 flex items-center justify-between px-4 select-none">
           <div className="flex items-center gap-4">
             <span className="font-sans font-semibold tracking-wider text-basilisk-white">BASILISK</span>
             <span className="text-xs text-basilisk-gray-400">v0.1.0-alpha</span>
           </div>
-          <div className="flex items-center gap-4 text-xs font-sans">
-            <span className={engineInitialized ? 'text-basilisk-success' : 'text-basilisk-error'}>
+          <div className="flex items-center gap-4 text-xs font-sans text-basilisk-white">
+            <span className="flex items-center gap-1.5">
+              <span className="text-base leading-none">{engineInitialized ? '●' : '○'}</span>
               Audio: {engineInitialized ? 'running' : 'stopped'}
             </span>
-            <span className={hydraLinked ? 'text-basilisk-success' : 'text-basilisk-warning'}>
+            <span className="flex items-center gap-1.5">
+              <span className="text-base leading-none">{hydraLinked ? '●' : '○'}</span>
               {hydraStatus}
             </span>
           </div>
@@ -104,11 +106,10 @@ function App() {
             <Button
               onClick={startEngine}
               disabled={isInitializing || engineInitialized}
-              variant={engineInitialized ? 'primary' : 'accent-cool'}
+              variant="primary"
               size="sm"
-              className={engineInitialized ? 'bg-basilisk-success/20 border-basilisk-success text-basilisk-success' : ''}
             >
-              {engineInitialized ? 'Audio running' : isInitializing ? 'Starting…' : 'Start audio engine'}
+              {engineInitialized ? '● Audio running' : isInitializing ? 'Starting…' : 'Start audio engine'}
             </Button>
             <div className="font-sans text-basilisk-gray-300">Unified: Strudel + Hydra → Audio + Visuals</div>
           </div>
@@ -116,59 +117,52 @@ function App() {
         </div>
       </header>
 
-      {/* Main Workspace */}
-      <div className="flex-1 flex relative">
+      {/* Full-screen Hydra Canvas (Background) */}
+      <div className="fixed inset-0 bg-basilisk-black" id="hydra-container">
+        {/* Strudel's initHydra() will inject a canvas with id="hydra-canvas" here */}
+        <div className="w-full h-full flex items-center justify-center text-basilisk-gray-400 text-sm font-sans pointer-events-none">
+          Run code with <code className="mx-1 px-2 py-1 bg-basilisk-gray-800/50 backdrop-blur rounded font-mono">await initHydra()</code> to start visuals
+        </div>
 
-        {/* Left Pane: Unified Code Editor (Strudel + Hydra) */}
-        <div className="w-1/2 h-full border-r border-basilisk-gray-700 flex flex-col">
+        {/* Pop-out button */}
+        <div className="absolute top-20 right-4 z-10 flex gap-2">
+          <button
+            onClick={togglePopOut}
+            className="p-2 bg-basilisk-gray-900/70 hover:bg-basilisk-gray-800/80 rounded backdrop-blur-md text-basilisk-white transition-colors duration-200 border border-basilisk-gray-700/50"
+            title="Pop Out Window"
+          >
+            <Monitor size={16} />
+          </button>
+        </div>
+
+        {/* HUD - Dev mode */}
+        {import.meta.env.DEV && (
+          <div className="absolute top-20 left-4 z-50 rounded bg-basilisk-gray-900/70 backdrop-blur-md border border-basilisk-gray-700/50 px-3 py-2 text-xs text-basilisk-white pointer-events-none">
+            <div className="flex items-center justify-between font-sans gap-3">
+              <span className="opacity-70">a.fft[0]</span>
+              <span className="font-mono">{hydraHudValue.toFixed(3)}</span>
+            </div>
+            <div className="mt-1.5 h-1.5 w-32 bg-basilisk-gray-700 overflow-hidden rounded">
+              <div
+                className="h-full bg-basilisk-white transition-all duration-200"
+                style={{ width: `${Math.min(100, Math.max(0, hydraHudValue * 100))}%` }}
+              />
+            </div>
+          </div>
+        )}
+      </div>
+
+      {/* Overlayed Code Editor (Bottom Panel) */}
+      <div className="fixed bottom-0 left-0 right-0 h-[45vh] z-20 pointer-events-none">
+        <div className="h-full pointer-events-auto">
           <StrudelRepl
-            className="flex-1"
+            className="flex-1 h-full"
             engineReady={engineInitialized}
             onTestPattern={playTestPattern}
             onHalt={hushAudio}
             statusLabel="Unified: Strudel + Hydra"
           />
         </div>
-
-        {/* Right Pane: Visual Output */}
-        <div className="w-1/2 h-full relative bg-basilisk-black" id="hydra-container">
-          <div className="absolute top-4 right-4 z-10 flex gap-2">
-            <button
-              onClick={togglePopOut}
-              className="p-2 bg-basilisk-gray-900/85 hover:bg-basilisk-accent-cool/50 rounded backdrop-blur text-basilisk-white transition-colors duration-200 border border-basilisk-gray-700"
-              title="Pop Out Window"
-            >
-              <Monitor size={16} />
-            </button>
-          </div>
-
-          {/* Strudel's initHydra() will inject a canvas with id="hydra-canvas" here */}
-          <div className="w-full h-full flex items-center justify-center text-basilisk-gray-400 text-sm font-sans">
-            Run code with <code className="mx-1 px-2 py-1 bg-basilisk-gray-800 rounded font-mono">await initHydra()</code> to start visuals
-          </div>
-
-          <div className="absolute bottom-4 left-4 pointer-events-none">
-            <div className="text-xs font-sans text-basilisk-gray-300 opacity-70">
-              {hydraStatus}
-            </div>
-          </div>
-
-          {import.meta.env.DEV && (
-            <div className="absolute bottom-4 right-4 z-50 rounded bg-basilisk-gray-900/85 backdrop-blur border border-basilisk-gray-700 px-2 py-1 text-xs text-basilisk-white pointer-events-none w-48">
-              <div className="flex items-center justify-between font-sans">
-                <span className="opacity-70">a.fft[0]</span>
-                <span className="font-mono">{hydraHudValue.toFixed(3)}</span>
-              </div>
-              <div className="mt-1 h-1.5 w-full bg-basilisk-gray-700 overflow-hidden rounded">
-                <div
-                  className="h-full bg-basilisk-success transition-all duration-200"
-                  style={{ width: `${Math.min(100, Math.max(0, hydraHudValue * 100))}%` }}
-                />
-              </div>
-            </div>
-          )}
-        </div>
-
       </div>
     </div>
   );

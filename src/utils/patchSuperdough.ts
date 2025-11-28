@@ -21,7 +21,7 @@ if (typeof window !== 'undefined') {
     let interceptedContext: AudioContext | null = null;
     let bridge: HydraBridge | null = null;
 
-    AudioNode.prototype.connect = function(this: AudioNode, ...args: any[]) {
+    AudioNode.prototype.connect = function(this: AudioNode, ...args: any[]): any {
         const destination = args[0];
 
         // Detect connections to AudioContext destination
@@ -42,7 +42,9 @@ if (typeof window !== 'undefined') {
 
             // Redirect all audio to flow through the analyser
             if (bridge && ctx === interceptedContext) {
-                return originalConnect.call(this, bridge.gainNode);
+                // Connect to gainNode instead of destination (with proper parameters)
+                // @ts-ignore - Complex overload handling for AudioNode.connect
+                return originalConnect.call(this, bridge.gainNode, args[1], args[2]);
             }
         }
 
