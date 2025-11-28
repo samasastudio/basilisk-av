@@ -1,5 +1,6 @@
 import { useState, useEffect, useRef } from 'react';
 import StrudelRepl from './components/StrudelRepl';
+import Button from './components/ui/Button';
 import { Monitor } from 'lucide-react';
 import './utils/patchSuperdough'; // MUST be imported BEFORE @strudel/web
 import { initStrudel } from '@strudel/web';
@@ -10,7 +11,7 @@ function App() {
   const [engineInitialized, setEngineInitialized] = useState(false);
   const [isInitializing, setIsInitializing] = useState(false);
   const [hydraLinked, setHydraLinked] = useState(false);
-  const [audioContext, setAudioContext] = useState<AudioContext | null>(null);
+  const [, setAudioContext] = useState<AudioContext | null>(null);
   const [hydraStatus, setHydraStatus] = useState('Hydra audio source: none');
   const [hydraHudValue, setHydraHudValue] = useState(0);
   const strudelReplRef = useRef<any>(null);
@@ -81,40 +82,37 @@ function App() {
   };
 
   return (
-    <div className="w-screen h-screen bg-pm-bg text-pm-text overflow-hidden flex flex-col font-mono">
+    <div className="w-screen h-screen bg-basilisk-black text-basilisk-white overflow-hidden flex flex-col">
       {/* Header / Status Bar */}
-      <header className="bg-pm-panel border-b border-pm-border flex flex-col">
+      <header className="bg-basilisk-gray-900/85 backdrop-blur border-b border-basilisk-gray-700 flex flex-col">
         <div className="h-10 flex items-center justify-between px-4 select-none">
           <div className="flex items-center gap-4">
-            <span className="text-pm-secondary font-bold tracking-widest">BASILISK</span>
-            <span className="text-xs text-gray-500">v0.1.0-alpha</span>
+            <span className="font-sans font-semibold tracking-wider text-basilisk-white">BASILISK</span>
+            <span className="text-xs text-basilisk-gray-400">v0.1.0-alpha</span>
           </div>
-          <div className="flex items-center gap-4 text-xs">
-            <span className={engineInitialized ? 'text-green-400' : 'text-red-400'}>
+          <div className="flex items-center gap-4 text-xs font-sans">
+            <span className={engineInitialized ? 'text-basilisk-success' : 'text-basilisk-error'}>
               Audio: {engineInitialized ? 'running' : 'stopped'}
             </span>
-            <span className={hydraLinked ? 'text-green-400' : 'text-yellow-400'}>
+            <span className={hydraLinked ? 'text-basilisk-success' : 'text-basilisk-warning'}>
               {hydraStatus}
             </span>
           </div>
         </div>
         <div className="flex items-center justify-between px-4 pb-2 text-xs gap-4">
           <div className="flex items-center gap-2">
-            <button
+            <Button
               onClick={startEngine}
               disabled={isInitializing || engineInitialized}
-              className={`px-3 py-2 font-mono tracking-wider transition-colors border border-pm-border rounded ${engineInitialized
-                ? 'bg-green-500/20 text-green-500 cursor-default'
-                : isInitializing
-                  ? 'bg-yellow-500/20 text-yellow-500 cursor-wait'
-                  : 'bg-pm-border hover:bg-pm-accent hover:text-black cursor-pointer'
-                }`}
+              variant={engineInitialized ? 'primary' : 'accent-cool'}
+              size="sm"
+              className={engineInitialized ? 'bg-basilisk-success/20 border-basilisk-success text-basilisk-success' : ''}
             >
               {engineInitialized ? 'Audio running' : isInitializing ? 'Starting…' : 'Start audio engine'}
-            </button>
-            <div className="text-pm-secondary">Unified: Strudel + Hydra → Audio + Visuals</div>
+            </Button>
+            <div className="font-sans text-basilisk-gray-300">Unified: Strudel + Hydra → Audio + Visuals</div>
           </div>
-          <div className="text-pm-secondary">Write both patterns and visuals in one editor!</div>
+          <div className="font-sans text-basilisk-gray-300">Write both patterns and visuals in one editor!</div>
         </div>
       </header>
 
@@ -122,7 +120,7 @@ function App() {
       <div className="flex-1 flex relative">
 
         {/* Left Pane: Unified Code Editor (Strudel + Hydra) */}
-        <div className="w-1/2 h-full border-r border-pm-border flex flex-col">
+        <div className="w-1/2 h-full border-r border-basilisk-gray-700 flex flex-col">
           <StrudelRepl
             className="flex-1"
             engineReady={engineInitialized}
@@ -133,11 +131,11 @@ function App() {
         </div>
 
         {/* Right Pane: Visual Output */}
-        <div className="w-1/2 h-full relative bg-black" id="hydra-container">
+        <div className="w-1/2 h-full relative bg-basilisk-black" id="hydra-container">
           <div className="absolute top-4 right-4 z-10 flex gap-2">
             <button
               onClick={togglePopOut}
-              className="p-2 bg-black/50 hover:bg-pm-accent/50 rounded backdrop-blur text-white transition-colors"
+              className="p-2 bg-basilisk-gray-900/85 hover:bg-basilisk-accent-cool/50 rounded backdrop-blur text-basilisk-white transition-colors duration-200 border border-basilisk-gray-700"
               title="Pop Out Window"
             >
               <Monitor size={16} />
@@ -145,25 +143,25 @@ function App() {
           </div>
 
           {/* Strudel's initHydra() will inject a canvas with id="hydra-canvas" here */}
-          <div className="w-full h-full flex items-center justify-center text-gray-500 text-sm">
-            Run code with <code className="mx-1 px-2 py-1 bg-gray-800 rounded">await initHydra()</code> to start visuals
+          <div className="w-full h-full flex items-center justify-center text-basilisk-gray-400 text-sm font-sans">
+            Run code with <code className="mx-1 px-2 py-1 bg-basilisk-gray-800 rounded font-mono">await initHydra()</code> to start visuals
           </div>
 
           <div className="absolute bottom-4 left-4 pointer-events-none">
-            <div className="text-xs text-pm-secondary opacity-70">
+            <div className="text-xs font-sans text-basilisk-gray-300 opacity-70">
               {hydraStatus}
             </div>
           </div>
 
           {import.meta.env.DEV && (
-            <div className="absolute bottom-4 right-4 z-50 rounded bg-black/70 px-2 py-1 text-xs text-white pointer-events-none w-48">
-              <div className="flex items-center justify-between">
+            <div className="absolute bottom-4 right-4 z-50 rounded bg-basilisk-gray-900/85 backdrop-blur border border-basilisk-gray-700 px-2 py-1 text-xs text-basilisk-white pointer-events-none w-48">
+              <div className="flex items-center justify-between font-sans">
                 <span className="opacity-70">a.fft[0]</span>
-                <span>{hydraHudValue.toFixed(3)}</span>
+                <span className="font-mono">{hydraHudValue.toFixed(3)}</span>
               </div>
-              <div className="mt-1 h-1.5 w-full bg-neutral-700 overflow-hidden rounded">
+              <div className="mt-1 h-1.5 w-full bg-basilisk-gray-700 overflow-hidden rounded">
                 <div
-                  className="h-full bg-green-400"
+                  className="h-full bg-basilisk-success transition-all duration-200"
                   style={{ width: `${Math.min(100, Math.max(0, hydraHudValue * 100))}%` }}
                 />
               </div>

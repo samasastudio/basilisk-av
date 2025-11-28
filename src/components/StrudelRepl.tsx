@@ -4,6 +4,7 @@ import { javascript } from '@codemirror/lang-javascript';
 import { samples } from '@strudel/webaudio';
 import * as Strudel from '@strudel/core';
 import { initHydra, H } from '@strudel/hydra';
+import Button from './ui/Button';
 
 // Expose Strudel functions globally for the REPL
 Object.assign(window, Strudel, { samples, initHydra, H });
@@ -63,52 +64,48 @@ export default function StrudelRepl({ className, engineReady, onTestPattern, onH
 
     return (
         <div className={`flex flex-col ${className}`}>
-            <div className="flex justify-between items-center p-2 bg-pm-panel border-b border-pm-border select-none">
+            <div className="flex justify-between items-center px-4 py-2 bg-basilisk-gray-900/85 backdrop-blur border-b border-basilisk-gray-700 select-none">
                 <div className="flex items-center gap-2">
-                    <div className="w-3 h-3 rounded-full bg-red-500/50"></div>
-                    <span className="text-pm-accent font-mono text-sm tracking-wider">STRUDEL_CORE</span>
+                    <div className="w-2 h-2 rounded-full bg-basilisk-accent-cool"></div>
+                    <span className="font-sans font-medium text-sm text-basilisk-white">Editor</span>
                 </div>
-                <div className="flex items-center gap-2 font-mono text-xs">
-                    <span className={`px-2 py-1 rounded ${engineReady ? 'bg-green-500/20 text-green-400' : 'bg-yellow-500/20 text-yellow-300'}`}>
+                <div className="flex items-center gap-2 text-xs">
+                    <span className={`px-2 py-1 rounded font-sans ${engineReady ? 'bg-basilisk-success/20 text-basilisk-success' : 'bg-basilisk-warning/20 text-basilisk-warning'}`}>
                         {statusLabel ?? (engineReady ? 'Engine: ready' : 'Engine: stopped')}
                     </span>
-                    <button
+                    <Button
                         onClick={runCode}
                         disabled={!engineReady}
-                        title={engineReady ? 'Execute code (Shift+Enter)' : 'Please start the engine first'}
-                        className={`px-3 py-1 transition-colors border border-pm-border ${engineReady
-                            ? 'bg-pm-border hover:bg-pm-accent hover:text-black cursor-pointer'
-                            : 'bg-pm-border/50 text-gray-600 cursor-not-allowed'
-                            }`}
+                        variant="accent-cool"
+                        size="sm"
                     >
-                        EXECUTE
-                    </button>
-                    <button
+                        Execute
+                    </Button>
+                    <Button
                         onClick={stopCode}
-                        className="px-3 py-1 bg-pm-border hover:bg-red-500 hover:text-black transition-colors border border-pm-border"
+                        variant="secondary"
+                        size="sm"
                     >
-                        HALT
-                    </button>
-                    <button
+                        Halt
+                    </Button>
+                    <Button
                         onClick={onTestPattern}
                         disabled={!engineReady}
-                        className={`px-3 py-1 transition-colors border border-pm-border ${engineReady
-                            ? 'bg-pm-border hover:bg-pm-accent hover:text-black cursor-pointer'
-                            : 'bg-pm-border/50 text-gray-600 cursor-not-allowed'
-                            }`}
+                        variant="secondary"
+                        size="sm"
                     >
-                        Debug: Play test pattern
-                    </button>
+                        Test
+                    </Button>
                 </div>
             </div>
-            <div className="flex-1 overflow-hidden bg-pm-bg relative">
+            <div className="flex-1 overflow-hidden bg-basilisk-near-black relative">
                 <CodeMirror
                     value={code}
                     height="100%"
                     theme="dark"
                     extensions={[javascript()]}
                     onChange={(val) => setCode(val)}
-                    className="h-full text-sm font-mono"
+                    className="h-full text-base font-mono"
                     onKeyDown={(e) => {
                         if (e.shiftKey && e.key === 'Enter') {
                             e.preventDefault();

@@ -1,8 +1,13 @@
 {
   "permissions": {
     "allow": [
+      "Bash(git fetch:*)",
+      "Bash(git merge:*)",
+      "Bash(git stash:*)",
+      "Bash(npm run dev:*)",
       "Bash(npm install:*)",
-      "Bash(npm run dev:*)"
+      "Bash(timeout:*)",
+      "Bash(npm run build:*)"
     ],
     "deny": [],
     "ask": []
