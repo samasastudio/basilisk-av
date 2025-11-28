@@ -132,8 +132,8 @@ function App() {
       <Rnd
         position={replPosition}
         size={replSize}
-        onDragStop={(e, d) => setReplPosition({ x: d.x, y: d.y })}
-        onResizeStop={(e, direction, ref, delta, position) => {
+        onDragStop={(_e, d) => setReplPosition({ x: d.x, y: d.y })}
+        onResizeStop={(_e, _direction, ref, _delta, position) => {
           setReplSize({
             width: parseInt(ref.style.width),
             height: parseInt(ref.style.height)

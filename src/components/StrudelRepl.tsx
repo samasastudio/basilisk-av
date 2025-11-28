@@ -23,12 +23,16 @@ const transparentTheme = EditorView.theme({
     lineHeight: '1.6'
   },
   '.cm-gutters': {
-    backgroundColor: 'rgba(255, 255, 255, 0.05)',
-    color: 'rgba(255, 255, 255, 0.3)',
-    border: 'none'
+    backgroundColor: 'rgba(15, 23, 42, 0.6)',
+    backdropFilter: 'blur(8px)',
+    WebkitBackdropFilter: 'blur(8px)',
+    color: 'rgba(255, 255, 255, 0.4)',
+    border: 'none',
+    borderRight: '1px solid rgba(71, 85, 105, 0.3)'
   },
   '.cm-activeLineGutter': {
-    backgroundColor: 'rgba(255, 255, 255, 0.1)'
+    backgroundColor: 'rgba(255, 255, 255, 0.08)',
+    borderRadius: '2px'
   },
   '.cm-activeLine': {
     backgroundColor: 'rgba(255, 255, 255, 0.05)'
