@@ -1,7 +1,7 @@
 interface ButtonProps {
   children: React.ReactNode;
   onClick?: () => void;
-  variant?: 'primary' | 'secondary' | 'accent-cool' | 'accent-warm';
+  variant?: 'primary' | 'secondary' | 'ghost';
   size?: 'sm' | 'md' | 'lg';
   disabled?: boolean;
   className?: string;
@@ -20,8 +20,7 @@ const Button = ({
   const variants = {
     primary: "bg-basilisk-gray-800 hover:bg-basilisk-gray-700 text-basilisk-white border-basilisk-gray-700",
     secondary: "bg-transparent hover:bg-basilisk-gray-800/50 text-basilisk-gray-100 border-basilisk-gray-700",
-    'accent-cool': "bg-basilisk-accent-cool-muted hover:bg-basilisk-accent-cool text-basilisk-white border-basilisk-accent-cool",
-    'accent-warm': "bg-basilisk-accent-warm-muted hover:bg-basilisk-accent-warm text-basilisk-white border-basilisk-accent-warm",
+    ghost: "bg-transparent hover:bg-basilisk-white/10 text-basilisk-white border-basilisk-gray-600",
   };
 
   const sizes = {
