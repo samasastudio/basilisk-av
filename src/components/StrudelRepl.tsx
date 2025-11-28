@@ -20,7 +20,25 @@ const transparentTheme = EditorView.theme({
     backgroundColor: 'transparent !important',
     fontFamily: 'JetBrains Mono, Fira Code, SF Mono, Consolas, Monaco, monospace',
     fontSize: '14px',
-    lineHeight: '1.6'
+    lineHeight: '1.6',
+    scrollbarWidth: 'thin',
+    scrollbarColor: 'rgba(255, 255, 255, 0.1) transparent',
+    '&::-webkit-scrollbar': {
+      width: '8px',
+      height: '8px'
+    },
+    '&::-webkit-scrollbar-track': {
+      background: 'transparent'
+    },
+    '&::-webkit-scrollbar-thumb': {
+      backgroundColor: 'rgba(255, 255, 255, 0.1)',
+      borderRadius: '4px',
+      border: '2px solid transparent',
+      backgroundClip: 'padding-box'
+    },
+    '&::-webkit-scrollbar-thumb:hover': {
+      backgroundColor: 'rgba(255, 255, 255, 0.15)'
+    }
   },
   '.cm-gutters': {
     backgroundColor: 'transparent !important',
