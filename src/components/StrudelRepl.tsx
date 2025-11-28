@@ -30,7 +30,7 @@ const transparentTheme = EditorView.theme({
     borderRight: '1px solid rgba(71, 85, 105, 0.3)'
   },
   '.cm-gutter, .cm-lineNumbers': {
-    backgroundColor: 'rgba(15, 23, 42, 0.3) !important',
+    backgroundColor: 'rgba(15, 23, 42, 0.15) !important',
     backdropFilter: 'blur(8px)',
     WebkitBackdropFilter: 'blur(8px)',
     color: 'rgba(255, 255, 255, 0.65) !important'
