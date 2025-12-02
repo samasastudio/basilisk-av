@@ -99,10 +99,11 @@ type Props = {
     engineReady: boolean;
     onTestPattern?: () => void;
     onHalt?: () => void;
+    onExecute?: () => void;
     statusLabel?: string;
 };
 
-export default function StrudelRepl({ className, engineReady, onTestPattern, onHalt, statusLabel }: Props) {
+export default function StrudelRepl({ className, engineReady, onTestPattern, onHalt, onExecute, statusLabel }: Props) {
     const [code, setCode] = useState(defaultCode);
 
     const runCode = async () => {
@@ -119,6 +120,9 @@ export default function StrudelRepl({ className, engineReady, onTestPattern, onH
 
         try {
             await repl.evaluate(code);
+            if (onExecute) {
+                onExecute();
+            }
         } catch (e) {
             console.error("Evaluation Error:", e);
         }

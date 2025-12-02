@@ -13,6 +13,7 @@ function App() {
   const [, setAudioContext] = useState<AudioContext | null>(null);
   const [hydraStatus, setHydraStatus] = useState('none');
   const [hydraHudValue, setHydraHudValue] = useState(0);
+  const [hasExecutedCode, setHasExecutedCode] = useState(false);
   const strudelReplRef = useRef<any>(null);
   const hudAnimationRef = useRef<number | null>(null);
 
@@ -81,9 +82,11 @@ function App() {
     <div className="w-screen h-screen bg-basilisk-black text-basilisk-white overflow-hidden relative">
       {/* LAYER 1: Full-screen Hydra Canvas (Background - z-0) */}
       <div className="fixed inset-0 z-0 bg-basilisk-black" id="hydra-container">
-        <div className="w-full h-full flex items-center justify-center text-basilisk-gray-400 text-sm font-sans pointer-events-none">
-          Run code with <code className="mx-1 px-2 py-1 bg-basilisk-gray-800 rounded font-mono">await initHydra()</code> to start visuals
-        </div>
+        {!hasExecutedCode && (
+          <div className="w-full h-full flex items-center justify-center text-basilisk-gray-400 text-sm font-sans pointer-events-none">
+            Run code with <code className="mx-1 px-2 py-1 bg-basilisk-gray-800 rounded font-mono">await initHydra()</code> to start visuals
+          </div>
+        )}
 
         {/* Dev HUD */}
         {import.meta.env.DEV && (
@@ -153,6 +156,7 @@ function App() {
             engineReady={engineInitialized}
             onTestPattern={playTestPattern}
             onHalt={hushAudio}
+            onExecute={() => setHasExecutedCode(true)}
             statusLabel={engineInitialized ? 'ready' : 'stopped'}
           />
         </div>
