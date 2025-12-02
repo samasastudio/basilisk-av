@@ -99,9 +99,6 @@ describe('strudelHydraBridge', () => {
   it('tick method updates FFT values', () => {
     const bridge = initHydraBridge(mockAudioContext);
 
-    // Get initial FFT values
-    const initialFFT = [...bridge!.fft];
-
     // Manually call tick (in real app, this is called by requestAnimationFrame)
     bridge?.tick();
 
