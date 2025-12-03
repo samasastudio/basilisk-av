@@ -1,4 +1,4 @@
-import { useState, useEffect } from 'react';
+import { useState } from 'react';
 import type { DraggableData, ResizableDelta, Position } from 'react-rnd';
 
 // Default REPL window constraints
@@ -19,30 +19,21 @@ interface WindowBounds {
 }
 
 /**
- * Calculate responsive bounds based on current viewport size
+ * Static bounds configuration for REPL window.
+ * Uses viewport units (vw/vh) which are automatically responsive to window resizing.
+ * No reactive state needed - the browser/Rnd handles viewport unit recalculation.
  */
-function calculateBounds(): WindowBounds {
-  if (typeof window === 'undefined') {
-    return {
-      minWidth: DEFAULT_MIN_WIDTH,
-      minHeight: DEFAULT_MIN_HEIGHT,
-      maxWidth: '90vw',
-      maxHeight: '90vh',
-    };
-  }
-
-  return {
-    minWidth: DEFAULT_MIN_WIDTH,
-    minHeight: DEFAULT_MIN_HEIGHT,
-    maxWidth: '90vw',
-    maxHeight: '90vh',
-  };
-}
+const WINDOW_BOUNDS: WindowBounds = {
+  minWidth: DEFAULT_MIN_WIDTH,
+  minHeight: DEFAULT_MIN_HEIGHT,
+  maxWidth: '90vw',
+  maxHeight: '90vh',
+};
 
 /**
  * Hook for managing REPL window position, size, and bounds.
  * Handles drag and resize interactions for the floating REPL panel.
- * Automatically updates bounds when the browser window is resized.
+ * Bounds use viewport units and are automatically responsive without reactive state.
  *
  * @returns Object containing position, size, bounds, and event handlers
  */
@@ -52,17 +43,6 @@ export function useREPLWindow() {
 
   const [position, setPosition] = useState<Position>({ x: DEFAULT_MARGIN, y: initialY });
   const [size, setSize] = useState({ width: DEFAULT_WIDTH, height: DEFAULT_HEIGHT });
-  const [bounds, setBounds] = useState<WindowBounds>(calculateBounds);
-
-  // Update bounds when window is resized
-  useEffect(() => {
-    const handleWindowResize = () => {
-      setBounds(calculateBounds());
-    };
-
-    window.addEventListener('resize', handleWindowResize);
-    return () => window.removeEventListener('resize', handleWindowResize);
-  }, []);
 
   /**
    * Handle drag stop event from react-rnd
@@ -91,7 +71,7 @@ export function useREPLWindow() {
   return {
     position,
     size,
-    bounds,
+    bounds: WINDOW_BOUNDS,
     handleDragStop,
     handleResizeStop,
   };
