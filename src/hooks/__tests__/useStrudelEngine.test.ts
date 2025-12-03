@@ -28,9 +28,11 @@ describe('useStrudelEngine', () => {
     expect(result.current.isInitializing).toBe(false);
     expect(result.current.hydraLinked).toBe(false);
     expect(result.current.hydraStatus).toBe('none');
+    expect(result.current.initError).toBe(null);
     expect(result.current.startEngine).toBeInstanceOf(Function);
     expect(result.current.playTestPattern).toBeInstanceOf(Function);
     expect(result.current.hushAudio).toBeInstanceOf(Function);
+    expect(result.current.resetError).toBeInstanceOf(Function);
   });
 
   it('starts engine initialization when startEngine is called', async () => {
@@ -159,6 +161,9 @@ describe('useStrudelEngine', () => {
     // Should not be initialized
     expect(result.current.engineInitialized).toBe(false);
     expect(result.current.isInitializing).toBe(false);
+
+    // Should capture error message
+    expect(result.current.initError).toBe('Failed to initialize');
 
     // Should log error and alert user
     expect(consoleErrorSpy).toHaveBeenCalledWith('Failed to initialize Strudel engine:', error);
@@ -307,5 +312,77 @@ describe('useStrudelEngine', () => {
     act(() => {
       result.current.hushAudio();
     });
+  });
+
+  it('resetError clears error state and allows retry', async () => {
+    const consoleErrorSpy = vi.spyOn(console, 'error').mockImplementation(() => {});
+    const alertSpy = vi.spyOn(window, 'alert').mockImplementation(() => {});
+
+    const error = new Error('Network error');
+    const mockRepl = { evaluate: vi.fn(), stop: vi.fn() };
+
+    // First attempt fails
+    vi.mocked(initStrudel).mockRejectedValueOnce(error);
+
+    const { result } = renderHook(() => useStrudelEngine());
+
+    // Initial failure
+    await act(async () => {
+      await result.current.startEngine();
+    });
+
+    expect(result.current.initError).toBe('Network error');
+    expect(result.current.engineInitialized).toBe(false);
+
+    // Reset error
+    act(() => {
+      result.current.resetError();
+    });
+
+    expect(result.current.initError).toBe(null);
+
+    // Second attempt succeeds
+    vi.mocked(initStrudel).mockResolvedValueOnce(mockRepl);
+
+    await act(async () => {
+      await result.current.startEngine();
+    });
+
+    expect(result.current.initError).toBe(null);
+    expect(result.current.engineInitialized).toBe(true);
+
+    consoleErrorSpy.mockRestore();
+    alertSpy.mockRestore();
+  });
+
+  it('clears previous error when retrying initialization', async () => {
+    const consoleErrorSpy = vi.spyOn(console, 'error').mockImplementation(() => {});
+    const alertSpy = vi.spyOn(window, 'alert').mockImplementation(() => {});
+
+    const mockRepl = { evaluate: vi.fn(), stop: vi.fn() };
+
+    // First attempt fails
+    vi.mocked(initStrudel).mockRejectedValueOnce(new Error('First error'));
+
+    const { result } = renderHook(() => useStrudelEngine());
+
+    await act(async () => {
+      await result.current.startEngine();
+    });
+
+    expect(result.current.initError).toBe('First error');
+
+    // Second attempt succeeds - should clear error automatically
+    vi.mocked(initStrudel).mockResolvedValueOnce(mockRepl);
+
+    await act(async () => {
+      await result.current.startEngine();
+    });
+
+    expect(result.current.initError).toBe(null);
+    expect(result.current.engineInitialized).toBe(true);
+
+    consoleErrorSpy.mockRestore();
+    alertSpy.mockRestore();
   });
 });

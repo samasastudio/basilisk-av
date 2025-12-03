@@ -28,13 +28,28 @@ export interface HydraBridge {
   disconnect: () => void;
 }
 
+/**
+ * Strudel REPL instance interface
+ * Provides code evaluation and audio control
+ */
+export interface StrudelRepl {
+  /** Evaluate Strudel pattern code */
+  evaluate?: (code: string) => void;
+
+  /** Stop all audio playback */
+  stop?: () => void;
+}
+
 declare global {
   interface Window {
     /** Hydra audio bridge for audio-reactive visuals */
     a?: HydraBridge;
 
     /** Strudel REPL instance */
-    repl?: any;
+    repl?: StrudelRepl;
+
+    /** Strudel audio context (from bridge initialization) */
+    replAudio?: AudioContext;
 
     /** Strudel samples loader */
     samples?: (url: string) => Promise<any>;
