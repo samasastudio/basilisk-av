@@ -1,4 +1,5 @@
 import { useSyncExternalStore } from 'react';
+import '../types/hydra';
 
 /**
  * Hook for managing the Hydra HUD (Heads-Up Display) in development mode.
@@ -21,6 +22,9 @@ export function useHydraHUD() {
 /**
  * Subscribe to FFT updates via requestAnimationFrame.
  * Only subscribes in development mode.
+ *
+ * Implements change detection to avoid unnecessary React re-renders
+ * when the FFT value hasn't actually changed.
  */
 function subscribe(onStoreChange: () => void): () => void {
   // In production, return no-op unsubscribe
@@ -29,9 +33,17 @@ function subscribe(onStoreChange: () => void): () => void {
   }
 
   let frameId: number | null = null;
+  let lastValue: number | null = null;
 
   const updateHud = () => {
-    onStoreChange(); // Notify React of changes
+    const currentValue = getSnapshot();
+
+    // Only notify React if value actually changed
+    if (currentValue !== lastValue) {
+      lastValue = currentValue;
+      onStoreChange();
+    }
+
     frameId = requestAnimationFrame(updateHud);
   };
 
@@ -49,7 +61,7 @@ function subscribe(onStoreChange: () => void): () => void {
  * Get current FFT value from window.a
  */
 function getSnapshot(): number {
-  return (window as any).a?.fft?.[0] ?? 0;
+  return window.a?.fft?.[0] ?? 0;
 }
 
 /**

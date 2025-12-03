@@ -72,4 +72,26 @@ describe('useHydraHUD', () => {
     // Hook should still return an object, but won't update values in production
     expect(result.current).toHaveProperty('hudValue');
   });
+
+  it('implements change detection to minimize re-renders', async () => {
+    let renderCount = 0;
+    const { result } = renderHook(() => {
+      renderCount++;
+      return useHydraHUD();
+    });
+
+    // Wait for initial render and first value update
+    await vi.waitFor(() => {
+      expect(result.current.hudValue).toBe(0.5);
+    });
+
+    const initialRenderCount = renderCount;
+
+    // Keep same value for several frames
+    await new Promise(resolve => setTimeout(resolve, 100));
+
+    // Should not have additional renders since value didn't change
+    // (Allow for 1-2 renders max due to test environment quirks)
+    expect(renderCount - initialRenderCount).toBeLessThan(3);
+  });
 });
