@@ -1,21 +1,14 @@
-import { useState, useRef } from 'react';
+import { useState } from 'react';
 import { Rnd } from 'react-rnd';
 import StrudelRepl from './components/StrudelRepl';
 import Button from './components/ui/Button';
 import './utils/patchSuperdough'; // MUST be imported BEFORE @strudel/web
-import { initStrudel } from '@strudel/web';
-import { setBridgeInitializer } from './utils/patchSuperdough';
 import { useHydraHUD } from './hooks/useHydraHUD';
 import { useREPLWindow } from './hooks/useREPLWindow';
+import { useStrudelEngine } from './hooks/useStrudelEngine';
 
 function App() {
-  const [engineInitialized, setEngineInitialized] = useState(false);
-  const [isInitializing, setIsInitializing] = useState(false);
-  const [hydraLinked, setHydraLinked] = useState(false);
-  const [, setAudioContext] = useState<AudioContext | null>(null);
-  const [hydraStatus, setHydraStatus] = useState('none');
   const [hasExecutedCode, setHasExecutedCode] = useState(false);
-  const strudelReplRef = useRef<any>(null);
 
   // Use HUD hook for dev mode visualization
   const { hudValue } = useHydraHUD();
@@ -29,46 +22,17 @@ function App() {
     handleResizeStop,
   } = useREPLWindow();
 
-  const startEngine = async () => {
-    if (engineInitialized || isInitializing) return;
+  // Use Strudel engine hook for audio engine management
+  const {
+    engineInitialized,
+    isInitializing,
+    hydraLinked,
+    hydraStatus,
+    startEngine,
+    playTestPattern,
+    hushAudio,
+  } = useStrudelEngine();
 
-    setIsInitializing(true);
-    try {
-      // Register bridge initializer callback (invoked when audio first connects)
-      setBridgeInitializer((audioContext) => {
-        setAudioContext(audioContext);
-        setHydraLinked(true);
-        setHydraStatus('Strudel (a.fft)');
-        (window as any).replAudio = audioContext;
-      });
-
-      // Initialize Strudel (audio bridge created on first connection)
-      const repl = await initStrudel({
-        prebake: () => (window as any).samples('github:tidalcycles/dirt-samples')
-      });
-
-      (window as any).repl = repl;
-      strudelReplRef.current = repl;
-      setEngineInitialized(true);
-    } catch (error) {
-      console.error('Failed to initialize Strudel engine:', error);
-      alert('Failed to initialize audio engine. Check console for details.');
-    } finally {
-      setIsInitializing(false);
-    }
-  };
-
-
-  const playTestPattern = () => {
-    const repl = (window as any).repl;
-    if (!repl || !repl.evaluate) return;
-    repl.evaluate('s("bd*4").gain(0.8)');
-  };
-
-  const hushAudio = () => {
-    const repl = (window as any).repl;
-    if (repl && repl.stop) repl.stop();
-  };
 
   return (
     <div className="w-screen h-screen bg-basilisk-black text-basilisk-white overflow-hidden relative">
