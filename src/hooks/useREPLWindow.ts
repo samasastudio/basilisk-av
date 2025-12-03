@@ -39,9 +39,15 @@ const WINDOW_BOUNDS: WindowBounds = {
  */
 export function useREPLWindow() {
   // Calculate initial Y position to place window near bottom of screen
-  const initialY = typeof window !== 'undefined' ? window.innerHeight - BOTTOM_OFFSET : 300;
+  // Ensure position is valid even on small viewports (min 48px from top for header)
+  const calculateInitialY = () => {
+    if (typeof window === 'undefined') return 300;
+    const idealY = window.innerHeight - BOTTOM_OFFSET;
+    const minY = 48; // Account for app header
+    return Math.max(minY, idealY);
+  };
 
-  const [position, setPosition] = useState<Position>({ x: DEFAULT_MARGIN, y: initialY });
+  const [position, setPosition] = useState<Position>({ x: DEFAULT_MARGIN, y: calculateInitialY() });
   const [size, setSize] = useState({ width: DEFAULT_WIDTH, height: DEFAULT_HEIGHT });
 
   /**
@@ -62,8 +68,8 @@ export function useREPLWindow() {
     position: Position
   ) => {
     setSize({
-      width: parseInt(ref.style.width),
-      height: parseInt(ref.style.height),
+      width: parseInt(ref.style.width, 10),
+      height: parseInt(ref.style.height, 10),
     });
     setPosition(position);
   };

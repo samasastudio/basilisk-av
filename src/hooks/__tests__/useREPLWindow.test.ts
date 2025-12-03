@@ -139,6 +139,21 @@ describe('useREPLWindow', () => {
     expect(result.current.position.y).toBe(584);
   });
 
+  it('enforces minimum Y position on small viewports', () => {
+    // Set a very small window height
+    Object.defineProperty(window, 'innerHeight', {
+      writable: true,
+      configurable: true,
+      value: 200, // Too small for normal positioning
+    });
+
+    const { result } = renderHook(() => useREPLWindow());
+
+    // Should be clamped to minimum (48px for header)
+    // Instead of 200 - 416 = -216 (off-screen)
+    expect(result.current.position.y).toBe(48);
+  });
+
   it('returns static bounds configuration with viewport units', () => {
     const { result } = renderHook(() => useREPLWindow());
 
