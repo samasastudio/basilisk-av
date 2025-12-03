@@ -6,6 +6,7 @@ import './utils/patchSuperdough'; // MUST be imported BEFORE @strudel/web
 import { initStrudel } from '@strudel/web';
 import { setBridgeInitializer } from './utils/patchSuperdough';
 import { useHydraHUD } from './hooks/useHydraHUD';
+import { useREPLWindow } from './hooks/useREPLWindow';
 
 function App() {
   const [engineInitialized, setEngineInitialized] = useState(false);
@@ -19,9 +20,13 @@ function App() {
   // Use HUD hook for dev mode visualization
   const { hudValue } = useHydraHUD();
 
-  // REPL panel position and size
-  const [replPosition, setReplPosition] = useState({ x: 16, y: typeof window !== 'undefined' ? window.innerHeight - 416 : 300 });
-  const [replSize, setReplSize] = useState({ width: 600, height: 400 });
+  // Use REPL window hook for position and size management
+  const {
+    position: replPosition,
+    size: replSize,
+    handleDragStop,
+    handleResizeStop,
+  } = useREPLWindow();
 
   const startEngine = async () => {
     if (engineInitialized || isInitializing) return;
@@ -121,14 +126,8 @@ function App() {
       <Rnd
         position={replPosition}
         size={replSize}
-        onDragStop={(_e, d) => setReplPosition({ x: d.x, y: d.y })}
-        onResizeStop={(_e, _direction, ref, _delta, position) => {
-          setReplSize({
-            width: parseInt(ref.style.width),
-            height: parseInt(ref.style.height)
-          });
-          setReplPosition(position);
-        }}
+        onDragStop={handleDragStop}
+        onResizeStop={handleResizeStop}
         minWidth={400}
         minHeight={300}
         maxWidth="90vw"
