@@ -20,10 +20,11 @@ function App() {
   // Use HUD hook for dev mode visualization
   const { hudValue } = useHydraHUD();
 
-  // Use REPL window hook for position and size management
+  // Use REPL window hook for position, size, and bounds management
   const {
     position: replPosition,
     size: replSize,
+    bounds: replBounds,
     handleDragStop,
     handleResizeStop,
   } = useREPLWindow();
@@ -128,10 +129,10 @@ function App() {
         size={replSize}
         onDragStop={handleDragStop}
         onResizeStop={handleResizeStop}
-        minWidth={400}
-        minHeight={300}
-        maxWidth="90vw"
-        maxHeight="90vh"
+        minWidth={replBounds.minWidth}
+        minHeight={replBounds.minHeight}
+        maxWidth={replBounds.maxWidth}
+        maxHeight={replBounds.maxHeight}
         bounds="window"
         className="z-30"
         dragHandleClassName="drag-handle"

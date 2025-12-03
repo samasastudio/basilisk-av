@@ -1,4 +1,4 @@
-import { describe, it, expect, beforeEach, afterEach } from 'vitest';
+import { describe, it, expect, beforeEach, afterEach, vi } from 'vitest';
 import { renderHook, act } from '@testing-library/react';
 import { useREPLWindow } from '../useREPLWindow';
 
@@ -137,5 +137,61 @@ describe('useREPLWindow', () => {
 
     // Y should be 1000 - 416 = 584
     expect(result.current.position.y).toBe(584);
+  });
+
+  it('returns default bounds configuration', () => {
+    const { result } = renderHook(() => useREPLWindow());
+
+    expect(result.current.bounds).toEqual({
+      minWidth: 400,
+      minHeight: 300,
+      maxWidth: '90vw',
+      maxHeight: '90vh',
+    });
+  });
+
+  it('updates bounds when window is resized', () => {
+    const { result } = renderHook(() => useREPLWindow());
+
+    // Initial bounds
+    expect(result.current.bounds).toEqual({
+      minWidth: 400,
+      minHeight: 300,
+      maxWidth: '90vw',
+      maxHeight: '90vh',
+    });
+
+    // Resize window
+    act(() => {
+      Object.defineProperty(window, 'innerWidth', {
+        writable: true,
+        configurable: true,
+        value: 1920,
+      });
+      Object.defineProperty(window, 'innerHeight', {
+        writable: true,
+        configurable: true,
+        value: 1080,
+      });
+      window.dispatchEvent(new Event('resize'));
+    });
+
+    // Bounds should still have the same structure (they're viewport-relative)
+    expect(result.current.bounds).toEqual({
+      minWidth: 400,
+      minHeight: 300,
+      maxWidth: '90vw',
+      maxHeight: '90vh',
+    });
+  });
+
+  it('cleans up resize listener on unmount', () => {
+    const removeEventListenerSpy = vi.spyOn(window, 'removeEventListener');
+    const { unmount } = renderHook(() => useREPLWindow());
+
+    unmount();
+
+    expect(removeEventListenerSpy).toHaveBeenCalledWith('resize', expect.any(Function));
+    removeEventListenerSpy.mockRestore();
   });
 });
