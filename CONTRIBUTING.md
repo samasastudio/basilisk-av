@@ -71,16 +71,50 @@ basilisk-av/
 
 - **Strict mode**: Always enabled (`strict: true`)
 - **Functional components**: Use hooks, no class components
-- **Type everything**: Avoid `any` types where possible
-- **Explicit return types**: For exported functions
+- **Type everything**: **NO `any` types** - ESLint will error
+- **Explicit return types**: For exported functions and hooks
+
+#### Type Safety Rules
+
+**🚫 NEVER use `any` type:**
+```typescript
+// ❌ BAD - Will fail ESLint
+function process(data: any) { }
+const value = data as any;
+```
+
+**✅ Use proper types instead:**
+```typescript
+// ✅ GOOD - Extend Window interface
+declare global {
+  interface Window {
+    repl?: StrudelRepl;
+  }
+}
+
+// Then use without casting
+window.repl?.evaluate('code');
+
+// ✅ GOOD - Use unknown for truly dynamic data
+function process(data: unknown) {
+  if (typeof data === 'string') {
+    // TypeScript knows data is string here
+  }
+}
+```
+
+**Acceptable exceptions (must justify in PR):**
+- **Third-party library types** - When external library lacks types
+- **Test mocks** - ESLint warns (not errors) in test files
+- **Complex event handlers** - Consider creating a type instead
 
 ```typescript
-// ✅ GOOD
+// ✅ GOOD - Proper typing example
 export function initBridge(ctx: AudioContext): HydraBridge | null {
   // ...
 }
 
-// ❌ BAD
+// ❌ BAD - Will fail ESLint
 export function initBridge(ctx: any) {
   // ...
 }
