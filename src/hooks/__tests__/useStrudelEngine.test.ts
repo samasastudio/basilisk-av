@@ -15,8 +15,8 @@ vi.mock('../../utils/patchSuperdough', () => ({
 
 // Mock window.samples
 beforeEach(() => {
-  (window as any).samples = vi.fn((path: string) => `samples:${path}`);
-  (window as any).repl = undefined;
+  window.samples = vi.fn((path: string) => `samples:${path}`);
+  window.repl = undefined;
   vi.clearAllMocks();
 });
 
@@ -83,7 +83,7 @@ describe('useStrudelEngine', () => {
     // Verify prebake function calls window.samples
     const prebakeFunction = vi.mocked(initStrudel).mock.calls[0][0].prebake;
     const prebakeResult = prebakeFunction();
-    expect((window as any).samples).toHaveBeenCalledWith('github:tidalcycles/dirt-samples');
+    expect(window.samples).toHaveBeenCalledWith('github:tidalcycles/dirt-samples');
     expect(prebakeResult).toBe('samples:github:tidalcycles/dirt-samples');
   });
 
@@ -97,7 +97,7 @@ describe('useStrudelEngine', () => {
       await result.current.startEngine();
     });
 
-    expect((window as any).repl).toBe(mockRepl);
+    expect(window.repl).toBe(mockRepl);
   });
 
   it('registers bridge initializer callback', async () => {
@@ -142,7 +142,7 @@ describe('useStrudelEngine', () => {
     // Should now be linked
     expect(result.current.hydraLinked).toBe(true);
     expect(result.current.hydraStatus).toBe('Strudel (a.fft)');
-    expect((window as any).replAudio).toBe(mockAudioContext);
+    expect(window.replAudio).toBe(mockAudioContext);
   });
 
   it('handles initialization errors gracefully', async () => {
