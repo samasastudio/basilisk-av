@@ -1,6 +1,6 @@
-import { initStrudel } from '@strudel/web';
 import { useState } from 'react';
 
+import * as StrudelEngine from '../services/strudelEngine';
 import { setBridgeInitializer } from '../utils/patchSuperdough';
 
 /**
@@ -63,9 +63,7 @@ export const useStrudelEngine = (): UseStrudelEngineReturn => {
       });
 
       // Initialize Strudel (audio bridge created on first connection)
-      const repl = await initStrudel({
-        prebake: () => window.samples?.('github:tidalcycles/dirt-samples')
-      });
+      const repl = await StrudelEngine.initializeStrudel();
 
       window.repl = repl;
       setEngineInitialized(true);
@@ -85,8 +83,7 @@ export const useStrudelEngine = (): UseStrudelEngineReturn => {
    * Does nothing if engine is not initialized.
    */
   const playTestPattern = (): void => {
-    if (!window.repl?.evaluate) {return;}
-    window.repl.evaluate('s("bd*4").gain(0.8)');
+    StrudelEngine.playTestPattern();
   };
 
   /**
@@ -94,7 +91,7 @@ export const useStrudelEngine = (): UseStrudelEngineReturn => {
    * Does nothing if engine is not initialized.
    */
   const hushAudio = (): void => {
-    window.repl?.stop?.();
+    StrudelEngine.hushAudio();
   };
 
   /**

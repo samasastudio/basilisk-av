@@ -1,6 +1,6 @@
 import { describe, it, expect, vi, beforeEach } from 'vitest';
 
-import { initHydraBridge } from '../strudelHydraBridge';
+import { initHydraBridge } from '../../services/audioBridge';
 
 // Mock frequency data filler
 const fillMockFrequencyData = (dataArray: Uint8Array): void => {

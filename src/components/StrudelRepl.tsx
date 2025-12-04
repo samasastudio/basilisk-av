@@ -6,6 +6,8 @@ import { samples } from '@strudel/webaudio';
 import CodeMirror from '@uiw/react-codemirror';
 import { useState } from 'react';
 
+import * as StrudelEngine from '../services/strudelEngine';
+
 import { Button } from './ui/Button';
 
 // Expose Strudel functions globally for the REPL
@@ -113,7 +115,7 @@ export const StrudelRepl = ({ className, engineReady, onTestPattern, onHalt, onE
             return;
         }
 
-        const repl = window.repl;
+        const repl = StrudelEngine.getReplInstance();
         if (!repl?.evaluate) {
             console.error('Strudel REPL not found. Make sure engine is started.');
             return;
@@ -134,10 +136,7 @@ export const StrudelRepl = ({ className, engineReady, onTestPattern, onHalt, onE
             onHalt();
             return;
         }
-        const repl = window.repl;
-        if (repl?.stop) {
-            repl.stop();
-        }
+        StrudelEngine.hushAudio();
     };
 
     return (

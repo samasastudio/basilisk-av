@@ -8,7 +8,7 @@
  * before Strudel's AudioWorklet initializes.
  */
 
-import { initHydraBridge, type HydraBridge } from './strudelHydraBridge';
+import { initHydraBridge, type HydraBridge } from '../services/audioBridge';
 
 // Type definitions for AudioNode connection interception
 type AudioNodeConnectArgs =

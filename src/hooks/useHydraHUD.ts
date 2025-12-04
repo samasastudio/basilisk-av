@@ -1,4 +1,6 @@
 import { useSyncExternalStore } from 'react';
+
+import { getBridgeFFT } from '../services/audioBridge';
 import '../types/hydra';
 
 /**
@@ -58,9 +60,9 @@ const subscribe = (onStoreChange: () => void): (() => void) => {
 }
 
 /**
- * Get current FFT value from window.a
+ * Get current FFT value from audio bridge
  */
-const getSnapshot = (): number => window.a?.fft?.[0] ?? 0;
+const getSnapshot = (): number => getBridgeFFT(0);
 
 /**
  * Server-side snapshot (always 0)
