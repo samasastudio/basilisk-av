@@ -90,7 +90,8 @@ export default defineConfig([
       'import/no-duplicates': 'error',
       'import/newline-after-import': 'error',
       'arrow-body-style': ['error', 'as-needed'],
-      'func-style': ['error', 'declaration', { allowArrowFunctions: true }],
+      // Prefer arrow functions for consistency (functional style)
+      'func-style': ['error', 'expression'],
       '@typescript-eslint/naming-convention': ['error',
         {
           selector: 'variable',
@@ -146,7 +147,7 @@ export default defineConfig([
         ignoreArrayIndexes: true,
       }],
       'no-console': ['error', { allow: ['warn', 'error'] }],
-      'curly': ['error', 'all'],
+      'curly': ['error', 'multi-line'],
       'no-nested-ternary': 'error',
       'eqeqeq': ['error', 'always'],
       'no-implicit-coercion': 'error',

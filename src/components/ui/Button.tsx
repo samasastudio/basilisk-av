@@ -7,14 +7,14 @@ interface ButtonProps {
   className?: string;
 }
 
-export function Button({
+export const Button = ({
   children,
   onClick,
   variant = 'primary',
   size = 'md',
   disabled = false,
   className = ''
-}: ButtonProps): JSX.Element {
+}: ButtonProps): JSX.Element => {
   const baseStyles = "font-sans font-medium rounded transition-colors duration-200 border";
 
   const variants = {

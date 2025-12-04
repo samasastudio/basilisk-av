@@ -37,7 +37,7 @@ export interface UseStrudelEngineReturn {
  *
  * @returns Object containing engine state and control functions
  */
-export function useStrudelEngine(): UseStrudelEngineReturn {
+export const useStrudelEngine = (): UseStrudelEngineReturn => {
   const [engineInitialized, setEngineInitialized] = useState(false);
   const [isInitializing, setIsInitializing] = useState(false);
   const [hydraLinked, setHydraLinked] = useState(false);

@@ -4,8 +4,7 @@ interface CardProps {
   className?: string;
 }
 
-export function Card({ children, title, className = '' }: CardProps): JSX.Element {
-  return (
+export const Card = ({ children, title, className = '' }: CardProps): JSX.Element => (
     <div className={`
       bg-basilisk-gray-900/85
       backdrop-blur
@@ -29,5 +28,4 @@ export function Card({ children, title, className = '' }: CardProps): JSX.Elemen
         {children}
       </div>
     </div>
-  );
-}
+  )

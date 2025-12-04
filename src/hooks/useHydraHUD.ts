@@ -9,7 +9,7 @@ import '../types/hydra';
  *
  * @returns Object containing the current HUD value (0-1 range)
  */
-export function useHydraHUD(): { hudValue: number } {
+export const useHydraHUD = (): { hudValue: number } => {
   const hudValue = useSyncExternalStore(
     subscribe,
     getSnapshot,
@@ -26,7 +26,7 @@ export function useHydraHUD(): { hudValue: number } {
  * Implements change detection to avoid unnecessary React re-renders
  * when the FFT value hasn't actually changed.
  */
-function subscribe(onStoreChange: () => void): () => void {
+const subscribe = (onStoreChange: () => void): (() => void) => {
   // In production, return no-op unsubscribe
   if (!import.meta.env.DEV) {
     return () => {};
@@ -60,13 +60,9 @@ function subscribe(onStoreChange: () => void): () => void {
 /**
  * Get current FFT value from window.a
  */
-function getSnapshot(): number {
-  return window.a?.fft?.[0] ?? 0;
-}
+const getSnapshot = (): number => window.a?.fft?.[0] ?? 0;
 
 /**
  * Server-side snapshot (always 0)
  */
-function getServerSnapshot(): number {
-  return 0;
-}
+const getServerSnapshot = (): number => 0;

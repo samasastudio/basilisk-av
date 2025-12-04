@@ -15,7 +15,7 @@ type Props = {
     audioContext?: AudioContext;
 };
 
-export function HydraCanvas(props: Props): JSX.Element {
+export const HydraCanvas = (props: Props): JSX.Element => {
     const { className, audioContext, onInit } = props;
     const canvasRef = useRef<HTMLCanvasElement>(null);
     const hydraInstance = useRef<HydraSynth | null>(null);

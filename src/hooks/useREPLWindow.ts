@@ -42,7 +42,7 @@ const WINDOW_BOUNDS: WindowBounds = {
  *
  * @returns Object containing position, size, bounds, and event handlers
  */
-export function useREPLWindow(): {
+export const useREPLWindow = (): {
   position: Position;
   size: { width: number; height: number };
   bounds: WindowBounds;
@@ -54,7 +54,7 @@ export function useREPLWindow(): {
     _delta: ResizableDelta,
     position: Position
   ) => void;
-} {
+} => {
   // Calculate initial Y position to place window near bottom of screen
   // Ensure position is valid even on small viewports (min 48px from top for header)
   const calculateInitialY = (): number => {

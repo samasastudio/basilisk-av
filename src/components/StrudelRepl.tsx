@@ -104,7 +104,7 @@ type Props = {
     statusLabel?: string;
 };
 
-export function StrudelRepl({ className, engineReady, onTestPattern, onHalt, onExecute, statusLabel }: Props): JSX.Element {
+export const StrudelRepl = ({ className, engineReady, onTestPattern, onHalt, onExecute, statusLabel }: Props): JSX.Element => {
     const [code, setCode] = useState(defaultCode);
 
     const runCode = async (): Promise<void> => {

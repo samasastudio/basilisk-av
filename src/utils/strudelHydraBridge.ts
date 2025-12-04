@@ -28,7 +28,7 @@ export type HydraBridge = {
  * @param audioContext - The AudioContext from Strudel (must be the same instance)
  * @returns Bridge object with analyser and gain nodes, or null on failure
  */
-export function initHydraBridge(audioContext: AudioContext): HydraBridge | null {
+export const initHydraBridge = (audioContext: AudioContext): HydraBridge | null => {
     if (!audioContext) {
         console.error('No AudioContext provided to bridge');
         return null;
