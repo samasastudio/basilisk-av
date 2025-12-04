@@ -1,3 +1,7 @@
+// Audio analysis constants
+const DEFAULT_FFT_BINS = 4;
+const MAX_BYTE_VALUE = 255;
+
 export type HydraBridge = {
     analyser: AnalyserNode;
     gainNode: GainNode;
@@ -24,7 +28,7 @@ export type HydraBridge = {
  * @param audioContext - The AudioContext from Strudel (must be the same instance)
  * @returns Bridge object with analyser and gain nodes, or null on failure
  */
-export function initHydraBridge(audioContext: AudioContext): HydraBridge | null {
+export const initHydraBridge = (audioContext: AudioContext): HydraBridge | null => {
     if (!audioContext) {
         console.error('No AudioContext provided to bridge');
         return null;
@@ -48,8 +52,8 @@ export function initHydraBridge(audioContext: AudioContext): HydraBridge | null 
     const hydraAudio: HydraBridge = {
         analyser,
         gainNode,
-        bins: 4,
-        fft: Array(4).fill(0),
+        bins: DEFAULT_FFT_BINS,
+        fft: Array(DEFAULT_FFT_BINS).fill(0),
         setBins: (bins: number) => {
             hydraAudio.bins = Math.max(1, bins);
             hydraAudio.fft = Array(hydraAudio.bins).fill(0);
@@ -63,7 +67,7 @@ export function initHydraBridge(audioContext: AudioContext): HydraBridge | null 
                 const slice = dataArray.slice(start, end);
                 const sum = slice.reduce((acc, val) => acc + val, 0);
                 const avg = slice.length ? sum / slice.length : 0;
-                return avg / 255; // Normalize to 0-1 range
+                return avg / MAX_BYTE_VALUE; // Normalize to 0-1 range
             });
         },
         disconnect: () => {
@@ -73,10 +77,10 @@ export function initHydraBridge(audioContext: AudioContext): HydraBridge | null 
     };
 
     // Expose globally for Hydra code to access
-    (window as any).a = hydraAudio;
+    window.a = hydraAudio;
 
     // Start continuous FFT updates
-    const tick = () => {
+    const tick = (): void => {
         hydraAudio.tick();
         requestAnimationFrame(tick);
     };

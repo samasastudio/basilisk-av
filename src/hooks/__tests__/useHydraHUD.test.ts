@@ -1,6 +1,9 @@
-import { describe, it, expect, vi, beforeEach, afterEach } from 'vitest';
 import { renderHook } from '@testing-library/react';
+import { describe, it, expect, vi, beforeEach, afterEach } from 'vitest';
+
 import { useHydraHUD } from '../useHydraHUD';
+
+import type { HydraBridge } from '../../types/hydra';
 
 describe('useHydraHUD', () => {
   beforeEach(() => {
@@ -8,14 +11,14 @@ describe('useHydraHUD', () => {
     vi.stubGlobal('import.meta', { env: { DEV: true } });
 
     // Mock window.a
-    (window as any).a = {
+    window.a = {
       fft: [0.5, 0.3, 0.2, 0.1]
-    };
+    } as unknown as HydraBridge;
   });
 
   afterEach(() => {
     vi.unstubAllGlobals();
-    delete (window as any).a;
+    delete window.a;
   });
 
   it('returns hudValue object', () => {
@@ -35,7 +38,7 @@ describe('useHydraHUD', () => {
   });
 
   it('returns 0 when window.a is not defined', async () => {
-    delete (window as any).a;
+    delete window.a;
 
     const { result } = renderHook(() => useHydraHUD());
 
@@ -46,7 +49,7 @@ describe('useHydraHUD', () => {
 
   it('cleans up animation frame on unmount', () => {
     let frameId: number = 0;
-    const rafMock = vi.spyOn(window, 'requestAnimationFrame').mockImplementation((cb) => {
+    const rafMock = vi.spyOn(window, 'requestAnimationFrame').mockImplementation((_cb) => {
       frameId = ++frameId;
       return frameId;
     });

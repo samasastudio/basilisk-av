@@ -1,6 +1,16 @@
-import { describe, it, expect, beforeEach, afterEach } from 'vitest';
 import { renderHook, act } from '@testing-library/react';
+import { describe, it, expect, beforeEach, afterEach } from 'vitest';
+
+import {
+  createDragData,
+  createDragEvent,
+  createResizeEvent,
+  createResizeDelta,
+  createResizeRef,
+  DEFAULT_RESIZE_DIRECTION,
+} from '../../test/mocks';
 import { useREPLWindow } from '../useREPLWindow';
+
 
 describe('useREPLWindow', () => {
   const originalInnerHeight = window.innerHeight;
@@ -42,8 +52,8 @@ describe('useREPLWindow', () => {
 
     act(() => {
       result.current.handleDragStop(
-        {} as any, // event (not used)
-        { x: 100, y: 200 } as any // drag data
+        createDragEvent(),
+        createDragData({ x: 100, y: 200 })
       );
     });
 
@@ -53,20 +63,13 @@ describe('useREPLWindow', () => {
   it('updates size when handleResizeStop is called', () => {
     const { result } = renderHook(() => useREPLWindow());
 
-    const mockRef = {
-      style: {
-        width: '800px',
-        height: '500px',
-      },
-    };
-
     act(() => {
       result.current.handleResizeStop(
-        {} as any, // event
-        'bottomRight' as any, // direction
-        mockRef as any, // ref with style
-        {} as any, // delta
-        { x: 50, y: 60 } // new position
+        createResizeEvent(),
+        DEFAULT_RESIZE_DIRECTION,
+        createResizeRef('800px', '500px'),
+        createResizeDelta(),
+        { x: 50, y: 60 }
       );
     });
 
@@ -77,19 +80,12 @@ describe('useREPLWindow', () => {
   it('handles resize with non-integer dimensions', () => {
     const { result } = renderHook(() => useREPLWindow());
 
-    const mockRef = {
-      style: {
-        width: '750.5px',
-        height: '450.75px',
-      },
-    };
-
     act(() => {
       result.current.handleResizeStop(
-        {} as any,
-        'bottomRight' as any,
-        mockRef as any,
-        {} as any,
+        createResizeEvent(),
+        DEFAULT_RESIZE_DIRECTION,
+        createResizeRef('750.5px', '450.75px'),
+        createResizeDelta(),
         { x: 20, y: 30 }
       );
     });
@@ -103,20 +99,22 @@ describe('useREPLWindow', () => {
 
     // Change position
     act(() => {
-      result.current.handleDragStop({} as any, { x: 200, y: 300 } as any);
+      result.current.handleDragStop(
+        createDragEvent(),
+        createDragData({ x: 200, y: 300 })
+      );
     });
 
     expect(result.current.position).toEqual({ x: 200, y: 300 });
     expect(result.current.size).toEqual({ width: 600, height: 400 }); // unchanged
 
     // Change size
-    const mockRef = { style: { width: '700px', height: '500px' } };
     act(() => {
       result.current.handleResizeStop(
-        {} as any,
-        'bottomRight' as any,
-        mockRef as any,
-        {} as any,
+        createResizeEvent(),
+        DEFAULT_RESIZE_DIRECTION,
+        createResizeRef('700px', '500px'),
+        createResizeDelta(),
         { x: 200, y: 300 }
       );
     });

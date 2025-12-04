@@ -8,8 +8,7 @@ interface SliderProps {
   unit?: string;
 }
 
-const Slider = ({ label, min, max, step = 1, value, onChange, unit }: SliderProps) => {
-  return (
+export const Slider = ({ label, min, max, step = 1, value, onChange, unit }: SliderProps): JSX.Element => (
     <div className="flex flex-col gap-2">
       {label && (
         <div className="flex justify-between items-center">
@@ -49,7 +48,4 @@ const Slider = ({ label, min, max, step = 1, value, onChange, unit }: SliderProp
         "
       />
     </div>
-  );
-};
-
-export default Slider;
+  )
