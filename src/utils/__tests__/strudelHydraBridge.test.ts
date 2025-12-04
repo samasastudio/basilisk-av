@@ -3,12 +3,12 @@ import { describe, it, expect, vi, beforeEach } from 'vitest';
 import { initHydraBridge } from '../strudelHydraBridge';
 
 // Mock frequency data filler
-function fillMockFrequencyData(dataArray: Uint8Array): void {
+const fillMockFrequencyData = (dataArray: Uint8Array): void => {
   for (let i = 0; i < dataArray.length; i++) {
     // eslint-disable-next-line no-param-reassign
     dataArray[i] = Math.floor(Math.random() * 255);
   }
-}
+};
 
 // Mock AudioContext type for testing
 interface MockAnalyserNode {

@@ -4,8 +4,7 @@ interface ToggleProps {
   onChange: (checked: boolean) => void;
 }
 
-export function Toggle({ label, checked, onChange }: ToggleProps): JSX.Element {
-  return (
+export const Toggle = ({ label, checked, onChange }: ToggleProps): JSX.Element => (
     <label className="flex items-center gap-3 cursor-pointer">
       <div className="relative">
         <input
@@ -39,5 +38,4 @@ export function Toggle({ label, checked, onChange }: ToggleProps): JSX.Element {
         </span>
       )}
     </label>
-  );
-}
+  )

@@ -12,7 +12,7 @@ import { useStrudelEngine } from './hooks/useStrudelEngine';
 const HUD_DECIMAL_PLACES = 3;
 const PERCENTAGE_MAX = 100;
 
-export function App(): JSX.Element {
+export const App = (): JSX.Element => {
   const [hasExecutedCode, setHasExecutedCode] = useState(false);
 
   // Use HUD hook for dev mode visualization

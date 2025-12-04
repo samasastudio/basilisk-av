@@ -21,9 +21,9 @@ interface AudioNodeWithContext extends AudioNode {
 
 let bridgeInitializer: ((ctx: AudioContext) => void) | null = null;
 
-export function setBridgeInitializer(fn: (ctx: AudioContext) => void): void {
+export const setBridgeInitializer = (fn: (ctx: AudioContext) => void): void => {
     bridgeInitializer = fn;
-}
+};
 
 if (typeof window !== 'undefined') {
     const originalConnect = AudioNode.prototype.connect;

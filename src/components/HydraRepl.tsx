@@ -3,6 +3,10 @@ import CodeMirror from '@uiw/react-codemirror';
 import { Play } from 'lucide-react';
 import React, { useState, useCallback } from 'react';
 
+import { DEFAULT_CODE, presetMap } from '../constants/hydraPresets';
+
+import type { PresetName } from '../constants/hydraPresets';
+
 // Test mode FFT generator constants
 const TEST_PHASE_INCREMENT = 0.1;
 const TEST_FFT_AMPLITUDE_0 = 0.8;
@@ -23,46 +27,9 @@ type Props = {
     linkStatus?: string;
 };
 
-const DEFAULT_CODE = `// Hydra Visuals
-// Ctrl+Enter to run
-
-// "Egg of the Phoenix" by Alexandre Rangel
-speed = 1.2
-shape(99, .15, .5)
-  .color(0, 1, 2)
-  .diff(shape(240, .5, 0).scrollX(.05).rotate(() => time / 10).color(1, 0, .75))
-  .diff(shape(99, .4, .002).scrollX(.10).rotate(() => time / 20).color(1, 0, .75))
-  .diff(shape(99, .3, .002).scrollX(.15).rotate(() => time / 30).color(1, 0, .75))
-  .diff(shape(99, .2, .002).scrollX(.20).rotate(() => time / 40).color(1, 0, .75))
-  .diff(shape(99, .1, .002).scrollX(.25).rotate(() => time / 50).color(1, 0, .75))
-  .modulateScale(
-      shape(240, .5, 0).scrollX(.05).rotate(() => time / 10),
-      () => (Math.sin(time / 3) * .2) + .2
-  )
-  .scale(1.6, .6, 1)
-  .out()`;
-
-const AUDIO_TEST = `a.setBins(4)
-
-osc(10, 0, () => a.fft[0] * 4)
-  .rotate(0, () => a.fft[1] * 0.3)
-  .modulateScale(noise(3, 0.1), () => a.fft[2] * 0.2)
-  .out()`;
-
-const SIMPLE_FEEDBACK = `osc(5, 0.1, 0.8)
-  .rotate(0.1, 0.05)
-  .modulate(noise(2, 0.2), 0.2)
-  .out()`;
-
-const presetMap: Record<string, string> = {
-    none: DEFAULT_CODE,
-    audio: AUDIO_TEST,
-    feedback: SIMPLE_FEEDBACK,
-};
-
-export function HydraRepl({ className, onExecute, initialCode = DEFAULT_CODE, onLoadPreset, linkStatus }: Props): JSX.Element {
+export const HydraRepl = ({ className, onExecute, initialCode = DEFAULT_CODE, onLoadPreset, linkStatus }: Props): JSX.Element => {
     const [code, setCode] = useState(initialCode);
-    const [preset, setPreset] = useState<'none' | 'audio' | 'feedback'>('none');
+    const [preset, setPreset] = useState<PresetName>('none');
 
     const handleKeyDown = useCallback((e: React.KeyboardEvent) => {
         if ((e.ctrlKey || e.metaKey) && e.key === 'Enter') {
@@ -71,7 +38,7 @@ export function HydraRepl({ className, onExecute, initialCode = DEFAULT_CODE, on
         }
     }, [code, onExecute]);
 
-    const loadPreset = (value: 'none' | 'audio' | 'feedback'): void => {
+    const loadPreset = (value: PresetName): void => {
         setPreset(value);
         const presetCode = presetMap[value];
         setCode(presetCode);

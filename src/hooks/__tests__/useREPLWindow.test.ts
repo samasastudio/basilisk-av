@@ -1,9 +1,15 @@
 import { renderHook, act } from '@testing-library/react';
 import { describe, it, expect, beforeEach, afterEach } from 'vitest';
 
+import {
+  createDragData,
+  createDragEvent,
+  createResizeEvent,
+  createResizeDelta,
+  createResizeRef,
+  DEFAULT_RESIZE_DIRECTION,
+} from '../../test/mocks';
 import { useREPLWindow } from '../useREPLWindow';
-
-import type { DraggableData, DraggableEvent, ResizableDelta, ResizeDirection } from 'react-rnd';
 
 
 describe('useREPLWindow', () => {
@@ -46,8 +52,8 @@ describe('useREPLWindow', () => {
 
     act(() => {
       result.current.handleDragStop(
-        {} as DraggableEvent, // event (not used)
-        { x: 100, y: 200, node: document.createElement('div'), deltaX: 0, deltaY: 0, lastX: 0, lastY: 0 } as DraggableData
+        createDragEvent(),
+        createDragData({ x: 100, y: 200 })
       );
     });
 
@@ -57,20 +63,13 @@ describe('useREPLWindow', () => {
   it('updates size when handleResizeStop is called', () => {
     const { result } = renderHook(() => useREPLWindow());
 
-    const mockRef = {
-      style: {
-        width: '800px',
-        height: '500px',
-      },
-    } as HTMLElement;
-
     act(() => {
       result.current.handleResizeStop(
-        new MouseEvent('mouseup') as MouseEvent, // event
-        'bottomRight' as ResizeDirection, // direction
-        mockRef, // ref with style
-        { width: 0, height: 0 } as ResizableDelta, // delta
-        { x: 50, y: 60 } // new position
+        createResizeEvent(),
+        DEFAULT_RESIZE_DIRECTION,
+        createResizeRef('800px', '500px'),
+        createResizeDelta(),
+        { x: 50, y: 60 }
       );
     });
 
@@ -81,19 +80,12 @@ describe('useREPLWindow', () => {
   it('handles resize with non-integer dimensions', () => {
     const { result } = renderHook(() => useREPLWindow());
 
-    const mockRef = {
-      style: {
-        width: '750.5px',
-        height: '450.75px',
-      },
-    } as HTMLElement;
-
     act(() => {
       result.current.handleResizeStop(
-        new MouseEvent('mouseup') as MouseEvent,
-        'bottomRight' as ResizeDirection,
-        mockRef,
-        { width: 0, height: 0 } as ResizableDelta,
+        createResizeEvent(),
+        DEFAULT_RESIZE_DIRECTION,
+        createResizeRef('750.5px', '450.75px'),
+        createResizeDelta(),
         { x: 20, y: 30 }
       );
     });
@@ -108,8 +100,8 @@ describe('useREPLWindow', () => {
     // Change position
     act(() => {
       result.current.handleDragStop(
-        {} as DraggableEvent,
-        { x: 200, y: 300, node: document.createElement('div'), deltaX: 0, deltaY: 0, lastX: 0, lastY: 0 } as DraggableData
+        createDragEvent(),
+        createDragData({ x: 200, y: 300 })
       );
     });
 
@@ -117,13 +109,12 @@ describe('useREPLWindow', () => {
     expect(result.current.size).toEqual({ width: 600, height: 400 }); // unchanged
 
     // Change size
-    const mockRef = { style: { width: '700px', height: '500px' } } as HTMLElement;
     act(() => {
       result.current.handleResizeStop(
-        new MouseEvent('mouseup') as MouseEvent,
-        'bottomRight' as ResizeDirection,
-        mockRef,
-        { width: 0, height: 0 } as ResizableDelta,
+        createResizeEvent(),
+        DEFAULT_RESIZE_DIRECTION,
+        createResizeRef('700px', '500px'),
+        createResizeDelta(),
         { x: 200, y: 300 }
       );
     });
