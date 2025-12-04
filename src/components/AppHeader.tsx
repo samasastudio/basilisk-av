@@ -1,10 +1,11 @@
 import { Button } from './ui/Button';
 
+import type { EngineStatus } from '../types/engine';
+
+
 type Props = {
-  /** Whether the audio engine is fully initialized */
-  engineInitialized: boolean;
-  /** Whether engine initialization is in progress */
-  isInitializing: boolean;
+  /** Current engine status (idle | initializing | ready | error) */
+  engineStatus: EngineStatus;
   /** Whether Hydra audio bridge is connected */
   hydraLinked: boolean;
   /** Current Hydra connection status string */
@@ -14,16 +15,50 @@ type Props = {
 };
 
 /**
+ * Get display text for engine status indicator
+ */
+const getEngineStatusText = (status: EngineStatus): string => {
+  switch (status) {
+    case 'idle':
+      return 'stopped';
+    case 'initializing':
+      return 'starting';
+    case 'ready':
+      return 'running';
+    case 'error':
+      return 'error';
+  }
+};
+
+/**
+ * Get button text based on engine status
+ */
+const getButtonText = (status: EngineStatus): string => {
+  switch (status) {
+    case 'idle':
+    case 'error':
+      return 'Start Audio';
+    case 'initializing':
+      return 'Starting…';
+    case 'ready':
+      return 'Running';
+  }
+};
+
+/**
  * Application header bar with branding, status indicators, and engine controls.
  * Fixed at top of viewport (z-20).
  */
 export const AppHeader = ({
-  engineInitialized,
-  isInitializing,
+  engineStatus,
   hydraLinked,
   hydraStatus,
   onStartEngine
-}: Props): JSX.Element => (
+}: Props): JSX.Element => {
+  const isReady = engineStatus === 'ready';
+  const canStart = engineStatus === 'idle' || engineStatus === 'error';
+
+  return (
     <header className="fixed top-0 left-0 right-0 h-12 z-20 bg-basilisk-gray-900/85 backdrop-blur border-b border-basilisk-gray-700 flex items-center justify-between px-4">
       <div className="flex items-center gap-4">
         <span className="font-sans font-semibold tracking-wider text-basilisk-white text-sm">
@@ -35,8 +70,8 @@ export const AppHeader = ({
       <div className="flex items-center gap-6 text-xs font-sans text-basilisk-white">
         {/* Audio Engine Status */}
         <div className="flex items-center gap-1.5">
-          <span>{engineInitialized ? '●' : '○'}</span>
-          <span>Audio: {engineInitialized ? 'running' : 'stopped'}</span>
+          <span>{isReady ? '●' : '○'}</span>
+          <span>Audio: {getEngineStatusText(engineStatus)}</span>
         </div>
 
         {/* Hydra Bridge Status */}
@@ -48,14 +83,13 @@ export const AppHeader = ({
         {/* Start Audio Button */}
         <Button
           onClick={onStartEngine}
-          disabled={isInitializing || engineInitialized}
+          disabled={!canStart}
           variant="primary"
           size="sm"
         >
-          {engineInitialized && 'Running'}
-          {isInitializing && !engineInitialized && 'Starting…'}
-          {!isInitializing && !engineInitialized && 'Start Audio'}
+          {getButtonText(engineStatus)}
         </Button>
       </div>
     </header>
   );
+};

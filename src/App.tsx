@@ -10,8 +10,8 @@ export const App = (): JSX.Element => {
   const [hasExecutedCode, setHasExecutedCode] = useState(false);
 
   const {
+    engineStatus,
     engineInitialized,
-    isInitializing,
     hydraLinked,
     hydraStatus,
     startEngine,
@@ -24,8 +24,7 @@ export const App = (): JSX.Element => {
       <HydraCanvas showStartupText={!hasExecutedCode} />
 
       <AppHeader
-        engineInitialized={engineInitialized}
-        isInitializing={isInitializing}
+        engineStatus={engineStatus}
         hydraLinked={hydraLinked}
         hydraStatus={hydraStatus}
         onStartEngine={startEngine}

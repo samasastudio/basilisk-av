@@ -1,15 +1,20 @@
 import { useState } from 'react';
 
 import * as StrudelEngine from '../services/strudelEngine';
+import { canStartEngine, isEngineInitializing, isEngineReady } from '../types/engine';
 import { setBridgeInitializer } from '../utils/patchSuperdough';
+
+import type { EngineStatus } from '../types/engine';
 
 /**
  * Return type for useStrudelEngine hook
  */
 export interface UseStrudelEngineReturn {
-  /** Whether the audio engine is fully initialized and ready */
+  /** Current engine status (idle | initializing | ready | error) */
+  engineStatus: EngineStatus;
+  /** Whether the audio engine is fully initialized and ready (derived from engineStatus) */
   engineInitialized: boolean;
-  /** Whether initialization is currently in progress */
+  /** Whether initialization is currently in progress (derived from engineStatus) */
   isInitializing: boolean;
   /** Whether Hydra audio bridge is connected */
   hydraLinked: boolean;
@@ -38,20 +43,23 @@ export interface UseStrudelEngineReturn {
  * @returns Object containing engine state and control functions
  */
 export const useStrudelEngine = (): UseStrudelEngineReturn => {
-  const [engineInitialized, setEngineInitialized] = useState(false);
-  const [isInitializing, setIsInitializing] = useState(false);
+  const [engineStatus, setEngineStatus] = useState<EngineStatus>('idle');
   const [hydraLinked, setHydraLinked] = useState(false);
   const [hydraStatus, setHydraStatus] = useState('none');
   const [initError, setInitError] = useState<string | null>(null);
 
+  // Derived boolean states for backward compatibility
+  const engineInitialized = isEngineReady(engineStatus);
+  const isInitializing = isEngineInitializing(engineStatus);
+
   /**
    * Initialize the Strudel audio engine and register audio bridge callback.
-   * Prevents duplicate initialization attempts.
+   * Prevents duplicate initialization attempts using state machine.
    */
   const startEngine = async (): Promise<void> => {
-    if (engineInitialized || isInitializing) {return;}
+    if (!canStartEngine(engineStatus)) {return;}
 
-    setIsInitializing(true);
+    setEngineStatus('initializing');
     setInitError(null);
 
     try {
@@ -66,15 +74,14 @@ export const useStrudelEngine = (): UseStrudelEngineReturn => {
       const repl = await StrudelEngine.initializeStrudel();
 
       window.repl = repl;
-      setEngineInitialized(true);
+      setEngineStatus('ready');
     } catch (error) {
       const errorMessage = error instanceof Error ? error.message : 'Unknown error';
       setInitError(errorMessage);
+      setEngineStatus('error');
       console.error('Failed to initialize Strudel engine:', error);
       // TODO: Replace alert with toast notification in Phase 3
       alert('Failed to initialize audio engine. Check console for details.');
-    } finally {
-      setIsInitializing(false);
     }
   };
 
@@ -96,13 +103,17 @@ export const useStrudelEngine = (): UseStrudelEngineReturn => {
 
   /**
    * Reset error state to allow retry after failed initialization.
-   * Call this before retrying startEngine after an error.
+   * Transitions from 'error' back to 'idle' state.
    */
   const resetError = (): void => {
     setInitError(null);
+    if (engineStatus === 'error') {
+      setEngineStatus('idle');
+    }
   };
 
   return {
+    engineStatus,
     engineInitialized,
     isInitializing,
     hydraLinked,

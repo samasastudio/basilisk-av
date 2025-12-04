@@ -4,10 +4,11 @@ import { describe, it, expect, vi } from 'vitest';
 
 import { AppHeader } from '../AppHeader';
 
+import type { EngineStatus } from '../../types/engine';
+
 describe('AppHeader', () => {
   const defaultProps = {
-    engineInitialized: false,
-    isInitializing: false,
+    engineStatus: 'idle' as EngineStatus,
     hydraLinked: false,
     hydraStatus: 'none',
     onStartEngine: vi.fn()
@@ -23,24 +24,34 @@ describe('AppHeader', () => {
     expect(screen.getByText('v0.1.0')).toBeInTheDocument();
   });
 
-  it('shows stopped audio status when engine not initialized', () => {
-    render(<AppHeader {...defaultProps} />);
+  it('shows stopped audio status when engine is idle', () => {
+    render(<AppHeader {...defaultProps} engineStatus="idle" />);
     expect(screen.getByText(/Audio: stopped/i)).toBeInTheDocument();
   });
 
-  it('shows running audio status when engine initialized', () => {
-    render(<AppHeader {...defaultProps} engineInitialized={true} />);
+  it('shows starting audio status when engine is initializing', () => {
+    render(<AppHeader {...defaultProps} engineStatus="initializing" />);
+    expect(screen.getByText(/Audio: starting/i)).toBeInTheDocument();
+  });
+
+  it('shows running audio status when engine is ready', () => {
+    render(<AppHeader {...defaultProps} engineStatus="ready" />);
     expect(screen.getByText(/Audio: running/i)).toBeInTheDocument();
   });
 
+  it('shows error audio status when engine has error', () => {
+    render(<AppHeader {...defaultProps} engineStatus="error" />);
+    expect(screen.getByText(/Audio: error/i)).toBeInTheDocument();
+  });
+
   it('shows correct audio indicator when engine stopped', () => {
-    render(<AppHeader {...defaultProps} />);
+    render(<AppHeader {...defaultProps} engineStatus="idle" />);
     const indicator = screen.getByText(/Audio: stopped/i).previousSibling;
     expect(indicator?.textContent).toBe('○');
   });
 
   it('shows correct audio indicator when engine running', () => {
-    render(<AppHeader {...defaultProps} engineInitialized={true} />);
+    render(<AppHeader {...defaultProps} engineStatus="ready" />);
     const indicator = screen.getByText(/Audio: running/i).previousSibling;
     expect(indicator?.textContent).toBe('●');
   });
@@ -84,29 +95,46 @@ describe('AppHeader', () => {
   });
 
   it('disables button when initializing', () => {
-    render(<AppHeader {...defaultProps} isInitializing={true} />);
+    render(<AppHeader {...defaultProps} engineStatus="initializing" />);
     const button = screen.getByRole('button');
     expect(button).toBeDisabled();
   });
 
-  it('disables button when engine already initialized', () => {
-    render(<AppHeader {...defaultProps} engineInitialized={true} />);
+  it('disables button when engine is ready', () => {
+    render(<AppHeader {...defaultProps} engineStatus="ready" />);
     const button = screen.getByRole('button');
     expect(button).toBeDisabled();
+  });
+
+  it('enables button when engine is idle', () => {
+    render(<AppHeader {...defaultProps} engineStatus="idle" />);
+    const button = screen.getByRole('button');
+    expect(button).not.toBeDisabled();
+  });
+
+  it('enables button when engine has error (allows retry)', () => {
+    render(<AppHeader {...defaultProps} engineStatus="error" />);
+    const button = screen.getByRole('button');
+    expect(button).not.toBeDisabled();
   });
 
   it('shows "Start Audio" text when idle', () => {
-    render(<AppHeader {...defaultProps} />);
+    render(<AppHeader {...defaultProps} engineStatus="idle" />);
+    expect(screen.getByRole('button', { name: /Start Audio/i })).toBeInTheDocument();
+  });
+
+  it('shows "Start Audio" text when in error state', () => {
+    render(<AppHeader {...defaultProps} engineStatus="error" />);
     expect(screen.getByRole('button', { name: /Start Audio/i })).toBeInTheDocument();
   });
 
   it('shows "Starting…" text when initializing', () => {
-    render(<AppHeader {...defaultProps} isInitializing={true} />);
+    render(<AppHeader {...defaultProps} engineStatus="initializing" />);
     expect(screen.getByRole('button', { name: /Starting…/i })).toBeInTheDocument();
   });
 
-  it('shows "Running" text when initialized', () => {
-    render(<AppHeader {...defaultProps} engineInitialized={true} />);
+  it('shows "Running" text when ready', () => {
+    render(<AppHeader {...defaultProps} engineStatus="ready" />);
     expect(screen.getByRole('button', { name: /Running/i })).toBeInTheDocument();
   });
 });
