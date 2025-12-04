@@ -3,6 +3,18 @@ import CodeMirror from '@uiw/react-codemirror';
 import { Play } from 'lucide-react';
 import React, { useState, useCallback } from 'react';
 
+// Test mode FFT generator constants
+const TEST_PHASE_INCREMENT = 0.1;
+const TEST_FFT_AMPLITUDE_0 = 0.8;
+const TEST_FFT_AMPLITUDE_1 = 0.6;
+const TEST_FFT_AMPLITUDE_2 = 0.7;
+const TEST_FFT_AMPLITUDE_3 = 0.5;
+const TEST_FFT_PHASE_OFFSET_1 = 1;
+const TEST_FFT_PHASE_OFFSET_2 = 2;
+const TEST_FFT_PHASE_OFFSET_3 = 3;
+const TEST_UPDATE_INTERVAL_MS = 50;
+const TEST_DURATION_MS = 10000;
+
 type Props = {
     className?: string;
     onExecute: (code: string) => void;
@@ -59,7 +71,7 @@ export function HydraRepl({ className, onExecute, initialCode = DEFAULT_CODE, on
         }
     }, [code, onExecute]);
 
-    const loadPreset = (value: 'none' | 'audio' | 'feedback') => {
+    const loadPreset = (value: 'none' | 'audio' | 'feedback'): void => {
         setPreset(value);
         const presetCode = presetMap[value];
         setCode(presetCode);
@@ -121,21 +133,21 @@ export function HydraRepl({ className, onExecute, initialCode = DEFAULT_CODE, on
                         // Generate oscillating fake data
                         let phase = 0;
                         const interval = setInterval(() => {
-                            phase += 0.1;
+                            phase += TEST_PHASE_INCREMENT;
                             a.fft = [
-                                Math.abs(Math.sin(phase)) * 0.8,
-                                Math.abs(Math.sin(phase + 1)) * 0.6,
-                                Math.abs(Math.sin(phase + 2)) * 0.7,
-                                Math.abs(Math.sin(phase + 3)) * 0.5
+                                Math.abs(Math.sin(phase)) * TEST_FFT_AMPLITUDE_0,
+                                Math.abs(Math.sin(phase + TEST_FFT_PHASE_OFFSET_1)) * TEST_FFT_AMPLITUDE_1,
+                                Math.abs(Math.sin(phase + TEST_FFT_PHASE_OFFSET_2)) * TEST_FFT_AMPLITUDE_2,
+                                Math.abs(Math.sin(phase + TEST_FFT_PHASE_OFFSET_3)) * TEST_FFT_AMPLITUDE_3
                             ];
-                        }, 50);
+                        }, TEST_UPDATE_INTERVAL_MS);
 
                         // Stop after 10 seconds and resume normal operation
                         setTimeout(() => {
                             clearInterval(interval);
                             a.testMode = false;
                             console.warn('✅ Test mode ended, resuming normal operation');
-                        }, 10000);
+                        }, TEST_DURATION_MS);
                     }}
                 >
                     🧪 Test (Fake Audio Data)

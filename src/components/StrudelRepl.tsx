@@ -107,7 +107,7 @@ type Props = {
 export function StrudelRepl({ className, engineReady, onTestPattern, onHalt, onExecute, statusLabel }: Props): JSX.Element {
     const [code, setCode] = useState(defaultCode);
 
-    const runCode = async () => {
+    const runCode = async (): Promise<void> => {
         if (!engineReady) {
             console.warn('Engine not ready. Please start the engine first.');
             return;
@@ -129,7 +129,7 @@ export function StrudelRepl({ className, engineReady, onTestPattern, onHalt, onE
         }
     };
 
-    const stopCode = () => {
+    const stopCode = (): void => {
         if (onHalt) {
             onHalt();
             return;

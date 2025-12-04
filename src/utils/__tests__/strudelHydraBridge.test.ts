@@ -1,8 +1,39 @@
 import { describe, it, expect, vi, beforeEach } from 'vitest';
+
 import { initHydraBridge } from '../strudelHydraBridge';
 
+// Mock frequency data filler
+function fillMockFrequencyData(dataArray: Uint8Array): void {
+  for (let i = 0; i < dataArray.length; i++) {
+    // eslint-disable-next-line no-param-reassign
+    dataArray[i] = Math.floor(Math.random() * 255);
+  }
+}
+
+// Mock AudioContext type for testing
+interface MockAnalyserNode {
+  fftSize: number;
+  smoothingTimeConstant: number;
+  frequencyBinCount: number;
+  connect: ReturnType<typeof vi.fn>;
+  disconnect: ReturnType<typeof vi.fn>;
+  getByteFrequencyData: ReturnType<typeof vi.fn>;
+}
+
+interface MockGainNode {
+  gain: { value: number };
+  connect: ReturnType<typeof vi.fn>;
+  disconnect: ReturnType<typeof vi.fn>;
+}
+
+interface MockAudioContext {
+  createAnalyser: ReturnType<typeof vi.fn<[], MockAnalyserNode>>;
+  createGain: ReturnType<typeof vi.fn<[], MockGainNode>>;
+  destination: Record<string, never>;
+}
+
 describe('strudelHydraBridge', () => {
-  let mockAudioContext: any;
+  let mockAudioContext: MockAudioContext;
 
   beforeEach(() => {
     vi.clearAllMocks();
@@ -15,12 +46,7 @@ describe('strudelHydraBridge', () => {
         frequencyBinCount: 512,
         connect: vi.fn(),
         disconnect: vi.fn(),
-        getByteFrequencyData: vi.fn((dataArray: Uint8Array) => {
-          // Fill with mock data
-          for (let i = 0; i < dataArray.length; i++) {
-            dataArray[i] = Math.floor(Math.random() * 255);
-          }
-        }),
+        getByteFrequencyData: vi.fn(fillMockFrequencyData),
       })),
       createGain: vi.fn(() => ({
         gain: { value: 1.0 },
@@ -31,11 +57,11 @@ describe('strudelHydraBridge', () => {
     };
 
     // Clear window.a from previous tests
-    delete (window as any).a;
+    delete window.a;
   });
 
   it('creates bridge with analyser and gain nodes', () => {
-    const bridge = initHydraBridge(mockAudioContext);
+    const bridge = initHydraBridge(mockAudioContext as unknown as AudioContext);
 
     expect(bridge).not.toBeNull();
     expect(bridge?.analyser).toBeDefined();
@@ -43,52 +69,52 @@ describe('strudelHydraBridge', () => {
   });
 
   it('exposes bridge globally as window.a', () => {
-    initHydraBridge(mockAudioContext);
+    initHydraBridge(mockAudioContext as unknown as AudioContext);
 
-    expect((window as any).a).toBeDefined();
-    expect((window as any).a.fft).toBeDefined();
+    expect(window.a).toBeDefined();
+    expect(window.a?.fft).toBeDefined();
   });
 
   it('initializes with 4 FFT bins by default', () => {
-    const bridge = initHydraBridge(mockAudioContext);
+    const bridge = initHydraBridge(mockAudioContext as unknown as AudioContext);
 
     expect(bridge?.bins).toBe(4);
     expect(bridge?.fft).toHaveLength(4);
   });
 
   it('sets correct analyser configuration', () => {
-    const bridge = initHydraBridge(mockAudioContext);
+    const bridge = initHydraBridge(mockAudioContext as unknown as AudioContext);
 
     expect(bridge?.analyser.fftSize).toBe(1024);
     expect(bridge?.analyser.smoothingTimeConstant).toBe(0.8);
   });
 
   it('sets correct gain configuration', () => {
-    const bridge = initHydraBridge(mockAudioContext);
+    const bridge = initHydraBridge(mockAudioContext as unknown as AudioContext);
 
     expect(bridge?.gainNode.gain.value).toBe(1.0);
   });
 
   it('connects gain node to analyser', () => {
-    const bridge = initHydraBridge(mockAudioContext);
+    const bridge = initHydraBridge(mockAudioContext as unknown as AudioContext);
 
     expect(bridge?.gainNode.connect).toHaveBeenCalledWith(bridge?.analyser);
   });
 
   it('connects analyser to destination', () => {
-    const bridge = initHydraBridge(mockAudioContext);
+    const bridge = initHydraBridge(mockAudioContext as unknown as AudioContext);
 
     expect(bridge?.analyser.connect).toHaveBeenCalledWith(mockAudioContext.destination);
   });
 
   it('returns null when audioContext is not provided', () => {
-    const bridge = initHydraBridge(null as any);
+    const bridge = initHydraBridge(null as unknown as AudioContext);
 
     expect(bridge).toBeNull();
   });
 
   it('allows changing number of bins', () => {
-    const bridge = initHydraBridge(mockAudioContext);
+    const bridge = initHydraBridge(mockAudioContext as unknown as AudioContext);
 
     bridge?.setBins(8);
 
@@ -97,7 +123,7 @@ describe('strudelHydraBridge', () => {
   });
 
   it('tick method updates FFT values', () => {
-    const bridge = initHydraBridge(mockAudioContext);
+    const bridge = initHydraBridge(mockAudioContext as unknown as AudioContext);
 
     // Manually call tick (in real app, this is called by requestAnimationFrame)
     bridge?.tick();
@@ -108,7 +134,7 @@ describe('strudelHydraBridge', () => {
   });
 
   it('disconnect method disconnects audio nodes', () => {
-    const bridge = initHydraBridge(mockAudioContext);
+    const bridge = initHydraBridge(mockAudioContext as unknown as AudioContext);
 
     bridge?.disconnect();
 
@@ -117,7 +143,7 @@ describe('strudelHydraBridge', () => {
   });
 
   it('sets minimum of 1 bin when setBins is called with 0', () => {
-    const bridge = initHydraBridge(mockAudioContext);
+    const bridge = initHydraBridge(mockAudioContext as unknown as AudioContext);
 
     bridge?.setBins(0);
 

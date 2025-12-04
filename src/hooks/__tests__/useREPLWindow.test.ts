@@ -1,6 +1,10 @@
-import { describe, it, expect, beforeEach, afterEach } from 'vitest';
 import { renderHook, act } from '@testing-library/react';
+import { describe, it, expect, beforeEach, afterEach } from 'vitest';
+
 import { useREPLWindow } from '../useREPLWindow';
+
+import type { DraggableData, DraggableEvent, ResizableDelta, ResizeDirection } from 'react-rnd';
+
 
 describe('useREPLWindow', () => {
   const originalInnerHeight = window.innerHeight;
@@ -42,8 +46,8 @@ describe('useREPLWindow', () => {
 
     act(() => {
       result.current.handleDragStop(
-        {} as any, // event (not used)
-        { x: 100, y: 200 } as any // drag data
+        {} as DraggableEvent, // event (not used)
+        { x: 100, y: 200, node: document.createElement('div'), deltaX: 0, deltaY: 0, lastX: 0, lastY: 0 } as DraggableData
       );
     });
 
@@ -58,14 +62,14 @@ describe('useREPLWindow', () => {
         width: '800px',
         height: '500px',
       },
-    };
+    } as HTMLElement;
 
     act(() => {
       result.current.handleResizeStop(
-        {} as any, // event
-        'bottomRight' as any, // direction
-        mockRef as any, // ref with style
-        {} as any, // delta
+        new MouseEvent('mouseup') as MouseEvent, // event
+        'bottomRight' as ResizeDirection, // direction
+        mockRef, // ref with style
+        { width: 0, height: 0 } as ResizableDelta, // delta
         { x: 50, y: 60 } // new position
       );
     });
@@ -82,14 +86,14 @@ describe('useREPLWindow', () => {
         width: '750.5px',
         height: '450.75px',
       },
-    };
+    } as HTMLElement;
 
     act(() => {
       result.current.handleResizeStop(
-        {} as any,
-        'bottomRight' as any,
-        mockRef as any,
-        {} as any,
+        new MouseEvent('mouseup') as MouseEvent,
+        'bottomRight' as ResizeDirection,
+        mockRef,
+        { width: 0, height: 0 } as ResizableDelta,
         { x: 20, y: 30 }
       );
     });
@@ -103,20 +107,23 @@ describe('useREPLWindow', () => {
 
     // Change position
     act(() => {
-      result.current.handleDragStop({} as any, { x: 200, y: 300 } as any);
+      result.current.handleDragStop(
+        {} as DraggableEvent,
+        { x: 200, y: 300, node: document.createElement('div'), deltaX: 0, deltaY: 0, lastX: 0, lastY: 0 } as DraggableData
+      );
     });
 
     expect(result.current.position).toEqual({ x: 200, y: 300 });
     expect(result.current.size).toEqual({ width: 600, height: 400 }); // unchanged
 
     // Change size
-    const mockRef = { style: { width: '700px', height: '500px' } };
+    const mockRef = { style: { width: '700px', height: '500px' } } as HTMLElement;
     act(() => {
       result.current.handleResizeStop(
-        {} as any,
-        'bottomRight' as any,
-        mockRef as any,
-        {} as any,
+        new MouseEvent('mouseup') as MouseEvent,
+        'bottomRight' as ResizeDirection,
+        mockRef,
+        { width: 0, height: 0 } as ResizableDelta,
         { x: 200, y: 300 }
       );
     });

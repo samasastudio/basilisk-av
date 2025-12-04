@@ -16,7 +16,7 @@ type Props = {
 };
 
 export function HydraCanvas(props: Props): JSX.Element {
-    const { className, audioContext } = props;
+    const { className, audioContext, onInit } = props;
     const canvasRef = useRef<HTMLCanvasElement>(null);
     const hydraInstance = useRef<HydraSynth | null>(null);
 
@@ -54,8 +54,8 @@ export function HydraCanvas(props: Props): JSX.Element {
 
         hydraInstance.current = hydra;
 
-        if (props.onInit) {
-            props.onInit(hydra);
+        if (onInit) {
+            onInit(hydra);
         }
 
         // Expose Hydra globals for debugging
@@ -101,7 +101,7 @@ export function HydraCanvas(props: Props): JSX.Element {
             cancelAnimationFrame(animationId);
             // Hydra does not expose a formal destroy API; letting the instance be GC'd is fine.
         };
-    }, [audioContext]);
+    }, [audioContext, onInit]);
 
     // Update visuals when audioData or visualMode changes
     // Visual updates are now handled entirely by the REPL executing code against the hydra instance.

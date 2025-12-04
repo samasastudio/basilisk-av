@@ -48,7 +48,7 @@ export function useStrudelEngine(): UseStrudelEngineReturn {
    * Initialize the Strudel audio engine and register audio bridge callback.
    * Prevents duplicate initialization attempts.
    */
-  const startEngine = async () => {
+  const startEngine = async (): Promise<void> => {
     if (engineInitialized || isInitializing) {return;}
 
     setIsInitializing(true);
@@ -84,7 +84,7 @@ export function useStrudelEngine(): UseStrudelEngineReturn {
    * Play a test pattern (bass drum) to verify audio engine is working.
    * Does nothing if engine is not initialized.
    */
-  const playTestPattern = () => {
+  const playTestPattern = (): void => {
     if (!window.repl?.evaluate) {return;}
     window.repl.evaluate('s("bd*4").gain(0.8)');
   };
@@ -93,7 +93,7 @@ export function useStrudelEngine(): UseStrudelEngineReturn {
    * Stop all audio playback.
    * Does nothing if engine is not initialized.
    */
-  const hushAudio = () => {
+  const hushAudio = (): void => {
     window.repl?.stop?.();
   };
 
@@ -101,7 +101,7 @@ export function useStrudelEngine(): UseStrudelEngineReturn {
    * Reset error state to allow retry after failed initialization.
    * Call this before retrying startEngine after an error.
    */
-  const resetError = () => {
+  const resetError = (): void => {
     setInitError(null);
   };
 

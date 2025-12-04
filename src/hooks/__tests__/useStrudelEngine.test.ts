@@ -1,8 +1,11 @@
-import { describe, it, expect, beforeEach, vi } from 'vitest';
-import { renderHook, act, waitFor } from '@testing-library/react';
-import { useStrudelEngine } from '../useStrudelEngine';
 import { initStrudel } from '@strudel/web';
+import { renderHook, act, waitFor } from '@testing-library/react';
+import { describe, it, expect, beforeEach, vi } from 'vitest';
+
 import { setBridgeInitializer } from '../../utils/patchSuperdough';
+import { useStrudelEngine } from '../useStrudelEngine';
+
+
 
 // Mock dependencies
 vi.mock('@strudel/web', () => ({
@@ -175,8 +178,11 @@ describe('useStrudelEngine', () => {
 
   it('prevents multiple simultaneous initializations', async () => {
     const mockRepl = { evaluate: vi.fn(), stop: vi.fn() };
+    const delayedResolve = (resolve: (value: typeof mockRepl) => void): void => {
+      setTimeout(() => resolve(mockRepl), 100);
+    };
     vi.mocked(initStrudel).mockImplementation(() =>
-      new Promise(resolve => setTimeout(() => resolve(mockRepl), 100))
+      new Promise(delayedResolve)
     );
 
     const { result } = renderHook(() => useStrudelEngine());

@@ -9,7 +9,7 @@ import '../types/hydra';
  *
  * @returns Object containing the current HUD value (0-1 range)
  */
-export function useHydraHUD() {
+export function useHydraHUD(): { hudValue: number } {
   const hudValue = useSyncExternalStore(
     subscribe,
     getSnapshot,
@@ -35,7 +35,7 @@ function subscribe(onStoreChange: () => void): () => void {
   let frameId: number | null = null;
   let lastValue: number | null = null;
 
-  const updateHud = () => {
+  const updateHud = (): void => {
     const currentValue = getSnapshot();
 
     // Only notify React if value actually changed

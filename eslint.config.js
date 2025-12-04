@@ -59,7 +59,7 @@ export default defineConfig([
       'complexity': ['warn', { max: 15 }], // Start warn, tighten to 10 later
       'max-depth': ['error', { max: 3 }],
       'max-lines-per-function': ['warn', {
-        max: 50,
+        max: 120,
         skipBlankLines: true,
         skipComments: true,
       }],

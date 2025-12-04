@@ -32,7 +32,8 @@ class MockAudioNode {
 MockAudioNode.prototype.connect = vi.fn();
 MockAudioNode.prototype.disconnect = vi.fn();
 
-global.AudioNode = MockAudioNode as any;
+// @ts-expect-error - Assigning mock class to global AudioNode for testing
+global.AudioNode = MockAudioNode;
 
 // Mock AudioContext (used by audio bridge)
 global.AudioContext = vi.fn().mockImplementation(() => ({
@@ -54,4 +55,5 @@ global.AudioContext = vi.fn().mockImplementation(() => ({
   resume: vi.fn(),
   suspend: vi.fn(),
   state: 'running',
-})) as any;
+  // @ts-expect-error - Mock implementation doesn't match full AudioContext interface
+}));
