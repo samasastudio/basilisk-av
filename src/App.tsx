@@ -1,13 +1,14 @@
 import { useState } from 'react';
 import { Rnd } from 'react-rnd';
-import StrudelRepl from './components/StrudelRepl';
-import Button from './components/ui/Button';
+
+import { StrudelRepl } from './components/StrudelRepl';
+import { Button } from './components/ui/Button';
 import './utils/patchSuperdough'; // MUST be imported BEFORE @strudel/web
 import { useHydraHUD } from './hooks/useHydraHUD';
 import { useREPLWindow } from './hooks/useREPLWindow';
 import { useStrudelEngine } from './hooks/useStrudelEngine';
 
-function App() {
+export function App(): JSX.Element {
   const [hasExecutedCode, setHasExecutedCode] = useState(false);
 
   // Use HUD hook for dev mode visualization
@@ -82,7 +83,9 @@ function App() {
             variant="primary"
             size="sm"
           >
-            {engineInitialized ? 'Running' : isInitializing ? 'Starting…' : 'Start Audio'}
+            {engineInitialized && 'Running'}
+            {isInitializing && !engineInitialized && 'Starting…'}
+            {!isInitializing && !engineInitialized && 'Start Audio'}
           </Button>
         </div>
       </header>
@@ -115,4 +118,3 @@ function App() {
   );
 }
 
-export default App;

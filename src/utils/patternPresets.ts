@@ -98,4 +98,4 @@ s("bd sd*2, hh*8, ~ ~ ~ sd")`
   }
 ];
 
-export default patternPresets;
+export { patternPresets };

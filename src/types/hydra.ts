@@ -40,6 +40,28 @@ export interface StrudelRepl {
   stop?: () => void;
 }
 
+/**
+ * Hydra Synth instance interface
+ * Main Hydra object for visual synthesis
+ */
+export interface HydraSynth {
+  /** Audio analyzer (can be named 'a' or 'audio') */
+  a?: HydraBridge;
+  audio?: HydraBridge;
+
+  /** Hydra output sources */
+  s?: unknown[];
+
+  /** Hydra outputs */
+  o?: unknown[];
+
+  /** Render function */
+  render?: () => void;
+
+  /** Other Hydra methods */
+  [key: string]: unknown;
+}
+
 declare global {
   interface Window {
     /** Hydra audio bridge for audio-reactive visuals */
@@ -52,7 +74,13 @@ declare global {
     replAudio?: AudioContext;
 
     /** Strudel samples loader */
-    samples?: (url: string) => Promise<any>;
+    samples?: (url: string) => Promise<unknown>;
+
+    /** Hydra synth instance */
+    hydra?: HydraSynth;
+
+    /** Hydra shorthand (h) */
+    h?: HydraSynth;
   }
 }
 

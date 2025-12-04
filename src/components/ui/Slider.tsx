@@ -8,7 +8,7 @@ interface SliderProps {
   unit?: string;
 }
 
-const Slider = ({ label, min, max, step = 1, value, onChange, unit }: SliderProps) => {
+export function Slider({ label, min, max, step = 1, value, onChange, unit }: SliderProps): JSX.Element {
   return (
     <div className="flex flex-col gap-2">
       {label && (
@@ -50,6 +50,4 @@ const Slider = ({ label, min, max, step = 1, value, onChange, unit }: SliderProp
       />
     </div>
   );
-};
-
-export default Slider;
+}

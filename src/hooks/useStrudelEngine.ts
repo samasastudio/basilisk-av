@@ -1,5 +1,6 @@
-import { useState } from 'react';
 import { initStrudel } from '@strudel/web';
+import { useState } from 'react';
+
 import { setBridgeInitializer } from '../utils/patchSuperdough';
 
 /**
@@ -48,7 +49,7 @@ export function useStrudelEngine(): UseStrudelEngineReturn {
    * Prevents duplicate initialization attempts.
    */
   const startEngine = async () => {
-    if (engineInitialized || isInitializing) return;
+    if (engineInitialized || isInitializing) {return;}
 
     setIsInitializing(true);
     setInitError(null);
@@ -84,7 +85,7 @@ export function useStrudelEngine(): UseStrudelEngineReturn {
    * Does nothing if engine is not initialized.
    */
   const playTestPattern = () => {
-    if (!window.repl?.evaluate) return;
+    if (!window.repl?.evaluate) {return;}
     window.repl.evaluate('s("bd*4").gain(0.8)');
   };
 

@@ -1,5 +1,6 @@
 import { useState } from 'react';
-import type { DraggableData, ResizableDelta, Position } from 'react-rnd';
+
+import type { DraggableData, DraggableEvent, Position, ResizableDelta, ResizeDirection } from 'react-rnd';
 
 // Default REPL window constraints
 const DEFAULT_MIN_WIDTH = 400;
@@ -41,7 +42,7 @@ export function useREPLWindow() {
   // Calculate initial Y position to place window near bottom of screen
   // Ensure position is valid even on small viewports (min 48px from top for header)
   const calculateInitialY = () => {
-    if (typeof window === 'undefined') return 300;
+    if (typeof window === 'undefined') {return 300;}
     const idealY = window.innerHeight - BOTTOM_OFFSET;
     const minY = 48; // Account for app header
     return Math.max(minY, idealY);
@@ -53,7 +54,7 @@ export function useREPLWindow() {
   /**
    * Handle drag stop event from react-rnd
    */
-  const handleDragStop = (_e: any, d: DraggableData) => {
+  const handleDragStop = (_e: DraggableEvent, d: DraggableData): void => {
     setPosition({ x: d.x, y: d.y });
   };
 
@@ -61,12 +62,12 @@ export function useREPLWindow() {
    * Handle resize stop event from react-rnd
    */
   const handleResizeStop = (
-    _e: any,
-    _direction: any,
+    _e: MouseEvent | TouchEvent,
+    _direction: ResizeDirection,
     ref: HTMLElement,
     _delta: ResizableDelta,
     position: Position
-  ) => {
+  ): void => {
     setSize({
       width: parseInt(ref.style.width, 10),
       height: parseInt(ref.style.height, 10),
