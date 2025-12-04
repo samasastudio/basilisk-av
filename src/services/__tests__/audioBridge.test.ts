@@ -7,7 +7,7 @@ import type { HydraBridge } from '../audioBridge';
 describe('audioBridge service', () => {
   beforeEach(() => {
     vi.clearAllMocks();
-    delete (window as any).a;
+    delete window.a;
   });
 
   describe('isBridgeActive', () => {
@@ -16,12 +16,12 @@ describe('audioBridge service', () => {
     });
 
     it('returns false when window.a exists but no fft', () => {
-      (window as any).a = {};
+      window.a = {} as HydraBridge;
       expect(AudioBridge.isBridgeActive()).toBe(false);
     });
 
     it('returns true when bridge initialized with fft', () => {
-      (window as any).a = { fft: [0.5, 0.3, 0.2, 0.1] };
+      window.a = { fft: [0.5, 0.3, 0.2, 0.1] } as HydraBridge;
       expect(AudioBridge.isBridgeActive()).toBe(true);
     });
   });
@@ -32,24 +32,24 @@ describe('audioBridge service', () => {
     });
 
     it('returns 0 when index is undefined', () => {
-      (window as any).a = { fft: [0.5, 0.3, 0.2, 0.1] };
+      window.a = { fft: [0.5, 0.3, 0.2, 0.1] } as HydraBridge;
       expect(AudioBridge.getBridgeFFT(10)).toBe(0);
     });
 
     it('returns FFT value for valid index', () => {
-      (window as any).a = { fft: [0.5, 0.3, 0.2, 0.1] };
+      window.a = { fft: [0.5, 0.3, 0.2, 0.1] } as HydraBridge;
       expect(AudioBridge.getBridgeFFT(0)).toBe(0.5);
       expect(AudioBridge.getBridgeFFT(2)).toBe(0.2);
       expect(AudioBridge.getBridgeFFT(3)).toBe(0.1);
     });
 
     it('defaults to index 0 when no argument provided', () => {
-      (window as any).a = { fft: [0.7, 0.3, 0.2, 0.1] };
+      window.a = { fft: [0.7, 0.3, 0.2, 0.1] } as HydraBridge;
       expect(AudioBridge.getBridgeFFT()).toBe(0.7);
     });
 
     it('returns 0 for out of bounds index', () => {
-      (window as any).a = { fft: [0.5, 0.3] };
+      window.a = { fft: [0.5, 0.3] } as HydraBridge;
       expect(AudioBridge.getBridgeFFT(10)).toBe(0);
       expect(AudioBridge.getBridgeFFT(-1)).toBe(0);
     });
@@ -62,13 +62,13 @@ describe('audioBridge service', () => {
 
     it('returns all FFT values', () => {
       const fftData = [0.5, 0.3, 0.2, 0.1];
-      (window as any).a = { fft: fftData };
+      window.a = { fft: fftData } as HydraBridge;
       expect(AudioBridge.getAllFFT()).toEqual(fftData);
     });
 
     it('returns reference to actual array', () => {
       const fftData = [0.5, 0.3, 0.2, 0.1];
-      (window as any).a = { fft: fftData };
+      window.a = { fft: fftData } as HydraBridge;
       const result = AudioBridge.getAllFFT();
       expect(result).toBe(fftData); // Same reference
     });
@@ -80,12 +80,12 @@ describe('audioBridge service', () => {
     });
 
     it('returns bin count when bridge active', () => {
-      (window as any).a = { fft: [0, 0, 0, 0], bins: 4 };
+      window.a = { fft: [0, 0, 0, 0], bins: 4 } as HydraBridge;
       expect(AudioBridge.getBinCount()).toBe(4);
     });
 
     it('returns correct bin count for different sizes', () => {
-      (window as any).a = { fft: [0, 0, 0, 0, 0, 0, 0, 0], bins: 8 };
+      window.a = { fft: [0, 0, 0, 0, 0, 0, 0, 0], bins: 8 } as HydraBridge;
       expect(AudioBridge.getBinCount()).toBe(8);
     });
   });
@@ -96,13 +96,13 @@ describe('audioBridge service', () => {
     });
 
     it('returns false when setBins method missing', () => {
-      (window as any).a = { fft: [0, 0, 0, 0] };
+      window.a = { fft: [0, 0, 0, 0] } as HydraBridge;
       expect(AudioBridge.setBinCount(8)).toBe(false);
     });
 
     it('calls setBins and returns true when bridge active', () => {
       const mockSetBins = vi.fn();
-      (window as any).a = { fft: [0, 0, 0, 0], setBins: mockSetBins };
+      window.a = { fft: [0, 0, 0, 0], setBins: mockSetBins } as HydraBridge;
 
       const result = AudioBridge.setBinCount(8);
 
@@ -118,13 +118,13 @@ describe('audioBridge service', () => {
     });
 
     it('returns false when tick method missing', () => {
-      (window as any).a = { fft: [0, 0, 0, 0] };
+      window.a = { fft: [0, 0, 0, 0] } as HydraBridge;
       expect(AudioBridge.updateFFT()).toBe(false);
     });
 
     it('calls tick and returns true when bridge active', () => {
       const mockTick = vi.fn();
-      (window as any).a = { fft: [0, 0, 0, 0], tick: mockTick };
+      window.a = { fft: [0, 0, 0, 0], tick: mockTick } as HydraBridge;
 
       const result = AudioBridge.updateFFT();
 
@@ -140,19 +140,19 @@ describe('audioBridge service', () => {
     });
 
     it('returns false when disconnect method missing', () => {
-      (window as any).a = { fft: [0, 0, 0, 0] };
+      window.a = { fft: [0, 0, 0, 0] } as HydraBridge;
       expect(AudioBridge.disconnectBridge()).toBe(false);
     });
 
     it('calls disconnect, removes window.a, and returns true', () => {
       const mockDisconnect = vi.fn();
-      (window as any).a = { fft: [0, 0, 0, 0], disconnect: mockDisconnect };
+      window.a = { fft: [0, 0, 0, 0], disconnect: mockDisconnect } as HydraBridge;
 
       const result = AudioBridge.disconnectBridge();
 
       expect(result).toBe(true);
       expect(mockDisconnect).toHaveBeenCalled();
-      expect((window as any).a).toBeUndefined();
+      expect(window.a).toBeUndefined();
     });
   });
 
@@ -162,11 +162,11 @@ describe('audioBridge service', () => {
     });
 
     it('returns bridge instance when initialized', () => {
-      const mockBridge: Partial<HydraBridge> = {
+      const mockBridge = {
         fft: [0.5, 0.3, 0.2, 0.1],
         bins: 4
-      };
-      (window as any).a = mockBridge;
+      } as HydraBridge;
+      window.a = mockBridge;
       expect(AudioBridge.getBridgeInstance()).toBe(mockBridge);
     });
   });

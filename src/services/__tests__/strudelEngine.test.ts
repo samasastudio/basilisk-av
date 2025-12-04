@@ -5,8 +5,8 @@ import * as StrudelEngine from '../strudelEngine';
 describe('strudelEngine service', () => {
   beforeEach(() => {
     vi.clearAllMocks();
-    delete (window as any).repl;
-    delete (window as any).replAudio;
+    delete window.repl;
+    delete window.replAudio;
   });
 
   describe('getReplInstance', () => {
@@ -16,7 +16,7 @@ describe('strudelEngine service', () => {
 
     it('returns repl when initialized', () => {
       const mockRepl = { evaluate: vi.fn(), stop: vi.fn() };
-      (window as any).repl = mockRepl;
+      window.repl = mockRepl;
       expect(StrudelEngine.getReplInstance()).toBe(mockRepl);
     });
   });
@@ -28,7 +28,7 @@ describe('strudelEngine service', () => {
 
     it('returns AudioContext when initialized', () => {
       const mockContext = {} as AudioContext;
-      (window as any).replAudio = mockContext;
+      window.replAudio = mockContext;
       expect(StrudelEngine.getAudioContext()).toBe(mockContext);
     });
   });
@@ -39,17 +39,17 @@ describe('strudelEngine service', () => {
     });
 
     it('returns false when repl missing evaluate method', () => {
-      (window as any).repl = { stop: vi.fn() };
+      window.repl = { stop: vi.fn() };
       expect(StrudelEngine.isEngineReady()).toBe(false);
     });
 
     it('returns false when repl missing stop method', () => {
-      (window as any).repl = { evaluate: vi.fn() };
+      window.repl = { evaluate: vi.fn() };
       expect(StrudelEngine.isEngineReady()).toBe(false);
     });
 
     it('returns true when repl fully initialized', () => {
-      (window as any).repl = { evaluate: vi.fn(), stop: vi.fn() };
+      window.repl = { evaluate: vi.fn(), stop: vi.fn() };
       expect(StrudelEngine.isEngineReady()).toBe(true);
     });
   });
@@ -60,13 +60,13 @@ describe('strudelEngine service', () => {
     });
 
     it('returns false when repl missing evaluate', () => {
-      (window as any).repl = { stop: vi.fn() };
+      window.repl = { stop: vi.fn() };
       expect(StrudelEngine.playTestPattern()).toBe(false);
     });
 
     it('calls evaluate with test pattern when repl ready', () => {
       const mockEvaluate = vi.fn();
-      (window as any).repl = { evaluate: mockEvaluate, stop: vi.fn() };
+      window.repl = { evaluate: mockEvaluate, stop: vi.fn() };
 
       const result = StrudelEngine.playTestPattern();
 
@@ -92,13 +92,13 @@ describe('strudelEngine service', () => {
     });
 
     it('returns false when repl missing stop', () => {
-      (window as any).repl = { evaluate: vi.fn() };
+      window.repl = { evaluate: vi.fn() };
       expect(StrudelEngine.hushAudio()).toBe(false);
     });
 
     it('calls stop when repl ready', () => {
       const mockStop = vi.fn();
-      (window as any).repl = { evaluate: vi.fn(), stop: mockStop };
+      window.repl = { evaluate: vi.fn(), stop: mockStop };
 
       const result = StrudelEngine.hushAudio();
 
