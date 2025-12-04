@@ -1,7 +1,19 @@
-import React, { useState, useCallback } from 'react';
-import CodeMirror from '@uiw/react-codemirror';
 import { javascript } from '@codemirror/lang-javascript';
+import CodeMirror from '@uiw/react-codemirror';
 import { Play } from 'lucide-react';
+import React, { useState, useCallback } from 'react';
+
+// Test mode FFT generator constants
+const TEST_PHASE_INCREMENT = 0.1;
+const TEST_FFT_AMPLITUDE_0 = 0.8;
+const TEST_FFT_AMPLITUDE_1 = 0.6;
+const TEST_FFT_AMPLITUDE_2 = 0.7;
+const TEST_FFT_AMPLITUDE_3 = 0.5;
+const TEST_FFT_PHASE_OFFSET_1 = 1;
+const TEST_FFT_PHASE_OFFSET_2 = 2;
+const TEST_FFT_PHASE_OFFSET_3 = 3;
+const TEST_UPDATE_INTERVAL_MS = 50;
+const TEST_DURATION_MS = 10000;
 
 type Props = {
     className?: string;
@@ -48,7 +60,7 @@ const presetMap: Record<string, string> = {
     feedback: SIMPLE_FEEDBACK,
 };
 
-export default function HydraRepl({ className, onExecute, initialCode = DEFAULT_CODE, onLoadPreset, linkStatus }: Props) {
+export function HydraRepl({ className, onExecute, initialCode = DEFAULT_CODE, onLoadPreset, linkStatus }: Props): JSX.Element {
     const [code, setCode] = useState(initialCode);
     const [preset, setPreset] = useState<'none' | 'audio' | 'feedback'>('none');
 
@@ -59,7 +71,7 @@ export default function HydraRepl({ className, onExecute, initialCode = DEFAULT_
         }
     }, [code, onExecute]);
 
-    const loadPreset = (value: 'none' | 'audio' | 'feedback') => {
+    const loadPreset = (value: 'none' | 'audio' | 'feedback'): void => {
         setPreset(value);
         const presetCode = presetMap[value];
         setCode(presetCode);
@@ -70,7 +82,7 @@ export default function HydraRepl({ className, onExecute, initialCode = DEFAULT_
         <div className={`flex flex-col bg-pm-panel ${className}`}>
             <div className="flex justify-between items-center p-2 border-b border-pm-border select-none bg-pm-panel">
                 <div className="flex items-center gap-2">
-                    <div className="w-3 h-3 rounded-full bg-blue-500/50"></div>
+                    <div className="w-3 h-3 rounded-full bg-blue-500/50" />
                     <span className="text-pm-secondary font-mono text-sm tracking-wider">HYDRA_VISUALS</span>
                 </div>
                 <div className="flex items-center gap-2 text-xs font-mono">
@@ -108,7 +120,7 @@ export default function HydraRepl({ className, onExecute, initialCode = DEFAULT_
                 <button
                     className={`px-2 py-1 rounded border border-yellow-500 text-yellow-400 hover:bg-yellow-500 hover:text-black`}
                     onClick={() => {
-                        const a = (window as any).a;
+                        const a = window.a;
                         if (!a) {
                             console.error('Bridge not initialized');
                             return;
@@ -116,26 +128,26 @@ export default function HydraRepl({ className, onExecute, initialCode = DEFAULT_
 
                         // Enable test mode to stop tick() from overwriting values
                         a.testMode = true;
-                        console.log('🧪 Generating fake FFT data for 10 seconds...');
+                        console.warn('🧪 Generating fake FFT data for 10 seconds...');
 
                         // Generate oscillating fake data
                         let phase = 0;
                         const interval = setInterval(() => {
-                            phase += 0.1;
+                            phase += TEST_PHASE_INCREMENT;
                             a.fft = [
-                                Math.abs(Math.sin(phase)) * 0.8,
-                                Math.abs(Math.sin(phase + 1)) * 0.6,
-                                Math.abs(Math.sin(phase + 2)) * 0.7,
-                                Math.abs(Math.sin(phase + 3)) * 0.5
+                                Math.abs(Math.sin(phase)) * TEST_FFT_AMPLITUDE_0,
+                                Math.abs(Math.sin(phase + TEST_FFT_PHASE_OFFSET_1)) * TEST_FFT_AMPLITUDE_1,
+                                Math.abs(Math.sin(phase + TEST_FFT_PHASE_OFFSET_2)) * TEST_FFT_AMPLITUDE_2,
+                                Math.abs(Math.sin(phase + TEST_FFT_PHASE_OFFSET_3)) * TEST_FFT_AMPLITUDE_3
                             ];
-                        }, 50);
+                        }, TEST_UPDATE_INTERVAL_MS);
 
                         // Stop after 10 seconds and resume normal operation
                         setTimeout(() => {
                             clearInterval(interval);
                             a.testMode = false;
-                            console.log('✅ Test mode ended, resuming normal operation');
-                        }, 10000);
+                            console.warn('✅ Test mode ended, resuming normal operation');
+                        }, TEST_DURATION_MS);
                     }}
                 >
                     🧪 Test (Fake Audio Data)

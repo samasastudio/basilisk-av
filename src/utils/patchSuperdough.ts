@@ -10,9 +10,18 @@
 
 import { initHydraBridge, type HydraBridge } from './strudelHydraBridge';
 
+// Type definitions for AudioNode connection interception
+type AudioNodeConnectArgs =
+    | [AudioNode, number?, number?]
+    | [AudioParam, number?];
+
+interface AudioNodeWithContext extends AudioNode {
+    context: AudioContext;
+}
+
 let bridgeInitializer: ((ctx: AudioContext) => void) | null = null;
 
-export function setBridgeInitializer(fn: (ctx: AudioContext) => void) {
+export function setBridgeInitializer(fn: (ctx: AudioContext) => void): void {
     bridgeInitializer = fn;
 }
 
@@ -21,12 +30,12 @@ if (typeof window !== 'undefined') {
     let interceptedContext: AudioContext | null = null;
     let bridge: HydraBridge | null = null;
 
-    AudioNode.prototype.connect = function(this: AudioNode, ...args: any[]): any {
+    AudioNode.prototype.connect = function(this: AudioNode, ...args: AudioNodeConnectArgs): AudioNode | void {
         const destination = args[0];
 
         // Detect connections to AudioContext destination
-        if (destination && destination === (destination as any).context?.destination) {
-            const ctx = (destination as any).context;
+        if (destination && 'context' in destination && destination === (destination as AudioNodeWithContext).context?.destination) {
+            const ctx = (destination as AudioNodeWithContext).context;
 
             // On first destination connection, initialize the audio bridge
             if (!interceptedContext && ctx && bridgeInitializer) {
@@ -43,12 +52,13 @@ if (typeof window !== 'undefined') {
             // Redirect all audio to flow through the analyser
             if (bridge && ctx === interceptedContext) {
                 // Connect to gainNode instead of destination (with proper parameters)
-                // @ts-ignore - Complex overload handling for AudioNode.connect
+                // @ts-expect-error - Complex overload handling for AudioNode.connect parameters
                 return originalConnect.call(this, bridge.gainNode, args[1], args[2]);
             }
         }
 
         // Normal connection for non-destination targets
-        return originalConnect.apply(this, args as any);
+        // @ts-expect-error - Spread args may not match exact overload, but runtime handles correctly
+        return originalConnect.apply(this, args);
     };
 }

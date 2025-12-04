@@ -1,5 +1,6 @@
-import { useState } from 'react';
 import { initStrudel } from '@strudel/web';
+import { useState } from 'react';
+
 import { setBridgeInitializer } from '../utils/patchSuperdough';
 
 /**
@@ -47,8 +48,8 @@ export function useStrudelEngine(): UseStrudelEngineReturn {
    * Initialize the Strudel audio engine and register audio bridge callback.
    * Prevents duplicate initialization attempts.
    */
-  const startEngine = async () => {
-    if (engineInitialized || isInitializing) return;
+  const startEngine = async (): Promise<void> => {
+    if (engineInitialized || isInitializing) {return;}
 
     setIsInitializing(true);
     setInitError(null);
@@ -83,8 +84,8 @@ export function useStrudelEngine(): UseStrudelEngineReturn {
    * Play a test pattern (bass drum) to verify audio engine is working.
    * Does nothing if engine is not initialized.
    */
-  const playTestPattern = () => {
-    if (!window.repl?.evaluate) return;
+  const playTestPattern = (): void => {
+    if (!window.repl?.evaluate) {return;}
     window.repl.evaluate('s("bd*4").gain(0.8)');
   };
 
@@ -92,7 +93,7 @@ export function useStrudelEngine(): UseStrudelEngineReturn {
    * Stop all audio playback.
    * Does nothing if engine is not initialized.
    */
-  const hushAudio = () => {
+  const hushAudio = (): void => {
     window.repl?.stop?.();
   };
 
@@ -100,7 +101,7 @@ export function useStrudelEngine(): UseStrudelEngineReturn {
    * Reset error state to allow retry after failed initialization.
    * Call this before retrying startEngine after an error.
    */
-  const resetError = () => {
+  const resetError = (): void => {
     setInitError(null);
   };
 

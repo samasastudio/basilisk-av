@@ -1,3 +1,10 @@
+// Extend Window interface for webkit-prefixed AudioContext
+declare global {
+    interface Window {
+        webkitAudioContext?: typeof AudioContext;
+    }
+}
+
 export class AudioBridge {
     context: AudioContext;
     analyser: AnalyserNode;
@@ -6,7 +13,11 @@ export class AudioBridge {
     destination: MediaStreamAudioDestinationNode;
 
     constructor() {
-        this.context = new (window.AudioContext || (window as any).webkitAudioContext)();
+        const AudioContextConstructor = window.AudioContext || window.webkitAudioContext;
+        if (!AudioContextConstructor) {
+            throw new Error('AudioContext is not supported in this browser');
+        }
+        this.context = new AudioContextConstructor();
         this.analyser = this.context.createAnalyser();
         this.analyser.fftSize = 512;
         this.analyser.smoothingTimeConstant = 0.8;
@@ -26,13 +37,13 @@ export class AudioBridge {
         // We need Strudel to connect to a node we control.
     }
 
-    init() {
+    init(): void {
         if (this.context.state === 'suspended') {
             this.context.resume();
         }
     }
 
-    getAnalyser() {
+    getAnalyser(): AnalyserNode {
         return this.analyser;
     }
 }

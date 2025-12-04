@@ -1,13 +1,18 @@
 import { useState } from 'react';
 import { Rnd } from 'react-rnd';
-import StrudelRepl from './components/StrudelRepl';
-import Button from './components/ui/Button';
+
+import { StrudelRepl } from './components/StrudelRepl';
+import { Button } from './components/ui/Button';
 import './utils/patchSuperdough'; // MUST be imported BEFORE @strudel/web
 import { useHydraHUD } from './hooks/useHydraHUD';
 import { useREPLWindow } from './hooks/useREPLWindow';
 import { useStrudelEngine } from './hooks/useStrudelEngine';
 
-function App() {
+// HUD display constants
+const HUD_DECIMAL_PLACES = 3;
+const PERCENTAGE_MAX = 100;
+
+export function App(): JSX.Element {
   const [hasExecutedCode, setHasExecutedCode] = useState(false);
 
   // Use HUD hook for dev mode visualization
@@ -49,12 +54,12 @@ function App() {
           <div className="absolute bottom-4 right-4 z-10 rounded bg-basilisk-gray-900/85 backdrop-blur border border-basilisk-gray-700 px-3 py-2 text-xs text-basilisk-white pointer-events-none">
             <div className="flex items-center justify-between font-sans gap-3">
               <span className="opacity-70">a.fft[0]</span>
-              <span className="font-mono">{hudValue.toFixed(3)}</span>
+              <span className="font-mono">{hudValue.toFixed(HUD_DECIMAL_PLACES)}</span>
             </div>
             <div className="mt-1.5 h-1.5 w-32 bg-basilisk-gray-700 overflow-hidden rounded">
               <div
                 className="h-full bg-basilisk-white transition-all duration-200"
-                style={{ width: `${Math.min(100, Math.max(0, hudValue * 100))}%` }}
+                style={{ width: `${Math.min(PERCENTAGE_MAX, Math.max(0, hudValue * PERCENTAGE_MAX))}%` }}
               />
             </div>
           </div>
@@ -82,7 +87,9 @@ function App() {
             variant="primary"
             size="sm"
           >
-            {engineInitialized ? 'Running' : isInitializing ? 'Starting…' : 'Start Audio'}
+            {engineInitialized && 'Running'}
+            {isInitializing && !engineInitialized && 'Starting…'}
+            {!isInitializing && !engineInitialized && 'Start Audio'}
           </Button>
         </div>
       </header>
@@ -115,4 +122,3 @@ function App() {
   );
 }
 
-export default App;

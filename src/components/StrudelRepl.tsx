@@ -1,11 +1,12 @@
-import { useState } from 'react';
-import CodeMirror from '@uiw/react-codemirror';
 import { javascript } from '@codemirror/lang-javascript';
 import { EditorView } from '@codemirror/view';
-import { samples } from '@strudel/webaudio';
 import * as Strudel from '@strudel/core';
 import { initHydra, H } from '@strudel/hydra';
-import Button from './ui/Button';
+import { samples } from '@strudel/webaudio';
+import CodeMirror from '@uiw/react-codemirror';
+import { useState } from 'react';
+
+import { Button } from './ui/Button';
 
 // Expose Strudel functions globally for the REPL
 Object.assign(window, Strudel, { samples, initHydra, H });
@@ -103,17 +104,17 @@ type Props = {
     statusLabel?: string;
 };
 
-export default function StrudelRepl({ className, engineReady, onTestPattern, onHalt, onExecute, statusLabel }: Props) {
+export function StrudelRepl({ className, engineReady, onTestPattern, onHalt, onExecute, statusLabel }: Props): JSX.Element {
     const [code, setCode] = useState(defaultCode);
 
-    const runCode = async () => {
+    const runCode = async (): Promise<void> => {
         if (!engineReady) {
             console.warn('Engine not ready. Please start the engine first.');
             return;
         }
 
-        const repl = (window as any).repl;
-        if (!repl || !repl.evaluate) {
+        const repl = window.repl;
+        if (!repl?.evaluate) {
             console.error('Strudel REPL not found. Make sure engine is started.');
             return;
         }
@@ -128,23 +129,23 @@ export default function StrudelRepl({ className, engineReady, onTestPattern, onH
         }
     };
 
-    const stopCode = () => {
+    const stopCode = (): void => {
         if (onHalt) {
             onHalt();
             return;
         }
-        const repl = (window as any).repl;
-        if (repl && repl.stop) {
+        const repl = window.repl;
+        if (repl?.stop) {
             repl.stop();
         }
     };
 
     return (
-        <div className={`flex flex-col h-full w-full ${className || ''}`}>
+        <div className={`flex flex-col h-full w-full ${className ?? ''}`}>
             <div className="drag-handle h-10 flex items-center justify-between px-3 bg-basilisk-gray-800/50 border-b border-basilisk-gray-700 cursor-move flex-shrink-0">
                 <div className="flex items-center gap-2 text-xs">
                     <span className="text-basilisk-gray-400">{engineReady ? '●' : '○'}</span>
-                    <span className="text-basilisk-gray-400">{statusLabel || 'Editor'}</span>
+                    <span className="text-basilisk-gray-400">{statusLabel ?? 'Editor'}</span>
                 </div>
                 <div className="flex items-center gap-1.5">
                     <Button onClick={runCode} disabled={!engineReady} variant="secondary" size="sm">

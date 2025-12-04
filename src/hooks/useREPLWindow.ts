@@ -1,5 +1,6 @@
 import { useState } from 'react';
-import type { DraggableData, ResizableDelta, Position } from 'react-rnd';
+
+import type { DraggableData, DraggableEvent, Position, ResizableDelta, ResizeDirection } from 'react-rnd';
 
 // Default REPL window constraints
 const DEFAULT_MIN_WIDTH = 400;
@@ -10,6 +11,10 @@ const DEFAULT_MARGIN = 16;
 
 // Calculate offset to position window near bottom (height + margin)
 const BOTTOM_OFFSET = DEFAULT_HEIGHT + DEFAULT_MARGIN;
+
+// SSR and positioning constants
+const SSR_FALLBACK_Y = 300;
+const MIN_Y_FOR_HEADER = 48;
 
 interface WindowBounds {
   minWidth: number;
@@ -37,14 +42,25 @@ const WINDOW_BOUNDS: WindowBounds = {
  *
  * @returns Object containing position, size, bounds, and event handlers
  */
-export function useREPLWindow() {
+export function useREPLWindow(): {
+  position: Position;
+  size: { width: number; height: number };
+  bounds: WindowBounds;
+  handleDragStop: (_e: DraggableEvent, d: DraggableData) => void;
+  handleResizeStop: (
+    _e: MouseEvent | TouchEvent,
+    _direction: ResizeDirection,
+    ref: HTMLElement,
+    _delta: ResizableDelta,
+    position: Position
+  ) => void;
+} {
   // Calculate initial Y position to place window near bottom of screen
   // Ensure position is valid even on small viewports (min 48px from top for header)
-  const calculateInitialY = () => {
-    if (typeof window === 'undefined') return 300;
+  const calculateInitialY = (): number => {
+    if (typeof window === 'undefined') {return SSR_FALLBACK_Y;}
     const idealY = window.innerHeight - BOTTOM_OFFSET;
-    const minY = 48; // Account for app header
-    return Math.max(minY, idealY);
+    return Math.max(MIN_Y_FOR_HEADER, idealY);
   };
 
   const [position, setPosition] = useState<Position>({ x: DEFAULT_MARGIN, y: calculateInitialY() });
@@ -53,7 +69,7 @@ export function useREPLWindow() {
   /**
    * Handle drag stop event from react-rnd
    */
-  const handleDragStop = (_e: any, d: DraggableData) => {
+  const handleDragStop = (_e: DraggableEvent, d: DraggableData): void => {
     setPosition({ x: d.x, y: d.y });
   };
 
@@ -61,12 +77,12 @@ export function useREPLWindow() {
    * Handle resize stop event from react-rnd
    */
   const handleResizeStop = (
-    _e: any,
-    _direction: any,
+    _e: MouseEvent | TouchEvent,
+    _direction: ResizeDirection,
     ref: HTMLElement,
     _delta: ResizableDelta,
     position: Position
-  ) => {
+  ): void => {
     setSize({
       width: parseInt(ref.style.width, 10),
       height: parseInt(ref.style.height, 10),

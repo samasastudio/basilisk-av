@@ -1,25 +1,27 @@
-import { useEffect, useRef } from 'react';
 import Hydra from 'hydra-synth';
+import { useEffect, useRef } from 'react';
+
+import type { HydraSynth } from '../types/hydra';
 
 type Props = {
     className?: string;
     /**
      * Callback when Hydra is initialized.
      */
-    onInit?: (hydra: any) => void;
+    onInit?: (hydra: HydraSynth) => void;
     /**
      * Optional shared AudioContext from Strudel. If not provided, Hydra will create its own.
      */
     audioContext?: AudioContext;
 };
 
-export default function HydraCanvas(props: Props) {
-    const { className, audioContext } = props;
+export function HydraCanvas(props: Props): JSX.Element {
+    const { className, audioContext, onInit } = props;
     const canvasRef = useRef<HTMLCanvasElement>(null);
-    const hydraInstance = useRef<any>(null);
+    const hydraInstance = useRef<HydraSynth | null>(null);
 
     useEffect(() => {
-        if (!canvasRef.current) return;
+        if (!canvasRef.current) {return;}
 
         const canvas = canvasRef.current;
 
@@ -52,34 +54,31 @@ export default function HydraCanvas(props: Props) {
 
         hydraInstance.current = hydra;
 
-        if (props.onInit) {
-            props.onInit(hydra);
+        if (onInit) {
+            onInit(hydra);
         }
 
         // Expose Hydra globals for debugging
         if (typeof window !== 'undefined') {
-            console.log("Hydra initialized:", hydra);
-            (window as any).hydra = hydra;
-            (window as any).h = hydra;
+            window.hydra = hydra as HydraSynth;
+            window.h = hydra as HydraSynth;
             // 'a' should be automatically exposed by makeGlobal: true, but let's force it if needed
             // In some versions 'a' is on the hydra instance, in others it's internal.
             // We'll try to find it.
-            if ((hydra as any).a) {
-                (window as any).a = (hydra as any).a;
-                console.log("Exposed 'a' from hydra.a");
-            } else if ((hydra as any).audio) {
+            const hydraSynth = hydra as HydraSynth;
+            if (hydraSynth.a) {
+                window.a = hydraSynth.a;
+            } else if (hydraSynth.audio) {
                 // Sometimes it's hydra.audio
-                (window as any).a = (hydra as any).audio;
-                console.log("Exposed 'a' from hydra.audio");
+                window.a = hydraSynth.audio;
             }
         }
 
         // Set up audio tick loop - this updates a.fft values every frame
         let animationId: number;
-        const tickAudio = () => {
-            const a = (window as any).a;
-            if (a && typeof a.tick === 'function') {
-                a.tick();
+        const tickAudio = (): void => {
+            if (window.a?.tick) {
+                window.a.tick();
             }
             animationId = requestAnimationFrame(tickAudio);
         };
@@ -87,12 +86,13 @@ export default function HydraCanvas(props: Props) {
 
         // Hydra initialized. Waiting for commands from REPL.
 
-        const handleResize = () => {
+        const handleResize = (): void => {
             if (hydraInstance.current && canvasRef.current) {
                 const rect = canvasRef.current.getBoundingClientRect();
                 canvasRef.current.width = rect.width * window.devicePixelRatio;
                 canvasRef.current.height = rect.height * window.devicePixelRatio;
-                hydraInstance.current.setResolution(canvasRef.current.width, canvasRef.current.height);
+                // Type assertion needed as setResolution is not in our type definition
+                (hydraInstance.current as Record<string, unknown>).setResolution?.(canvasRef.current.width, canvasRef.current.height);
             }
         };
         window.addEventListener('resize', handleResize);
@@ -101,7 +101,7 @@ export default function HydraCanvas(props: Props) {
             cancelAnimationFrame(animationId);
             // Hydra does not expose a formal destroy API; letting the instance be GC'd is fine.
         };
-    }, [audioContext]);
+    }, [audioContext, onInit]);
 
     // Update visuals when audioData or visualMode changes
     // Visual updates are now handled entirely by the REPL executing code against the hydra instance.

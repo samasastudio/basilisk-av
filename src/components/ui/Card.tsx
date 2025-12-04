@@ -4,7 +4,7 @@ interface CardProps {
   className?: string;
 }
 
-const Card = ({ children, title, className = '' }: CardProps) => {
+export function Card({ children, title, className = '' }: CardProps): JSX.Element {
   return (
     <div className={`
       bg-basilisk-gray-900/85
@@ -30,6 +30,4 @@ const Card = ({ children, title, className = '' }: CardProps) => {
       </div>
     </div>
   );
-};
-
-export default Card;
+}
