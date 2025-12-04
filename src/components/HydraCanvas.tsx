@@ -1,111 +1,44 @@
-import Hydra from 'hydra-synth';
-import { useEffect, useRef } from 'react';
+import { useHydraHUD } from '../hooks/useHydraHUD';
 
-import type { HydraSynth } from '../types/hydra';
+// HUD display constants
+const HUD_DECIMAL_PLACES = 3;
+const PERCENTAGE_MAX = 100;
 
 type Props = {
-    className?: string;
-    /**
-     * Callback when Hydra is initialized.
-     */
-    onInit?: (hydra: HydraSynth) => void;
-    /**
-     * Optional shared AudioContext from Strudel. If not provided, Hydra will create its own.
-     */
-    audioContext?: AudioContext;
+  /** Whether to show the startup instruction text */
+  showStartupText: boolean;
 };
 
-export const HydraCanvas = (props: Props): JSX.Element => {
-    const { className, audioContext, onInit } = props;
-    const canvasRef = useRef<HTMLCanvasElement>(null);
-    const hydraInstance = useRef<HydraSynth | null>(null);
+/**
+ * Full-screen Hydra canvas container with optional startup text and dev HUD.
+ * Renders as the background layer (z-0) for the entire application.
+ */
+export const HydraCanvas = ({ showStartupText }: Props): JSX.Element => {
+  const { hudValue } = useHydraHUD();
 
-    useEffect(() => {
-        if (!canvasRef.current) {return;}
+  return (
+    <div className="fixed inset-0 z-0 bg-basilisk-black" id="hydra-container">
+      {showStartupText && (
+        <div className="w-full h-full flex items-center justify-center text-basilisk-gray-400 text-sm font-sans pointer-events-none">
+          Run code with <code className="mx-1 px-2 py-1 bg-basilisk-gray-800 rounded font-mono">await initHydra()</code> to start visuals
+        </div>
+      )}
 
-        const canvas = canvasRef.current;
-
-        // Set canvas resolution to match its display size for crisp rendering
-        const rect = canvas.getBoundingClientRect();
-        canvas.width = rect.width * window.devicePixelRatio;
-        canvas.height = rect.height * window.devicePixelRatio;
-
-        // If an instance already exists, we might need to clean it up or just update it.
-        // Since Hydra doesn't support hot-swapping audio context easily, we'll recreate it.
-        // We try to be gentle by hushing the old one if it exists.
-        if (hydraInstance.current) {
-            try {
-                hydraInstance.current.hush();
-            } catch (e) {
-                console.warn("Failed to hush previous Hydra instance", e);
-            }
-        }
-
-        // Initialise Hydra
-        const hydra = new Hydra({
-            canvas,
-            audioContext,
-            detectAudio: false,
-            makeGlobal: true,
-            enableStreamCapture: false,
-            width: canvas.width,
-            height: canvas.height,
-        });
-
-        hydraInstance.current = hydra;
-
-        if (onInit) {
-            onInit(hydra);
-        }
-
-        // Expose Hydra globals for debugging
-        if (typeof window !== 'undefined') {
-            window.hydra = hydra as HydraSynth;
-            window.h = hydra as HydraSynth;
-            // 'a' should be automatically exposed by makeGlobal: true, but let's force it if needed
-            // In some versions 'a' is on the hydra instance, in others it's internal.
-            // We'll try to find it.
-            const hydraSynth = hydra as HydraSynth;
-            if (hydraSynth.a) {
-                window.a = hydraSynth.a;
-            } else if (hydraSynth.audio) {
-                // Sometimes it's hydra.audio
-                window.a = hydraSynth.audio;
-            }
-        }
-
-        // Set up audio tick loop - this updates a.fft values every frame
-        let animationId: number;
-        const tickAudio = (): void => {
-            if (window.a?.tick) {
-                window.a.tick();
-            }
-            animationId = requestAnimationFrame(tickAudio);
-        };
-        tickAudio();
-
-        // Hydra initialized. Waiting for commands from REPL.
-
-        const handleResize = (): void => {
-            if (hydraInstance.current && canvasRef.current) {
-                const rect = canvasRef.current.getBoundingClientRect();
-                canvasRef.current.width = rect.width * window.devicePixelRatio;
-                canvasRef.current.height = rect.height * window.devicePixelRatio;
-                // Type assertion needed as setResolution is not in our type definition
-                (hydraInstance.current as Record<string, unknown>).setResolution?.(canvasRef.current.width, canvasRef.current.height);
-            }
-        };
-        window.addEventListener('resize', handleResize);
-        return () => {
-            window.removeEventListener('resize', handleResize);
-            cancelAnimationFrame(animationId);
-            // Hydra does not expose a formal destroy API; letting the instance be GC'd is fine.
-        };
-    }, [audioContext, onInit]);
-
-    // Update visuals when audioData or visualMode changes
-    // Visual updates are now handled entirely by the REPL executing code against the hydra instance.
-    // We no longer automatically update visuals based on props to avoid overwriting user code.
-
-    return <canvas ref={canvasRef} className={`block w-full h-full object-cover ${className}`} />;
-}
+      {/* Dev HUD - Only visible in development mode */}
+      {import.meta.env.DEV && (
+        <div className="absolute bottom-4 right-4 z-10 rounded bg-basilisk-gray-900/85 backdrop-blur border border-basilisk-gray-700 px-3 py-2 text-xs text-basilisk-white pointer-events-none">
+          <div className="flex items-center justify-between font-sans gap-3">
+            <span className="opacity-70">a.fft[0]</span>
+            <span className="font-mono">{hudValue.toFixed(HUD_DECIMAL_PLACES)}</span>
+          </div>
+          <div className="mt-1.5 h-1.5 w-32 bg-basilisk-gray-700 overflow-hidden rounded">
+            <div
+              className="h-full bg-basilisk-white transition-all duration-200"
+              style={{ width: `${Math.min(PERCENTAGE_MAX, Math.max(0, hudValue * PERCENTAGE_MAX))}%` }}
+            />
+          </div>
+        </div>
+      )}
+    </div>
+  );
+};
