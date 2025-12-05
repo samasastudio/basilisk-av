@@ -1,4 +1,4 @@
-import { useState, useEffect, useCallback } from 'react';
+import { useState, useCallback } from 'react';
 
 /**
  * Generic hook for persisting state to localStorage.
@@ -12,8 +12,8 @@ export const usePersistedState = <T>(
   key: string,
   initialValue: T
 ): [T, (value: T | ((prev: T) => T)) => void] => {
-  // Get initial value from localStorage or use default
-  const getStoredValue = useCallback((): T => {
+  // Lazy initializer - only runs once on mount
+  const [storedValue, setStoredValue] = useState<T>(() => {
     if (typeof window === 'undefined') return initialValue;
 
     try {
@@ -22,28 +22,25 @@ export const usePersistedState = <T>(
     } catch {
       return initialValue;
     }
-  }, [key, initialValue]);
+  });
 
-  const [storedValue, setStoredValue] = useState<T>(getStoredValue);
-
-  // Update localStorage when value changes
-  useEffect(() => {
-    if (typeof window === 'undefined') return;
-
-    try {
-      localStorage.setItem(key, JSON.stringify(storedValue));
-    } catch {
-      // Silently fail if localStorage is full or unavailable
-    }
-  }, [key, storedValue]);
-
-  // Setter that supports functional updates like useState
+  // Setter with inline localStorage write (no useEffect needed!)
   const setValue = useCallback((value: T | ((prev: T) => T)): void => {
     setStoredValue((prev) => {
       const nextValue = value instanceof Function ? value(prev) : value;
+
+      // Sync to localStorage immediately during state update
+      if (typeof window !== 'undefined') {
+        try {
+          localStorage.setItem(key, JSON.stringify(nextValue));
+        } catch {
+          // Silently fail if localStorage unavailable
+        }
+      }
+
       return nextValue;
     });
-  }, []);
+  }, [key]);
 
   return [storedValue, setValue];
 };

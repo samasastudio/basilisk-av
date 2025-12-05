@@ -95,7 +95,7 @@ export const HydraRepl = ({ className, onExecute, initialCode = DEFAULT_CODE, on
                         }
 
                         // Enable test mode to stop tick() from overwriting values
-                        (bridge as Record<string, unknown>).testMode = true;
+                        bridge.testMode = true;
                         console.warn('🧪 Generating fake FFT data for 10 seconds...');
 
                         // Generate oscillating fake data
@@ -113,7 +113,7 @@ export const HydraRepl = ({ className, onExecute, initialCode = DEFAULT_CODE, on
                         // Stop after 10 seconds and resume normal operation
                         setTimeout(() => {
                             clearInterval(interval);
-                            (bridge as Record<string, unknown>).testMode = false;
+                            bridge.testMode = false;
                             console.warn('✅ Test mode ended, resuming normal operation');
                         }, TEST_DURATION_MS);
                     }}
