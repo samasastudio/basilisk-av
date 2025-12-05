@@ -13,6 +13,7 @@ export type HydraBridge = {
     tick: () => void;
     setBins: (bins: number) => void;
     disconnect: () => void;
+    testMode?: boolean;
 };
 
 /**
@@ -62,6 +63,9 @@ export const initHydraBridge = (audioContext: AudioContext): HydraBridge | null 
             hydraAudio.fft = Array(hydraAudio.bins).fill(0);
         },
         tick: () => {
+            // Skip FFT updates when in test mode (allows manual FFT data injection)
+            if (hydraAudio.testMode) return;
+
             analyser.getByteFrequencyData(dataArray);
             const chunk = dataArray.length / hydraAudio.bins;
             hydraAudio.fft = hydraAudio.fft.map((_, idx) => {

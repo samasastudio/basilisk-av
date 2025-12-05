@@ -1,3 +1,5 @@
+import { canStartEngine } from '../types/engine';
+
 import { Button } from './ui/Button';
 
 import type { EngineStatus } from '../types/engine';
@@ -56,7 +58,7 @@ export const AppHeader = ({
   onStartEngine
 }: Props): JSX.Element => {
   const isReady = engineStatus === 'ready';
-  const canStart = engineStatus === 'idle' || engineStatus === 'error';
+  const canStart = canStartEngine(engineStatus);
 
   return (
     <header className="fixed top-0 left-0 right-0 h-12 z-20 bg-basilisk-gray-900/85 backdrop-blur border-b border-basilisk-gray-700 flex items-center justify-between px-4">
