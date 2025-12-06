@@ -4,9 +4,11 @@ import './utils/patchSuperdough'; // MUST be imported BEFORE @strudel/web
 import { AppHeader } from './components/AppHeader';
 import { HydraCanvas } from './components/HydraCanvas';
 import { REPLWindow } from './components/REPLWindow';
-import { useGlobalKeyboardShortcuts, KeyboardShortcut } from './hooks/useGlobalKeyboardShortcuts';
+import { useGlobalKeyboardShortcuts } from './hooks/useGlobalKeyboardShortcuts';
 import { useREPLVisibility } from './hooks/useREPLVisibility';
 import { useStrudelEngine } from './hooks/useStrudelEngine';
+
+import type { KeyboardShortcut } from './hooks/useGlobalKeyboardShortcuts';
 
 export const App = (): JSX.Element => {
   const [hasExecutedCode, setHasExecutedCode] = useState(false);
@@ -33,7 +35,9 @@ export const App = (): JSX.Element => {
     {
       key: ' ',
       action: startEngine,
-      allowInEditor: false, // Space only works outside editor
+      ctrl: true,
+      shift: true, // Ctrl+Shift+Space to avoid CodeMirror conflicts
+      allowInEditor: true, // Works everywhere
     },
     {
       key: 'h',
