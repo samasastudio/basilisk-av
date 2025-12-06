@@ -7,6 +7,7 @@ import { REPLWindow } from './components/REPLWindow';
 import { useGlobalKeyboardShortcuts } from './hooks/useGlobalKeyboardShortcuts';
 import { useREPLVisibility } from './hooks/useREPLVisibility';
 import { useStrudelEngine } from './hooks/useStrudelEngine';
+import { downloadFile, generateScriptFilename } from './utils/downloadFile';
 import { focusREPL } from './utils/focusREPL';
 
 import type { KeyboardShortcut } from './hooks/useGlobalKeyboardShortcuts';
@@ -59,6 +60,12 @@ export const App = (): JSX.Element => {
 
   useGlobalKeyboardShortcuts(shortcuts);
 
+  // Handler to save the current script
+  const handleSaveScript = (code: string): void => {
+    const filename = generateScriptFilename();
+    downloadFile(code, filename, 'text/javascript');
+  };
+
   return (
     <div className="w-screen h-screen bg-basilisk-black text-basilisk-white overflow-hidden relative">
       <HydraCanvas showStartupText={!hasExecutedCode} />
@@ -76,6 +83,7 @@ export const App = (): JSX.Element => {
           onTestPattern={playTestPattern}
           onHalt={hushAudio}
           onExecute={() => setHasExecutedCode(true)}
+          onSave={handleSaveScript}
         />
       )}
     </div>

@@ -13,6 +13,8 @@ type Props = {
   onHalt: () => void;
   /** Callback when code is executed */
   onExecute: () => void;
+  /** Callback to save the current script */
+  onSave: (code: string) => void;
 };
 
 /**
@@ -24,7 +26,8 @@ export const REPLWindow = ({
   engineReady,
   onTestPattern,
   onHalt,
-  onExecute
+  onExecute,
+  onSave
 }: Props): JSX.Element => {
   const {
     position,
@@ -54,6 +57,7 @@ export const REPLWindow = ({
           onTestPattern={onTestPattern}
           onHalt={onHalt}
           onExecute={onExecute}
+          onSave={onSave}
           statusLabel={engineReady ? 'ready' : 'stopped'}
         />
       </div>
