@@ -38,16 +38,14 @@ describe('useGlobalKeyboardShortcuts', () => {
     expect(removeEventListenerSpy).toHaveBeenCalledWith('keydown', expect.any(Function));
   });
 
-  it('does not fire shortcuts when disabled', () => {
-    const action = vi.fn();
+  it('does not register listener when disabled', () => {
     const shortcuts: KeyboardShortcut[] = [
-      { key: 'Escape', action }
+      { key: 'Escape', action: vi.fn() }
     ];
 
     renderHook(() => useGlobalKeyboardShortcuts(shortcuts, false));
 
-    window.dispatchEvent(new KeyboardEvent('keydown', { key: 'Escape' }));
-    expect(action).not.toHaveBeenCalled();
+    expect(addEventListenerSpy).not.toHaveBeenCalled();
   });
 
   it('calls action when matching key is pressed', () => {
