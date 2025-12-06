@@ -103,10 +103,11 @@ type Props = {
     onTestPattern?: () => void;
     onHalt?: () => void;
     onExecute?: () => void;
+    onSave?: (code: string) => void;
     statusLabel?: string;
 };
 
-export const StrudelRepl = ({ className, engineReady, onTestPattern, onHalt, onExecute, statusLabel }: Props): JSX.Element => {
+export const StrudelRepl = ({ className, engineReady, onTestPattern, onHalt, onExecute, onSave, statusLabel }: Props): JSX.Element => {
     const [code, setCode] = useState(defaultCode);
 
     const runCode = async (): Promise<void> => {
@@ -186,9 +187,20 @@ export const StrudelRepl = ({ className, engineReady, onTestPattern, onHalt, onE
                         syntaxHighlighting: true
                     }}
                     onKeyDown={(e) => {
+                        // Shift+Enter to execute code
                         if (e.shiftKey && e.key === 'Enter') {
                             e.preventDefault();
                             runCode();
+                        }
+
+                        // Ctrl+S to save script
+                        // Note: Global shortcut in App.tsx prevents browser's save dialog
+                        // This handler performs the actual save with access to current code
+                        if ((e.ctrlKey || e.metaKey) && e.key === 's') {
+                            e.preventDefault();
+                            if (onSave) {
+                                onSave(code);
+                            }
                         }
                     }}
                 />

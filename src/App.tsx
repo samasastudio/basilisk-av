@@ -7,6 +7,7 @@ import { REPLWindow } from './components/REPLWindow';
 import { useGlobalKeyboardShortcuts } from './hooks/useGlobalKeyboardShortcuts';
 import { useREPLVisibility } from './hooks/useREPLVisibility';
 import { useStrudelEngine } from './hooks/useStrudelEngine';
+import { downloadFile, generateScriptFilename } from './utils/downloadFile';
 import { focusREPL } from './utils/focusREPL';
 
 import type { KeyboardShortcut } from './hooks/useGlobalKeyboardShortcuts';
@@ -55,9 +56,25 @@ export const App = (): JSX.Element => {
       },
       allowInEditor: true, // Ctrl+H works everywhere
     },
+    {
+      key: 's',
+      ctrl: true,
+      action: () => {
+        // Pattern: Global preventDefault + local handler
+        // This global shortcut prevents browser's "Save Page" dialog (preventDefault in useGlobalKeyboardShortcuts)
+        // Actual save logic is in StrudelRepl.onKeyDown where it has access to current code state
+      },
+      allowInEditor: true, // Only works in editor where save makes sense
+    },
   ], [hushAudio, startEngine, toggleRepl, replVisible]);
 
   useGlobalKeyboardShortcuts(shortcuts);
+
+  // Handler to save the current script
+  const handleSaveScript = (code: string): void => {
+    const filename = generateScriptFilename();
+    downloadFile(code, filename, 'text/javascript');
+  };
 
   return (
     <div className="w-screen h-screen bg-basilisk-black text-basilisk-white overflow-hidden relative">
@@ -76,6 +93,7 @@ export const App = (): JSX.Element => {
           onTestPattern={playTestPattern}
           onHalt={hushAudio}
           onExecute={() => setHasExecutedCode(true)}
+          onSave={handleSaveScript}
         />
       )}
     </div>
