@@ -134,11 +134,13 @@
 - ⏳ Custom CodeMirror themes for better readability
 
 ### Sound Browser
-- ⏳ Sound menu showing all loaded Strudel samples
+- ✅ Sound menu showing all loaded Strudel samples
+- ✅ Searchable/filterable sound list
+- ✅ Preview sounds on click
+- ✅ Replace "Test" button with Sound Browser toggle
+- ⏳ Layer preview (play samples without stopping current patterns)
+- ⏳ Insert sample name into editor on double-click
 - ⏳ Display custom user sounds alongside defaults
-- ⏳ Searchable/filterable sound list
-- ⏳ Preview sounds on click
-- ⏳ Replace "Test" button with Sound Browser
 
 ### Keyboard Shortcuts
 - ⏳ Start engine (key command)

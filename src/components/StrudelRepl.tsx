@@ -4,9 +4,12 @@ import * as Strudel from '@strudel/core';
 import { initHydra, H } from '@strudel/hydra';
 import { samples } from '@strudel/webaudio';
 import CodeMirror from '@uiw/react-codemirror';
-import { useState } from 'react';
+import { useState, useEffect } from 'react';
+import { Music } from 'lucide-react';
 
 import * as StrudelEngine from '../services/strudelEngine';
+import { useSoundBrowser } from '../hooks/useSoundBrowser';
+import { SoundBrowserTray } from './sound-browser';
 
 import { Button } from './ui/Button';
 
@@ -110,6 +113,21 @@ type Props = {
 export const StrudelRepl = ({ className, engineReady, onTestPattern, onHalt, onExecute, onSave, statusLabel }: Props): JSX.Element => {
     const [code, setCode] = useState(defaultCode);
 
+    // Sound browser state
+    const soundBrowser = useSoundBrowser();
+
+    // Keyboard navigation: Escape to close sound browser
+    useEffect(() => {
+        const handleKeyDown = (e: KeyboardEvent): void => {
+            if (e.key === 'Escape' && soundBrowser.isOpen) {
+                soundBrowser.close();
+            }
+        };
+
+        window.addEventListener('keydown', handleKeyDown);
+        return () => window.removeEventListener('keydown', handleKeyDown);
+    }, [soundBrowser.isOpen, soundBrowser]);
+
     const runCode = async (): Promise<void> => {
         if (!engineReady) {
             console.warn('Engine not ready. Please start the engine first.');
@@ -154,11 +172,15 @@ export const StrudelRepl = ({ className, engineReady, onTestPattern, onHalt, onE
                     <Button onClick={stopCode} variant="secondary" size="sm">
                         Halt ■
                     </Button>
-                    {onTestPattern && (
-                        <Button onClick={onTestPattern} disabled={!engineReady} variant="secondary" size="sm">
-                            Test
-                        </Button>
-                    )}
+                    <Button
+                        onClick={soundBrowser.toggle}
+                        disabled={!engineReady}
+                        variant={soundBrowser.isOpen ? 'primary' : 'secondary'}
+                        size="sm"
+                        title="Toggle sound browser"
+                    >
+                        <Music size={14} />
+                    </Button>
                 </div>
             </div>
             <div className="flex-1 overflow-hidden relative min-h-0">
@@ -205,6 +227,19 @@ export const StrudelRepl = ({ className, engineReady, onTestPattern, onHalt, onE
                     }}
                 />
             </div>
+            {soundBrowser.isOpen && (
+                <SoundBrowserTray
+                    categories={soundBrowser.categories}
+                    searchQuery={soundBrowser.searchQuery}
+                    onSearchChange={soundBrowser.setSearchQuery}
+                    selectedCategory={soundBrowser.selectedCategory}
+                    onSelectCategory={soundBrowser.setSelectedCategory}
+                    currentlyPlaying={soundBrowser.currentlyPlaying}
+                    onPreviewSample={soundBrowser.previewSample}
+                    isLoading={soundBrowser.isLoading}
+                    error={soundBrowser.error}
+                />
+            )}
         </div>
     );
 }
