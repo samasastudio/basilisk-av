@@ -56,6 +56,15 @@ export const App = (): JSX.Element => {
       },
       allowInEditor: true, // Ctrl+H works everywhere
     },
+    {
+      key: 's',
+      ctrl: true,
+      action: () => {
+        // No-op: actual save is handled by StrudelRepl's onKeyDown
+        // This global shortcut exists only to preventDefault browser's save dialog
+      },
+      allowInEditor: true, // Only works in editor where save makes sense
+    },
   ], [hushAudio, startEngine, toggleRepl, replVisible]);
 
   useGlobalKeyboardShortcuts(shortcuts);
