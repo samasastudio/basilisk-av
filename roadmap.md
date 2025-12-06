@@ -3,7 +3,7 @@
 ## Project Timeline
 
 **Project Start**: November 23, 2025
-**Current Status**: Phase 5 complete, preparing for Phase 6
+**Current Status**: Phase 5 complete, Phase 6 (UX Polish & Production Mode) is next
 
 ---
 
@@ -50,11 +50,11 @@
 - ✅ 66% reduction in App.tsx complexity (165 lines → ~60 lines)
 
 ### Future Enhancements
-- ⏳ Full-screen Hydra mode (hide REPL)
-- ⏳ REPL keyboard shortcuts (beyond Shift+Enter)
 - ⏳ Minimize/maximize REPL window
 - ⏳ Snap-to-edges for REPL positioning
 - ⏳ Multi-monitor support for pop-out window
+
+*Note: Full-screen Hydra mode and keyboard shortcuts moved to Phase 6*
 
 ---
 
@@ -125,7 +125,38 @@
 
 ---
 
-## 🚀 Phase 6: Content & Features (NEXT)
+## 🚀 Phase 6: UX Polish & Production Mode (NEXT)
+**Status**: Not started
+
+### REPL Theming
+- ⏳ Dark mode toggle for REPL editor
+- ⏳ Syntax highlighting color schemes (adapts to Hydra visuals)
+- ⏳ Custom CodeMirror themes for better readability
+
+### Sound Browser
+- ⏳ Sound menu showing all loaded Strudel samples
+- ⏳ Display custom user sounds alongside defaults
+- ⏳ Searchable/filterable sound list
+- ⏳ Preview sounds on click
+- ⏳ Replace "Test" button with Sound Browser
+
+### Keyboard Shortcuts
+- ⏳ Start engine (key command)
+- ⏳ Execute code (beyond Shift+Enter)
+- ⏳ Halt/stop audio (emergency stop)
+- ⏳ Hide/show REPL toggle
+- ⏳ Keyboard shortcut help overlay
+
+### Production HUD
+- ⏳ Compact analyzer graph per `a.fft` band (4 mini visualizers)
+- ⏳ CPU/processing power percentage display
+- ⏳ FPS counter
+- ⏳ Toggle HUD visibility in production mode
+- ⏳ Minimal, non-intrusive design
+
+---
+
+## 📚 Phase 7: Content & Features (FUTURE)
 **Status**: Not started
 
 ### Code Library & Presets
@@ -148,7 +179,7 @@
 
 ---
 
-## 🎵 Phase 7: Advanced Audio Features (FUTURE)
+## 🎵 Phase 8: Advanced Audio Features (FUTURE)
 **Status**: Not started
 
 - ⏳ MIDI controller support (Web MIDI API)
@@ -159,7 +190,7 @@
 
 ---
 
-## ✨ Phase 8: Visual Enhancements (FUTURE)
+## ✨ Phase 9: Visual Enhancements (FUTURE)
 **Status**: Not started
 
 - ⏳ Multiple Hydra outputs (o0, o1, o2, o3)
@@ -169,7 +200,7 @@
 
 ---
 
-## ⚡ Phase 9: Performance & Polish (FUTURE)
+## ⚡ Phase 10: Performance & Polish (FUTURE)
 **Status**: Not started
 
 ### Performance Optimization
@@ -193,7 +224,7 @@
 
 ---
 
-## 🌐 Phase 10: Community & Ecosystem (FUTURE)
+## 🌐 Phase 11: Community & Ecosystem (FUTURE)
 **Status**: Not started
 
 - ⏳ Real-time collaborative editing (WebRTC)
@@ -216,11 +247,12 @@
 | Phase 3: Window Management | ✅ Complete | Dec 2-4, 2025 |
 | Phase 4: Testing & Refactoring | ✅ Complete | Dec 2-5, 2025 |
 | Phase 5: Documentation | ✅ Complete | Nov 28 - Dec 3, 2025 |
-| Phase 6: Content & Features | 💡 Next | TBD |
-| Phase 7: Advanced Audio | 💡 Future | TBD |
-| Phase 8: Visual Enhancements | 💡 Future | TBD |
-| Phase 9: Performance & Polish | 💡 Future | TBD |
-| Phase 10: Community | 💡 Future | TBD |
+| Phase 6: UX Polish & Production Mode | 🚀 Next | TBD |
+| Phase 7: Content & Features | 💡 Future | TBD |
+| Phase 8: Advanced Audio | 💡 Future | TBD |
+| Phase 9: Visual Enhancements | 💡 Future | TBD |
+| Phase 10: Performance & Polish | 💡 Future | TBD |
+| Phase 11: Community | 💡 Future | TBD |
 
 **Total Development Time (Phases 1-5)**: ~2 weeks (Nov 23 - Dec 5, 2025)
 
