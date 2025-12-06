@@ -4,6 +4,7 @@ import { Play } from 'lucide-react';
 import React, { useState, useCallback } from 'react';
 
 import { DEFAULT_CODE, presetMap } from '../constants/hydraPresets';
+import { getBridgeInstance } from '../services/audioBridge';
 
 import type { PresetName } from '../constants/hydraPresets';
 
@@ -87,21 +88,21 @@ export const HydraRepl = ({ className, onExecute, initialCode = DEFAULT_CODE, on
                 <button
                     className={`px-2 py-1 rounded border border-yellow-500 text-yellow-400 hover:bg-yellow-500 hover:text-black`}
                     onClick={() => {
-                        const a = window.a;
-                        if (!a) {
+                        const bridge = getBridgeInstance();
+                        if (!bridge) {
                             console.error('Bridge not initialized');
                             return;
                         }
 
                         // Enable test mode to stop tick() from overwriting values
-                        a.testMode = true;
+                        bridge.testMode = true;
                         console.warn('🧪 Generating fake FFT data for 10 seconds...');
 
                         // Generate oscillating fake data
                         let phase = 0;
                         const interval = setInterval(() => {
                             phase += TEST_PHASE_INCREMENT;
-                            a.fft = [
+                            bridge.fft = [
                                 Math.abs(Math.sin(phase)) * TEST_FFT_AMPLITUDE_0,
                                 Math.abs(Math.sin(phase + TEST_FFT_PHASE_OFFSET_1)) * TEST_FFT_AMPLITUDE_1,
                                 Math.abs(Math.sin(phase + TEST_FFT_PHASE_OFFSET_2)) * TEST_FFT_AMPLITUDE_2,
@@ -112,7 +113,7 @@ export const HydraRepl = ({ className, onExecute, initialCode = DEFAULT_CODE, on
                         // Stop after 10 seconds and resume normal operation
                         setTimeout(() => {
                             clearInterval(interval);
-                            a.testMode = false;
+                            bridge.testMode = false;
                             console.warn('✅ Test mode ended, resuming normal operation');
                         }, TEST_DURATION_MS);
                     }}

@@ -16,6 +16,9 @@ describe('useREPLWindow', () => {
   const originalInnerHeight = window.innerHeight;
 
   beforeEach(() => {
+    // Clear localStorage to prevent test pollution from usePersistedState
+    localStorage.clear();
+
     // Set a consistent window height for tests
     Object.defineProperty(window, 'innerHeight', {
       writable: true,

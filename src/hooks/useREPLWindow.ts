@@ -1,6 +1,7 @@
-import { useState } from 'react';
+import { usePersistedState } from './usePersistedState';
 
 import type { DraggableData, DraggableEvent, Position, ResizableDelta, ResizeDirection } from 'react-rnd';
+
 
 // Default REPL window constraints
 const DEFAULT_MIN_WIDTH = 400;
@@ -15,6 +16,10 @@ const BOTTOM_OFFSET = DEFAULT_HEIGHT + DEFAULT_MARGIN;
 // SSR and positioning constants
 const SSR_FALLBACK_Y = 300;
 const MIN_Y_FOR_HEADER = 48;
+
+// localStorage keys for persistence
+const STORAGE_KEY_POSITION = 'basilisk-repl-position';
+const STORAGE_KEY_SIZE = 'basilisk-repl-size';
 
 interface WindowBounds {
   minWidth: number;
@@ -63,8 +68,15 @@ export const useREPLWindow = (): {
     return Math.max(MIN_Y_FOR_HEADER, idealY);
   };
 
-  const [position, setPosition] = useState<Position>({ x: DEFAULT_MARGIN, y: calculateInitialY() });
-  const [size, setSize] = useState({ width: DEFAULT_WIDTH, height: DEFAULT_HEIGHT });
+  // Persisted position and size - restored from localStorage on mount
+  const [position, setPosition] = usePersistedState<Position>(
+    STORAGE_KEY_POSITION,
+    { x: DEFAULT_MARGIN, y: calculateInitialY() }
+  );
+  const [size, setSize] = usePersistedState(
+    STORAGE_KEY_SIZE,
+    { width: DEFAULT_WIDTH, height: DEFAULT_HEIGHT }
+  );
 
   /**
    * Handle drag stop event from react-rnd
