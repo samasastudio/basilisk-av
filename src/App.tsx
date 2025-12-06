@@ -1,4 +1,4 @@
-import { useState, useMemo } from 'react';
+import { useState, useMemo, useCallback } from 'react';
 
 import './utils/patchSuperdough'; // MUST be imported BEFORE @strudel/web
 import { AppHeader } from './components/AppHeader';
@@ -7,6 +7,7 @@ import { REPLWindow } from './components/REPLWindow';
 import { useGlobalKeyboardShortcuts } from './hooks/useGlobalKeyboardShortcuts';
 import { useREPLVisibility } from './hooks/useREPLVisibility';
 import { useStrudelEngine } from './hooks/useStrudelEngine';
+import { focusREPL } from './utils/focusREPL';
 
 import type { KeyboardShortcut } from './hooks/useGlobalKeyboardShortcuts';
 
@@ -25,6 +26,21 @@ export const App = (): JSX.Element => {
 
   const { isVisible: replVisible, toggleVisible: toggleRepl } = useREPLVisibility();
 
+  // Wrapper to start engine and focus REPL
+  const handleStartEngine = useCallback((): void => {
+    startEngine();
+    focusREPL();
+  }, [startEngine]);
+
+  // Wrapper to toggle REPL and focus when showing
+  const handleToggleRepl = useCallback((): void => {
+    const willBeVisible = !replVisible;
+    toggleRepl();
+    if (willBeVisible) {
+      focusREPL();
+    }
+  }, [replVisible, toggleRepl]);
+
   // Define keyboard shortcuts
   const shortcuts: KeyboardShortcut[] = useMemo(() => [
     {
@@ -34,7 +50,7 @@ export const App = (): JSX.Element => {
     },
     {
       key: ' ',
-      action: startEngine,
+      action: handleStartEngine,
       ctrl: true,
       shift: true, // Ctrl+Shift+Space to avoid CodeMirror conflicts
       allowInEditor: true, // Works everywhere
@@ -42,10 +58,10 @@ export const App = (): JSX.Element => {
     {
       key: 'h',
       ctrl: true,
-      action: toggleRepl,
+      action: handleToggleRepl,
       allowInEditor: true, // Ctrl+H works everywhere
     },
-  ], [hushAudio, startEngine, toggleRepl]);
+  ], [hushAudio, handleStartEngine, handleToggleRepl]);
 
   useGlobalKeyboardShortcuts(shortcuts);
 
