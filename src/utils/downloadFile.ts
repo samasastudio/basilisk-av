@@ -31,9 +31,13 @@ export const downloadFile = (
   URL.revokeObjectURL(url);
 };
 
+/** Padding width for milliseconds (0-999) */
+const MILLISECOND_PADDING = 3;
+
 /**
  * Generates a timestamp-based filename for a Strudel script.
- * Format: strudel-YYYY-MM-DD-HHmmss.strudel.js
+ * Format: strudel-YYYY-MM-DD-HHmmssSSS.strudel.js
+ * Includes milliseconds to ensure uniqueness when saving multiple times per second.
  *
  * @returns A filename with current timestamp
  */
@@ -45,6 +49,7 @@ export const generateScriptFilename = (): string => {
   const hours = String(now.getHours()).padStart(2, '0');
   const minutes = String(now.getMinutes()).padStart(2, '0');
   const seconds = String(now.getSeconds()).padStart(2, '0');
+  const milliseconds = String(now.getMilliseconds()).padStart(MILLISECOND_PADDING, '0');
 
-  return `strudel-${year}-${month}-${day}-${hours}${minutes}${seconds}.strudel.js`;
+  return `strudel-${year}-${month}-${day}-${hours}${minutes}${seconds}${milliseconds}.strudel.js`;
 };

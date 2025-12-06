@@ -194,6 +194,8 @@ export const StrudelRepl = ({ className, engineReady, onTestPattern, onHalt, onE
                         }
 
                         // Ctrl+S to save script
+                        // Note: Global shortcut in App.tsx prevents browser's save dialog
+                        // This handler performs the actual save with access to current code
                         if ((e.ctrlKey || e.metaKey) && e.key === 's') {
                             e.preventDefault();
                             if (onSave) {

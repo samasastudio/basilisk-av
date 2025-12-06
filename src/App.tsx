@@ -60,8 +60,9 @@ export const App = (): JSX.Element => {
       key: 's',
       ctrl: true,
       action: () => {
-        // No-op: actual save is handled by StrudelRepl's onKeyDown
-        // This global shortcut exists only to preventDefault browser's save dialog
+        // Pattern: Global preventDefault + local handler
+        // This global shortcut prevents browser's "Save Page" dialog (preventDefault in useGlobalKeyboardShortcuts)
+        // Actual save logic is in StrudelRepl.onKeyDown where it has access to current code state
       },
       allowInEditor: true, // Only works in editor where save makes sense
     },

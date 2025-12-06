@@ -74,8 +74,8 @@ describe('generateScriptFilename', () => {
   it('generates filename with correct format', () => {
     const filename = generateScriptFilename();
 
-    // Should match: strudel-YYYY-MM-DD-HHmmss.strudel.js
-    expect(filename).toMatch(/^strudel-\d{4}-\d{2}-\d{2}-\d{6}\.strudel\.js$/);
+    // Should match: strudel-YYYY-MM-DD-HHmmssSSS.strudel.js
+    expect(filename).toMatch(/^strudel-\d{4}-\d{2}-\d{2}-\d{9}\.strudel\.js$/);
   });
 
   it('generates filename with current date components', () => {
@@ -95,13 +95,19 @@ describe('generateScriptFilename', () => {
     expect(filename.endsWith('.strudel.js')).toBe(true);
   });
 
-  it('generates unique filenames when called in quick succession', () => {
+  it('generates filenames with millisecond precision', async () => {
     const filename1 = generateScriptFilename();
+
+    // Wait 1ms to ensure different millisecond
+    await new Promise(resolve => setTimeout(resolve, 1));
+
     const filename2 = generateScriptFilename();
 
-    // Due to the second precision, they might be the same if called in same second
-    // But the format should always be correct
-    expect(filename1).toMatch(/^strudel-\d{4}-\d{2}-\d{2}-\d{6}\.strudel\.js$/);
-    expect(filename2).toMatch(/^strudel-\d{4}-\d{2}-\d{2}-\d{6}\.strudel\.js$/);
+    // Both should have correct format
+    expect(filename1).toMatch(/^strudel-\d{4}-\d{2}-\d{2}-\d{9}\.strudel\.js$/);
+    expect(filename2).toMatch(/^strudel-\d{4}-\d{2}-\d{2}-\d{9}\.strudel\.js$/);
+
+    // With 1ms delay, filenames should be different
+    expect(filename1).not.toBe(filename2);
   });
 });
