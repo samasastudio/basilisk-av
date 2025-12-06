@@ -56,13 +56,13 @@ export const useGlobalKeyboardShortcuts = (
   const handleKeyDown = useCallback((e: KeyboardEvent) => {
     const isInEditor = isEditableElement(e.target as HTMLElement | null);
 
-    for (const shortcut of shortcuts) {
-      if (!matchesShortcut(e, shortcut)) continue;
-      if (isInEditor && !shortcut.allowInEditor) continue;
+    const matchedShortcut = shortcuts.find((shortcut) =>
+      matchesShortcut(e, shortcut) && (!isInEditor || shortcut.allowInEditor)
+    );
 
+    if (matchedShortcut) {
       e.preventDefault();
-      shortcut.action();
-      return;
+      matchedShortcut.action();
     }
   }, [shortcuts]);
 
