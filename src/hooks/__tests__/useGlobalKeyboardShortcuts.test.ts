@@ -189,4 +189,55 @@ describe('useGlobalKeyboardShortcuts', () => {
     expect(action1).toHaveBeenCalledTimes(1);
     expect(action2).toHaveBeenCalledTimes(1);
   });
+
+  it('respects allowInEditor flag - blocks shortcuts without flag in editor', () => {
+    const globalAction = vi.fn();
+    const editorAction = vi.fn();
+    const shortcuts: KeyboardShortcut[] = [
+      { key: 'a', action: globalAction, allowInEditor: false },
+      { key: 'b', action: editorAction, allowInEditor: true }
+    ];
+
+    renderHook(() => useGlobalKeyboardShortcuts(shortcuts));
+
+    // Create mock CodeMirror editor element
+    const editorDiv = document.createElement('div');
+    editorDiv.className = 'cm-editor';
+    const contentDiv = document.createElement('div');
+    contentDiv.className = 'cm-content';
+    editorDiv.appendChild(contentDiv);
+    document.body.appendChild(editorDiv);
+
+    // Dispatch from within editor
+    const eventA = new KeyboardEvent('keydown', { key: 'a', bubbles: true });
+    Object.defineProperty(eventA, 'target', { value: contentDiv, enumerable: true });
+    window.dispatchEvent(eventA);
+
+    const eventB = new KeyboardEvent('keydown', { key: 'b', bubbles: true });
+    Object.defineProperty(eventB, 'target', { value: contentDiv, enumerable: true });
+    window.dispatchEvent(eventB);
+
+    // 'a' should not fire (allowInEditor: false)
+    expect(globalAction).not.toHaveBeenCalled();
+
+    // 'b' should fire (allowInEditor: true)
+    expect(editorAction).toHaveBeenCalledTimes(1);
+
+    // Cleanup
+    document.body.removeChild(editorDiv);
+  });
+
+  it('allows shortcuts outside editor when allowInEditor is false', () => {
+    const action = vi.fn();
+    const shortcuts: KeyboardShortcut[] = [
+      { key: 'a', action, allowInEditor: false }
+    ];
+
+    renderHook(() => useGlobalKeyboardShortcuts(shortcuts));
+
+    // Dispatch from window (not in editor)
+    window.dispatchEvent(new KeyboardEvent('keydown', { key: 'a' }));
+
+    expect(action).toHaveBeenCalledTimes(1);
+  });
 });

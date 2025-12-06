@@ -1,4 +1,4 @@
-import { useState, useMemo, useCallback } from 'react';
+import { useState, useMemo } from 'react';
 
 import './utils/patchSuperdough'; // MUST be imported BEFORE @strudel/web
 import { AppHeader } from './components/AppHeader';
@@ -26,22 +26,7 @@ export const App = (): JSX.Element => {
 
   const { isVisible: replVisible, toggleVisible: toggleRepl } = useREPLVisibility();
 
-  // Wrapper to start engine and focus REPL
-  const handleStartEngine = useCallback((): void => {
-    startEngine();
-    focusREPL();
-  }, [startEngine]);
-
-  // Wrapper to toggle REPL and focus when showing
-  const handleToggleRepl = useCallback((): void => {
-    const willBeVisible = !replVisible;
-    toggleRepl();
-    if (willBeVisible) {
-      focusREPL();
-    }
-  }, [replVisible, toggleRepl]);
-
-  // Define keyboard shortcuts
+  // Define keyboard shortcuts with inline actions to avoid recreating on visibility changes
   const shortcuts: KeyboardShortcut[] = useMemo(() => [
     {
       key: 'Escape',
@@ -50,7 +35,10 @@ export const App = (): JSX.Element => {
     },
     {
       key: ' ',
-      action: handleStartEngine,
+      action: () => {
+        startEngine();
+        focusREPL();
+      },
       ctrl: true,
       shift: true, // Ctrl+Shift+Space to avoid CodeMirror conflicts
       allowInEditor: true, // Works everywhere
@@ -58,10 +46,16 @@ export const App = (): JSX.Element => {
     {
       key: 'h',
       ctrl: true,
-      action: handleToggleRepl,
+      action: () => {
+        const willBeVisible = !replVisible;
+        toggleRepl();
+        if (willBeVisible) {
+          focusREPL();
+        }
+      },
       allowInEditor: true, // Ctrl+H works everywhere
     },
-  ], [hushAudio, handleStartEngine, handleToggleRepl]);
+  ], [hushAudio, startEngine, toggleRepl, replVisible]);
 
   useGlobalKeyboardShortcuts(shortcuts);
 
