@@ -28,8 +28,7 @@ export const SoundSearch = ({
   onChange,
   placeholder = 'Search samples...',
   className = ''
-}: SoundSearchProps): JSX.Element => {
-  return (
+}: SoundSearchProps): JSX.Element => (
     <div className={`relative ${className}`}>
       <input
         type="text"
@@ -56,4 +55,3 @@ export const SoundSearch = ({
       )}
     </div>
   );
-};

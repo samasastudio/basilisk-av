@@ -1,7 +1,9 @@
 import { renderHook, waitFor } from '@testing-library/react';
 import { describe, it, expect, beforeEach, vi } from 'vitest';
-import { useSampleData } from '../useSampleData';
+
 import * as SampleRegistry from '../../services/sampleRegistry';
+import { useSampleData } from '../useSampleData';
+
 import type { StrudelSamplesJSON } from '../../types/samples';
 
 describe('useSampleData', () => {
@@ -142,7 +144,7 @@ describe('useSampleData', () => {
       '808': ['sample.wav']
     };
 
-    let resolvePromise: (value: any) => void;
+    let resolvePromise: ((value: unknown) => void) | undefined;
     const fetchPromise = new Promise((resolve) => {
       resolvePromise = resolve;
     });
@@ -161,7 +163,8 @@ describe('useSampleData', () => {
     expect(fetch).toHaveBeenCalledTimes(1);
 
     // Resolve fetch
-    resolvePromise!({
+    expect(resolvePromise).toBeDefined();
+    resolvePromise?.({
       ok: true,
       json: async () => mockJSON
     });

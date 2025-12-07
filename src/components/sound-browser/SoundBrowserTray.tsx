@@ -2,14 +2,24 @@
  * Main sound browser tray component
  */
 
-import { SoundSearch } from './SoundSearch';
+import { getGroupByName } from '../../config/sampleGroups';
+
 import { SoundCategoryChips } from './SoundCategoryChips';
 import { SoundSampleGrid } from './SoundSampleGrid';
-import type { SampleCategory } from '../../types/samples';
+import { SoundSearch } from './SoundSearch';
+
+
+import type { CategorizedSampleCategory } from '../../hooks/useSoundBrowser';
 
 export interface SoundBrowserTrayProps {
-  /** All available categories */
-  categories: SampleCategory[];
+  /** All available categories (already filtered by group/search) */
+  categories: CategorizedSampleCategory[];
+  /** Available groups */
+  groups: string[];
+  /** Currently selected group */
+  selectedGroup: string;
+  /** Callback when group is selected */
+  onSelectGroup: (group: string) => void;
   /** Current search query */
   searchQuery: string;
   /** Callback when search changes */
@@ -22,6 +32,8 @@ export interface SoundBrowserTrayProps {
   currentlyPlaying: string | null;
   /** Callback to preview a sample */
   onPreviewSample: (categoryName: string, index: number) => void;
+  /** Callback to stop preview */
+  onStopPreview: () => void;
   /** Loading state */
   isLoading?: boolean;
   /** Error message */
@@ -31,39 +43,73 @@ export interface SoundBrowserTrayProps {
 }
 
 /**
- * Sound browser tray with search, category filters, and sample grid
+ * Sound browser tray with groups, search, category filters, and sample grid
  */
 export const SoundBrowserTray = ({
   categories,
+  groups,
+  selectedGroup,
+  onSelectGroup,
   searchQuery,
   onSearchChange,
   selectedCategory,
   onSelectCategory,
   currentlyPlaying,
   onPreviewSample,
+  onStopPreview,
   isLoading = false,
   error = null,
   className = ''
 }: SoundBrowserTrayProps): JSX.Element => {
-  // Filter categories by search query
-  const filteredCategories = searchQuery
-    ? categories.filter((cat) => cat.name.toLowerCase().includes(searchQuery.toLowerCase()))
-    : categories;
-
   // Get selected category object
-  const selectedCategoryObj = filteredCategories.find((cat) => cat.name === selectedCategory);
+  const selectedCategoryObj = categories.find((cat) => cat.name === selectedCategory);
 
   return (
     <div
       className={`
-        flex flex-col gap-3 p-3
+        flex flex-col gap-2 p-3
         bg-basilisk-gray-800/50
         border-t border-basilisk-gray-700
         ${className}
       `}
     >
-      {/* Search */}
-      <SoundSearch value={searchQuery} onChange={onSearchChange} />
+      {/* Top row: Search and Group tabs */}
+      <div className="flex items-center gap-3">
+        <SoundSearch
+          value={searchQuery}
+          onChange={onSearchChange}
+          placeholder="Search..."
+          className="w-40 flex-shrink-0"
+        />
+
+        {/* Group tabs */}
+        <div className="flex items-center gap-1 overflow-x-auto scrollbar-minimal flex-1">
+          {groups.map((group) => {
+            const isSelected = selectedGroup === group;
+            const groupInfo = getGroupByName(group);
+            const icon = groupInfo?.icon;
+
+            return (
+              <button
+                key={group}
+                onClick={() => onSelectGroup(group)}
+                className={`
+                  flex-shrink-0 px-2 py-1 rounded text-xs font-medium
+                  transition-colors duration-200
+                  ${
+                    isSelected
+                      ? 'bg-basilisk-accent-cool text-white'
+                      : 'bg-basilisk-gray-700/50 text-basilisk-gray-300 hover:bg-basilisk-gray-700 hover:text-white'
+                  }
+                `}
+              >
+                {icon && <span className="mr-1">{icon}</span>}
+                {group}
+              </button>
+            );
+          })}
+        </div>
+      </div>
 
       {/* Loading state */}
       {isLoading && (
@@ -76,9 +122,9 @@ export const SoundBrowserTray = ({
       )}
 
       {/* Category chips */}
-      {!isLoading && !error && filteredCategories.length > 0 && (
+      {!isLoading && !error && categories.length > 0 && (
         <SoundCategoryChips
-          categories={filteredCategories}
+          categories={categories}
           selectedCategory={selectedCategory}
           onSelectCategory={onSelectCategory}
         />
@@ -86,28 +132,43 @@ export const SoundBrowserTray = ({
 
       {/* Sample grid (shown when category is selected) */}
       {!isLoading && !error && selectedCategoryObj && (
-        <div className="max-h-40 overflow-y-auto scrollbar-minimal">
+        <div className="max-h-32 overflow-y-auto scrollbar-minimal py-1">
           <SoundSampleGrid
             categoryName={selectedCategoryObj.name}
             samples={selectedCategoryObj.samples}
             currentlyPlaying={currentlyPlaying}
             onPreviewSample={onPreviewSample}
+            onStopPreview={onStopPreview}
           />
         </div>
       )}
 
+      {/* Hint when no category selected */}
+      {!isLoading && !error && categories.length > 0 && !selectedCategoryObj && (
+        <div className="text-xs text-basilisk-gray-500 text-center py-2">
+          Select a category above to browse samples
+        </div>
+      )}
+
       {/* No results message */}
-      {!isLoading && !error && filteredCategories.length === 0 && (
+      {!isLoading && !error && categories.length === 0 && (
         <div className="text-sm text-basilisk-gray-500 text-center py-4">
-          No categories found matching "{searchQuery}"
+          No categories found
+          {searchQuery && ` matching "${searchQuery}"`}
         </div>
       )}
 
       {/* Stats footer */}
-      {!isLoading && !error && filteredCategories.length > 0 && (
-        <div className="text-xs text-basilisk-gray-500 text-center">
-          {filteredCategories.length} categories
-          {selectedCategoryObj && ` · ${selectedCategoryObj.count} samples in ${selectedCategoryObj.name}`}
+      {!isLoading && !error && categories.length > 0 && (
+        <div className="text-xs text-basilisk-gray-500 flex items-center justify-between">
+          <span>
+            {categories.length} categories in {selectedGroup}
+          </span>
+          {selectedCategoryObj && (
+            <span className="font-mono text-basilisk-gray-400">
+              s("{selectedCategoryObj.name}:n") · {selectedCategoryObj.count} samples
+            </span>
+          )}
         </div>
       )}
     </div>

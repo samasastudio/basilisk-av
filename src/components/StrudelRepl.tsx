@@ -4,13 +4,13 @@ import * as Strudel from '@strudel/core';
 import { initHydra, H } from '@strudel/hydra';
 import { samples } from '@strudel/webaudio';
 import CodeMirror from '@uiw/react-codemirror';
-import { useState, useEffect } from 'react';
 import { Music } from 'lucide-react';
+import { useState, useEffect } from 'react';
 
-import * as StrudelEngine from '../services/strudelEngine';
 import { useSoundBrowser } from '../hooks/useSoundBrowser';
-import { SoundBrowserTray } from './sound-browser';
+import * as StrudelEngine from '../services/strudelEngine';
 
+import { SoundBrowserTray } from './sound-browser';
 import { Button } from './ui/Button';
 
 // Expose Strudel functions globally for the REPL
@@ -110,7 +110,7 @@ type Props = {
     statusLabel?: string;
 };
 
-export const StrudelRepl = ({ className, engineReady, onTestPattern, onHalt, onExecute, onSave, statusLabel }: Props): JSX.Element => {
+export const StrudelRepl = ({ className, engineReady, onTestPattern: _onTestPattern, onHalt, onExecute, onSave, statusLabel }: Props): JSX.Element => {
     const [code, setCode] = useState(defaultCode);
 
     // Sound browser state
@@ -229,13 +229,17 @@ export const StrudelRepl = ({ className, engineReady, onTestPattern, onHalt, onE
             </div>
             {soundBrowser.isOpen && (
                 <SoundBrowserTray
-                    categories={soundBrowser.categories}
+                    categories={soundBrowser.filteredCategories}
+                    groups={soundBrowser.groups}
+                    selectedGroup={soundBrowser.selectedGroup}
+                    onSelectGroup={soundBrowser.setSelectedGroup}
                     searchQuery={soundBrowser.searchQuery}
                     onSearchChange={soundBrowser.setSearchQuery}
                     selectedCategory={soundBrowser.selectedCategory}
                     onSelectCategory={soundBrowser.setSelectedCategory}
                     currentlyPlaying={soundBrowser.currentlyPlaying}
                     onPreviewSample={soundBrowser.previewSample}
+                    onStopPreview={soundBrowser.stopPreview}
                     isLoading={soundBrowser.isLoading}
                     error={soundBrowser.error}
                 />

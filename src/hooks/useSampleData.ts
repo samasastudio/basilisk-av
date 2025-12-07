@@ -2,9 +2,11 @@
  * React hook for fetching and managing Strudel sample data
  */
 
-import { useEffect, useState } from 'react';
-import type { FetchStatus, SampleData } from '../types/samples';
+import { useEffect, useRef, useState } from 'react';
+
 import * as SampleRegistry from '../services/sampleRegistry';
+
+import type { FetchStatus, SampleData } from '../types/samples';
 
 export interface UseSampleDataReturn {
   /** Sample data (null until loaded) */
@@ -61,12 +63,45 @@ export const useSampleData = (): UseSampleDataReturn => {
     }
   };
 
+  // Track if initial fetch has been triggered
+  const hasFetchedRef = useRef(false);
+
   // Fetch on mount (only if not already cached)
   useEffect(() => {
-    if (status === 'idle') {
-      fetchData();
+    // Skip if already cached or already started fetching
+    if (SampleRegistry.getCachedSampleData() || hasFetchedRef.current) {
+      return;
     }
-  }, []); // eslint-disable-line react-hooks/exhaustive-deps
+
+    hasFetchedRef.current = true;
+    let cancelled = false;
+
+    const doFetch = async (): Promise<void> => {
+      setStatus('loading');
+      setError(null);
+
+      try {
+        const sampleData = await SampleRegistry.fetchSampleData();
+        if (!cancelled) {
+          setData(sampleData);
+          setStatus('success');
+        }
+      } catch (err) {
+        if (!cancelled) {
+          const message = err instanceof Error ? err.message : 'Failed to fetch sample data';
+          setError(message);
+          setStatus('error');
+          console.error('useSampleData:', message);
+        }
+      }
+    };
+
+    void doFetch();
+
+    return () => {
+      cancelled = true;
+    };
+  }, []);
 
   return {
     data,

@@ -40,7 +40,7 @@ export const SoundCategoryChips = ({
   };
 
   return (
-    <div className={`flex items-center gap-2 overflow-x-auto scrollbar-minimal ${className}`}>
+    <div className={`flex items-center gap-1.5 overflow-x-auto scrollbar-minimal py-1 ${className}`}>
       {categories.map((category) => {
         const isSelected = selectedCategory === category.name;
 
@@ -49,16 +49,17 @@ export const SoundCategoryChips = ({
             key={category.name}
             onClick={() => handleChipClick(category.name)}
             className={`
-              flex-shrink-0 px-3 py-1.5 rounded text-xs font-medium
+              flex-shrink-0 px-2 py-1 rounded text-xs font-mono
               transition-colors duration-200
               ${
                 isSelected
-                  ? 'bg-basilisk-accent-cool text-white'
-                  : 'bg-basilisk-gray-700 text-basilisk-gray-200 hover:bg-basilisk-gray-600'
+                  ? 'bg-basilisk-accent-cool/80 text-white border border-basilisk-accent-cool'
+                  : 'bg-basilisk-gray-700/50 text-basilisk-gray-300 border border-basilisk-gray-600 hover:bg-basilisk-gray-700 hover:text-white'
               }
             `}
           >
-            {category.name} <span className="text-xs opacity-70">({category.count})</span>
+            {category.name}
+            <span className="text-xs opacity-60 ml-1">({category.count})</span>
           </button>
         );
       })}

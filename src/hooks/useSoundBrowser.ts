@@ -3,10 +3,19 @@
  */
 
 import { useState, useMemo } from 'react';
+
+import { categorizeToGroup, getAllGroupNames } from '../config/sampleGroups';
+
+import { usePersistedState } from './usePersistedState';
 import { useSampleData } from './useSampleData';
 import { useSoundPreview } from './useSoundPreview';
-import { usePersistedState } from './usePersistedState';
+
 import type { SampleCategory } from '../types/samples';
+
+export interface CategorizedSampleCategory extends SampleCategory {
+  /** The group this category belongs to */
+  group: string;
+}
 
 export interface UseSoundBrowserReturn {
   // Visibility
@@ -16,9 +25,15 @@ export interface UseSoundBrowserReturn {
   toggle: () => void;
 
   // Data
-  categories: SampleCategory[];
+  categories: CategorizedSampleCategory[];
+  filteredCategories: CategorizedSampleCategory[];
   isLoading: boolean;
   error: string | null;
+
+  // Groups
+  groups: string[];
+  selectedGroup: string;
+  setSelectedGroup: (group: string) => void;
 
   // Search
   searchQuery: string;
@@ -35,6 +50,7 @@ export interface UseSoundBrowserReturn {
 }
 
 const STORAGE_KEY_TRAY_OPEN = 'basilisk-sound-browser-open';
+const STORAGE_KEY_GROUP = 'basilisk-sound-browser-group';
 
 /**
  * Main orchestration hook for the Sound Browser
@@ -43,18 +59,8 @@ const STORAGE_KEY_TRAY_OPEN = 'basilisk-sound-browser-open';
  * - useSampleData (fetching)
  * - useSoundPreview (playback)
  * - usePersistedState (visibility persistence)
+ * - Sample grouping by instrument type
  * - Local state (search, category selection)
- *
- * @example
- * const browser = useSoundBrowser();
- *
- * <button onClick={browser.toggle}>
- *   {browser.isOpen ? 'Close' : 'Open'} Sounds
- * </button>
- *
- * {browser.isOpen && (
- *   <SoundBrowserTray {...browser} />
- * )}
  */
 export const useSoundBrowser = (): UseSoundBrowserReturn => {
   // Fetch sample data
@@ -66,16 +72,51 @@ export const useSoundBrowser = (): UseSoundBrowserReturn => {
   // Persisted visibility state
   const [isOpen, setIsOpen] = usePersistedState<boolean>(STORAGE_KEY_TRAY_OPEN, false);
 
+  // Persisted group selection
+  const [selectedGroup, setSelectedGroup] = usePersistedState<string>(STORAGE_KEY_GROUP, 'All');
+
   // Local search state
   const [searchQuery, setSearchQuery] = useState('');
 
   // Local category selection state
   const [selectedCategory, setSelectedCategory] = useState<string | null>(null);
 
-  // Memoized categories list
-  const categories = useMemo(() => {
-    return data?.categories ?? [];
+  // Get all group names
+  const groups = useMemo(() => getAllGroupNames(), []);
+
+  // Categorize all samples into groups
+  const categories = useMemo((): CategorizedSampleCategory[] => {
+    if (!data?.categories) return [];
+
+    return data.categories.map((cat) => ({
+      ...cat,
+      group: categorizeToGroup(cat.name)
+    }));
   }, [data]);
+
+  // Filter categories by group and search query
+  const filteredCategories = useMemo((): CategorizedSampleCategory[] => {
+    let filtered = categories;
+
+    // Filter by group (unless "All" is selected)
+    if (selectedGroup !== 'All') {
+      filtered = filtered.filter((cat) => cat.group === selectedGroup);
+    }
+
+    // Filter by search query
+    if (searchQuery) {
+      const query = searchQuery.toLowerCase();
+      filtered = filtered.filter((cat) => cat.name.toLowerCase().includes(query));
+    }
+
+    return filtered;
+  }, [categories, selectedGroup, searchQuery]);
+
+  // Clear category selection when group changes
+  const handleGroupChange = (group: string): void => {
+    setSelectedGroup(group);
+    setSelectedCategory(null);
+  };
 
   return {
     // Visibility
@@ -86,8 +127,14 @@ export const useSoundBrowser = (): UseSoundBrowserReturn => {
 
     // Data
     categories,
+    filteredCategories,
     isLoading: status === 'loading',
     error,
+
+    // Groups
+    groups,
+    selectedGroup,
+    setSelectedGroup: handleGroupChange,
 
     // Search
     searchQuery,

@@ -92,9 +92,7 @@ export const fetchSampleData = async (): Promise<SampleData> => {
 /**
  * Get cached sample data if available
  */
-export const getCachedSampleData = (): SampleData | null => {
-  return cachedSampleData;
-};
+export const getCachedSampleData = (): SampleData | null => cachedSampleData;
 
 /**
  * Clear the cache (useful for testing)
@@ -107,6 +105,4 @@ export const clearSampleCache = (): void => {
 /**
  * Check if data is currently being fetched
  */
-export const isFetching = (): boolean => {
-  return fetchPromise !== null;
-};
+export const isFetching = (): boolean => fetchPromise !== null;

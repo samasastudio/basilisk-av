@@ -1,5 +1,7 @@
 import { describe, it, expect, beforeEach, vi } from 'vitest';
+
 import * as SampleRegistry from '../sampleRegistry';
+
 import type { StrudelSamplesJSON } from '../../types/samples';
 
 describe('sampleRegistry', () => {
@@ -136,7 +138,7 @@ describe('sampleRegistry', () => {
         '808': ['sample.wav']
       };
 
-      let resolvePromise: (value: any) => void;
+      let resolvePromise: ((value: unknown) => void) | undefined;
       const fetchPromise = new Promise((resolve) => {
         resolvePromise = resolve;
       });
@@ -149,7 +151,8 @@ describe('sampleRegistry', () => {
       const promise3 = SampleRegistry.fetchSampleData();
 
       // Resolve the fetch
-      resolvePromise!({
+      expect(resolvePromise).toBeDefined();
+      resolvePromise?.({
         ok: true,
         json: async () => mockJSON
       });
@@ -220,7 +223,7 @@ describe('sampleRegistry', () => {
         '808': ['sample.wav']
       };
 
-      let resolvePromise: (value: any) => void;
+      let resolvePromise: ((value: unknown) => void) | undefined;
       const fetchPromise = new Promise((resolve) => {
         resolvePromise = resolve;
       });
@@ -231,7 +234,8 @@ describe('sampleRegistry', () => {
 
       expect(SampleRegistry.isFetching()).toBe(true);
 
-      resolvePromise!({
+      expect(resolvePromise).toBeDefined();
+      resolvePromise?.({
         ok: true,
         json: async () => mockJSON
       });

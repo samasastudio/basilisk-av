@@ -2,7 +2,8 @@
  * React hook for previewing Strudel samples
  */
 
-import { useState, useCallback } from 'react';
+import { useState, useCallback, useRef } from 'react';
+
 import * as StrudelEngine from '../services/strudelEngine';
 
 export interface UseSoundPreviewReturn {
@@ -19,8 +20,8 @@ export interface UseSoundPreviewReturn {
 /**
  * Hook for previewing Strudel samples
  *
- * Uses Strudel's evaluate() to play a single sample with .once()
- * Stops any currently playing pattern before previewing.
+ * Uses Strudel's evaluate() to play a sample pattern.
+ * Each new preview replaces the previous one.
  *
  * @example
  * const { previewSample, stopPreview, isPlaying } = useSoundPreview();
@@ -32,6 +33,7 @@ export interface UseSoundPreviewReturn {
 export const useSoundPreview = (): UseSoundPreviewReturn => {
   const [isPlaying, setIsPlaying] = useState(false);
   const [currentSample, setCurrentSample] = useState<string | null>(null);
+  const timeoutRef = useRef<ReturnType<typeof setTimeout> | null>(null);
 
   const previewSample = useCallback((categoryName: string, index: number = 0): void => {
     const repl = StrudelEngine.getReplInstance();
@@ -41,12 +43,15 @@ export const useSoundPreview = (): UseSoundPreviewReturn => {
       return;
     }
 
-    // Stop any currently playing patterns
-    StrudelEngine.hushAudio();
+    // Clear any existing timeout
+    if (timeoutRef.current) {
+      clearTimeout(timeoutRef.current);
+    }
 
-    // Format: s("category:index").gain(0.8).once()
-    // .once() ensures it plays exactly once without looping
-    const pattern = `s("${categoryName}:${index}").gain(0.8).once()`;
+    // Play the sample - just evaluate the pattern directly
+    // Don't call hushAudio() first as that stops the engine
+    // The new pattern will replace any currently playing pattern
+    const pattern = `s("${categoryName}:${index}").gain(0.8)`;
     const sampleKey = `${categoryName}:${index}`;
 
     try {
@@ -54,12 +59,11 @@ export const useSoundPreview = (): UseSoundPreviewReturn => {
       setCurrentSample(sampleKey);
       setIsPlaying(true);
 
-      // Auto-clear playing state after ~1.5 seconds
-      // This is a UX approximation since we don't know exact sample duration
-      setTimeout(() => {
+      // Auto-clear playing state after ~2 seconds
+      timeoutRef.current = setTimeout(() => {
         setIsPlaying(false);
         setCurrentSample(null);
-      }, 1500);
+      }, 2000);
     } catch (error) {
       console.error('Preview failed:', error);
       setIsPlaying(false);
@@ -68,6 +72,9 @@ export const useSoundPreview = (): UseSoundPreviewReturn => {
   }, []);
 
   const stopPreview = useCallback((): void => {
+    if (timeoutRef.current) {
+      clearTimeout(timeoutRef.current);
+    }
     StrudelEngine.hushAudio();
     setIsPlaying(false);
     setCurrentSample(null);
