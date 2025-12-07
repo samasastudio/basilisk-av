@@ -77,11 +77,11 @@ export const fetchSampleData = async (): Promise<SampleData> => {
 
       return data;
     } catch (error) {
-      // Clear the promise so retry is possible
-      fetchPromise = null;
+      // Don't cache failed fetches
+      cachedSampleData = null;
       throw error;
     } finally {
-      // Clear promise after completion
+      // Clear promise after completion (success or error)
       fetchPromise = null;
     }
   })();

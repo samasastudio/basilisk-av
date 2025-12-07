@@ -63,17 +63,18 @@ export const useSampleData = (): UseSampleDataReturn => {
     }
   };
 
-  // Track if initial fetch has been triggered
-  const hasFetchedRef = useRef(false);
-
   // Fetch on mount (only if not already cached)
   useEffect(() => {
-    // Skip if already cached or already started fetching
-    if (SampleRegistry.getCachedSampleData() || hasFetchedRef.current) {
+    // Skip if already cached
+    if (SampleRegistry.getCachedSampleData()) {
       return;
     }
 
-    hasFetchedRef.current = true;
+    // Skip if already fetching (check the registry)
+    if (SampleRegistry.isFetching()) {
+      return;
+    }
+
     let cancelled = false;
 
     const doFetch = async (): Promise<void> => {
