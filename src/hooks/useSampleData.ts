@@ -2,7 +2,7 @@
  * React hook for fetching and managing Strudel sample data
  */
 
-import { useEffect, useRef, useState } from 'react';
+import { useEffect, useState } from 'react';
 
 import * as SampleRegistry from '../services/sampleRegistry';
 
@@ -70,18 +70,17 @@ export const useSampleData = (): UseSampleDataReturn => {
       return;
     }
 
-    // Skip if already fetching (check the registry)
-    if (SampleRegistry.isFetching()) {
-      return;
-    }
-
     let cancelled = false;
 
     const doFetch = async (): Promise<void> => {
-      setStatus('loading');
-      setError(null);
+      // If not already fetching, set loading state
+      if (!SampleRegistry.isFetching()) {
+        setStatus('loading');
+        setError(null);
+      }
 
       try {
+        // This will either start a new fetch or return the in-flight promise
         const sampleData = await SampleRegistry.fetchSampleData();
         if (!cancelled) {
           setData(sampleData);
