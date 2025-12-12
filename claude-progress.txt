@@ -1,0 +1,113 @@
+=== Basilisk AV - Development Progress ===
+
+Last Updated: 2025-12-12
+Current Phase: 6 (UX Polish & Production Mode)
+Total Features: 25
+Passing: 0
+
+---
+
+=== Session: 2025-12-12 (Setup) ===
+
+COMPLETED:
+- Integrated Playwright MCP for Claude Code CLI
+- Created .claude/settings.json with Playwright config
+- Created /project:verify command for single feature verification
+- Created /project:verify-all command for batch verification
+- Consolidated features.json with currentPhase tracking
+- Updated init.sh with phase-aware file detection
+- Added User Library feature set (9 new features)
+- Created USER_LIBRARY_SPEC.md with full architecture
+- Extracted shared SamplePanel component design
+- Created skills/playwright-verification/SKILL.md
+- Updated skills/agentic-development/SKILL.md with Playwright integration
+- Updated roadmap.md with Phase 6 details and User Library
+
+IN PROGRESS:
+- None (clean state)
+
+BLOCKERS:
+- None
+
+NEXT PRIORITY:
+- p6-sample-panel-base: Shared base component for Sound Browser and User Library
+  (HIGH priority, no dependencies, enables both browser tracks)
+
+SUGGESTED IMPLEMENTATION ORDER:
+1. p6-sample-panel-base → Shared component
+2. p6-sound-list → Sound Browser using SamplePanel
+3. p6-user-library-button → Header integration  
+4. p6-user-library-panel → User Library using SamplePanel
+5. p6-panel-exclusivity → Mutual exclusion
+6. Continue with search/preview/insert for both panels
+
+GIT COMMITS THIS SESSION:
+- (pending: phase-6-setup branch with all new files)
+
+NOTES:
+- Playwright MCP uses accessibility tree, not screenshots
+- Verification steps map to Playwright actions via pattern matching
+- Run `claude mcp add playwright` in project directory to enable
+- Use --headless for CI, headed for debugging
+- See docs/USER_LIBRARY_SPEC.md for User Library architecture
+- See PLAYWRIGHT_MCP.md for verification setup
+- Skills updated: agentic-development, playwright-verification (new)
+
+---
+
+=== Verification Workflow ===
+
+1. Start dev server: `npm run dev`
+2. In Claude Code: `/project:verify p6-sound-list`
+3. Playwright navigates to localhost:5173
+4. Each verification step executed and reported
+5. On all-pass: features.json updated automatically
+
+---
+
+=== Dependency Graph (Phase 6) ===
+
+Independent (can start now):
+  - p6-sample-panel-base (HIGH) ← Start here for User Library
+  - p6-sound-list (HIGH)
+  - p6-shortcut-halt (HIGH) 
+  - p6-shortcut-engine-start
+  - p6-shortcut-hide-repl
+  - p6-repl-dark-toggle
+  - p6-hud-fft-bands
+  - p6-hud-fps
+  - p6-hud-cpu
+
+Sound Browser Track:
+  p6-sound-list
+    ├── p6-sound-search
+    ├── p6-sound-preview
+    ├── p6-sound-toggle-button
+    └── p6-sound-insert
+
+User Library Track:
+  p6-sample-panel-base
+    └── p6-user-library-button
+        └── p6-user-library-panel
+            ├── p6-user-library-link
+            ├── p6-user-library-preview (also needs p6-sound-preview)
+            ├── p6-user-library-insert (also needs p6-sound-insert)
+            └── p6-user-library-search (also needs p6-sound-search)
+
+  p6-sound-list + p6-user-library-panel
+    └── p6-panel-exclusivity
+
+REPL Theming Track:
+  p6-repl-dark-toggle
+    └── p6-repl-syntax-theme
+
+Keyboard Track:
+  p6-shortcut-* (all three)
+    └── p6-shortcut-help
+
+HUD Track:
+  p6-hud-fft-bands
+    └── p6-hud-toggle
+    
+  p6-hud-fft-bands + p6-hud-fps
+    └── p6-hud-styling

@@ -3,7 +3,7 @@
 ## Project Timeline
 
 **Project Start**: November 23, 2025
-**Current Status**: Phase 5 complete, Phase 6 (UX Polish & Production Mode) is next
+**Current Status**: Phase 6 in progress (UX Polish & Production Mode)
 
 ---
 
@@ -95,13 +95,6 @@
 - ✅ DRY principle enforcement across components
 - ✅ Comprehensive ESLint configuration (42 rules enforced)
 
-### PR Review Fixes (Post-PR #15)
-- ✅ Added `testMode` property to HydraBridge type for test data injection
-- ✅ Optimized `usePersistedState` hook (removed useEffect, uses synchronous localStorage writes)
-- ✅ Fixed DRY violations (AppHeader now uses `canStartEngine` helper)
-- ✅ Added comprehensive tests for `initHydraBridge` function (11 new tests)
-- ✅ Fixed test pollution in localStorage-dependent tests
-
 **Achievement**: Reduced App.tsx from 165 lines → 60 lines while achieving **150 passing tests** (exceeded 80% coverage goal)
 
 ---
@@ -125,36 +118,73 @@
 
 ---
 
-## 🚀 Phase 6: UX Polish & Production Mode (NEXT)
-**Status**: Not started
+## 🚀 Phase 6: UX Polish & Production Mode (IN PROGRESS)
+**Status**: In progress
+**Started**: December 12, 2025
+**Features**: 25 total (0 passing)
+
+### Development Infrastructure
+- ✅ Playwright MCP integration for automated verification
+- ✅ Claude Code CLI commands (`/project:verify`, `/project:verify-all`)
+- ✅ Consolidated features.json with dependency tracking
+- ✅ Updated agentic development workflow
+
+### Shared Components
+- ⏳ `SamplePanel` - Base component for Sound Browser and User Library
+  - Collapsible directory tree
+  - Search functionality
+  - Item click/double-click callbacks
+  - Consistent glassmorphism styling
+
+### Sound Browser (Strudel Samples)
+- ⏳ Sound menu showing all loaded Strudel samples
+- ⏳ Searchable/filterable sound list
+- ⏳ Preview sounds on click
+- ⏳ Replace "Test" button with Sound Browser toggle
+- ⏳ Insert sample name into editor on double-click
+
+### User Library (User Samples) — NEW
+- ⏳ User Library button with waveform icon
+- ⏳ Panel displaying user's linked sample directories
+- ⏳ Panel exclusivity (only one panel open at a time)
+- ⏳ Link master directory via File System Access API
+- ⏳ Preview user samples on click
+- ⏳ Insert sample path on double-click
+- ⏳ Search across user samples
+
+See [docs/USER_LIBRARY_SPEC.md](docs/USER_LIBRARY_SPEC.md) for full specification.
 
 ### REPL Theming
 - ⏳ Dark mode toggle for REPL editor
-- ⏳ Syntax highlighting color schemes (adapts to Hydra visuals)
-- ⏳ Custom CodeMirror themes for better readability
-
-### Sound Browser
-- ✅ Sound menu showing all loaded Strudel samples
-- ✅ Searchable/filterable sound list
-- ✅ Preview sounds on click
-- ✅ Replace "Test" button with Sound Browser toggle
-- ⏳ Layer preview (play samples without stopping current patterns)
-- ⏳ Insert sample name into editor on double-click
-- ⏳ Display custom user sounds alongside defaults
+- ⏳ Syntax highlighting color schemes
 
 ### Keyboard Shortcuts
-- ⏳ Start engine (key command)
-- ⏳ Execute code (beyond Shift+Enter)
-- ⏳ Halt/stop audio (emergency stop)
+- ⏳ Start engine shortcut
+- ⏳ Emergency halt/stop audio (Escape or Ctrl+.)
 - ⏳ Hide/show REPL toggle
 - ⏳ Keyboard shortcut help overlay
 
 ### Production HUD
-- ⏳ Compact analyzer graph per `a.fft` band (4 mini visualizers)
+- ⏳ Compact FFT analyzer per `a.fft` band (4 mini visualizers)
 - ⏳ CPU/processing power percentage display
 - ⏳ FPS counter
-- ⏳ Toggle HUD visibility in production mode
+- ⏳ Toggle HUD visibility
 - ⏳ Minimal, non-intrusive design
+
+### Verification Workflow
+
+Features are verified using Playwright MCP via Claude Code CLI:
+
+```bash
+# Verify single feature
+claude
+> /project:verify p6-sound-list
+
+# Verify all incomplete features
+> /project:verify-all
+```
+
+See [PLAYWRIGHT_MCP.md](PLAYWRIGHT_MCP.md) for setup instructions.
 
 ---
 
@@ -249,7 +279,7 @@
 | Phase 3: Window Management | ✅ Complete | Dec 2-4, 2025 |
 | Phase 4: Testing & Refactoring | ✅ Complete | Dec 2-5, 2025 |
 | Phase 5: Documentation | ✅ Complete | Nov 28 - Dec 3, 2025 |
-| Phase 6: UX Polish & Production Mode | 🚀 Next | TBD |
+| Phase 6: UX Polish & Production Mode | 🚀 In Progress | Dec 12, 2025 - TBD |
 | Phase 7: Content & Features | 💡 Future | TBD |
 | Phase 8: Advanced Audio | 💡 Future | TBD |
 | Phase 9: Visual Enhancements | 💡 Future | TBD |
@@ -271,7 +301,45 @@
 | Custom Hooks | 4 |
 | Service Modules | 2 |
 | UI Components | 5 major + 4 primitives |
-| Documentation Files | 6 |
+| Documentation Files | 7 |
+| Phase 6 Features | 25 |
+
+---
+
+## Phase 6 Feature Breakdown
+
+| Category | Features | Priority |
+|----------|----------|----------|
+| Shared Components | 1 | High |
+| Sound Browser | 5 | High |
+| User Library | 8 | High/Medium |
+| REPL Theming | 2 | Medium/Low |
+| Keyboard Shortcuts | 4 | High/Medium |
+| Production HUD | 5 | Medium/Low |
+
+### Dependency Graph
+
+```
+Independent (start here):
+  p6-sample-panel-base ← Unlocks both browser tracks
+  p6-shortcut-halt ← Safety critical
+  p6-hud-fft-bands
+  p6-hud-fps
+
+Sound Browser Track:
+  p6-sound-list → p6-sound-search
+                → p6-sound-preview
+                → p6-sound-toggle-button
+                → p6-sound-insert
+
+User Library Track:
+  p6-sample-panel-base → p6-user-library-button
+                       → p6-user-library-panel → p6-panel-exclusivity
+                                               → p6-user-library-link
+                                               → p6-user-library-preview
+                                               → p6-user-library-insert
+                                               → p6-user-library-search
+```
 
 ---
 
@@ -280,3 +348,9 @@
 Interested in contributing? See [CONTRIBUTING.md](CONTRIBUTING.md) for guidelines.
 
 For technical details on how everything works, read [ARCHITECTURE.md](ARCHITECTURE.md).
+
+For Phase 6 development workflow, see:
+- [PLAYWRIGHT_MCP.md](PLAYWRIGHT_MCP.md) - Automated verification setup
+- [docs/USER_LIBRARY_SPEC.md](docs/USER_LIBRARY_SPEC.md) - User Library specification
+- `features.json` - Feature definitions with verification steps
+- `claude-progress.txt` - Session handoff and progress tracking
