@@ -64,6 +64,37 @@ export const SoundBrowserTray = ({
   // Get selected category object
   const selectedCategoryObj = categories.find((cat) => cat.name === selectedCategory);
 
+  // Handle keyboard navigation for tabs
+  const handleTabKeyDown = (event: React.KeyboardEvent<HTMLDivElement>) => {
+    const currentIndex = groups.indexOf(selectedGroup);
+    let nextIndex = currentIndex;
+
+    switch (event.key) {
+      case 'ArrowLeft':
+        event.preventDefault();
+        nextIndex = currentIndex > 0 ? currentIndex - 1 : groups.length - 1;
+        break;
+      case 'ArrowRight':
+        event.preventDefault();
+        nextIndex = currentIndex < groups.length - 1 ? currentIndex + 1 : 0;
+        break;
+      case 'Home':
+        event.preventDefault();
+        nextIndex = 0;
+        break;
+      case 'End':
+        event.preventDefault();
+        nextIndex = groups.length - 1;
+        break;
+      default:
+        return;
+    }
+
+    if (nextIndex !== currentIndex) {
+      onSelectGroup(groups[nextIndex]);
+    }
+  };
+
   return (
     <div
       className={`
@@ -84,7 +115,7 @@ export const SoundBrowserTray = ({
         />
 
         {/* Group tabs */}
-        <div role="tablist" className="flex items-center gap-1 overflow-x-auto scrollbar-minimal flex-1">
+        <div role="tablist" onKeyDown={handleTabKeyDown} className="flex items-center gap-1 overflow-x-auto scrollbar-minimal flex-1">
           {groups.map((group) => {
             const isSelected = selectedGroup === group;
             const groupInfo = getGroupByName(group);
@@ -96,6 +127,7 @@ export const SoundBrowserTray = ({
                 onClick={() => onSelectGroup(group)}
                 role="tab"
                 aria-selected={isSelected}
+                tabIndex={isSelected ? 0 : -1}
                 className={`
                   flex-shrink-0 px-2 py-1 rounded text-xs font-medium
                   transition-colors duration-200
