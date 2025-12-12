@@ -121,7 +121,7 @@ const isGroupMatch = (group: SampleGroup, categoryName: string): boolean => {
 
   // Check keyword matches
   return group.keywords.some(keyword =>
-    categoryName.includes(keyword.toLowerCase())
+    categoryName.includes(keyword)
   );
 };
 
