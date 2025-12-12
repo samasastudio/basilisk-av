@@ -11,6 +11,77 @@ import { SoundSearch } from './SoundSearch';
 
 import type { CategorizedSampleCategory } from '../../hooks/useSoundBrowser';
 
+/**
+ * Group tab button component
+ */
+const GroupTabButton = ({
+  group,
+  isSelected,
+  onClick
+}: {
+  group: string;
+  isSelected: boolean;
+  onClick: () => void;
+}): JSX.Element => {
+  const groupInfo = getGroupByName(group);
+  const icon = groupInfo?.icon;
+
+  return (
+    <button
+      onClick={onClick}
+      role="tab"
+      aria-selected={isSelected}
+      tabIndex={isSelected ? 0 : -1}
+      className={`
+        flex-shrink-0 px-2 py-1 rounded text-xs font-medium
+        transition-colors duration-200
+        ${
+          isSelected
+            ? 'bg-basilisk-accent-cool text-white'
+            : 'bg-basilisk-gray-700/50 text-basilisk-gray-300 hover:bg-basilisk-gray-700 hover:text-white'
+        }
+      `}
+    >
+      {icon && <span className="mr-1">{icon}</span>}
+      {group}
+    </button>
+  );
+};
+
+/**
+ * Calculate next tab index based on keyboard input
+ */
+const getNextTabIndex = (key: string, currentIndex: number, totalTabs: number): number => {
+  const handlers: Record<string, () => number> = {
+    'ArrowLeft': () => (currentIndex > 0 ? currentIndex - 1 : totalTabs - 1),
+    'ArrowRight': () => (currentIndex < totalTabs - 1 ? currentIndex + 1 : 0),
+    'Home': () => 0,
+    'End': () => totalTabs - 1
+  };
+
+  return handlers[key]?.() ?? currentIndex;
+};
+
+/**
+ * Handle keyboard navigation for group tabs
+ */
+const handleGroupTabNavigation = (
+  event: React.KeyboardEvent<HTMLDivElement>,
+  groups: string[],
+  currentGroup: string,
+  onSelectGroup: (group: string) => void
+): void => {
+  const currentIndex = groups.indexOf(currentGroup);
+  if (currentIndex === -1) return;
+
+  const nextIndex = getNextTabIndex(event.key, currentIndex, groups.length);
+
+  if (nextIndex !== currentIndex) {
+    event.preventDefault();
+    onSelectGroup(groups[nextIndex]);
+  }
+};
+
 export interface SoundBrowserTrayProps {
   /** All available categories (already filtered by group/search) */
   categories: CategorizedSampleCategory[];
@@ -44,7 +115,10 @@ export interface SoundBrowserTrayProps {
 
 /**
  * Sound browser tray with groups, search, category filters, and sample grid
+ *
+ * Note: Complexity warning disabled due to necessary conditional rendering in JSX
  */
+/* eslint-disable complexity */
 export const SoundBrowserTray = ({
   categories,
   groups,
@@ -64,37 +138,10 @@ export const SoundBrowserTray = ({
   // Get selected category object
   const selectedCategoryObj = categories.find((cat) => cat.name === selectedCategory);
 
-  // Handle keyboard navigation for tabs
-  const handleTabKeyDown = (event: React.KeyboardEvent<HTMLDivElement>) => {
-    const currentIndex = groups.indexOf(selectedGroup);
-    if (currentIndex === -1) return; // Guard against invalid selectedGroup
-    let nextIndex = currentIndex;
-
-    switch (event.key) {
-      case 'ArrowLeft':
-        event.preventDefault();
-        nextIndex = currentIndex > 0 ? currentIndex - 1 : groups.length - 1;
-        break;
-      case 'ArrowRight':
-        event.preventDefault();
-        nextIndex = currentIndex < groups.length - 1 ? currentIndex + 1 : 0;
-        break;
-      case 'Home':
-        event.preventDefault();
-        nextIndex = 0;
-        break;
-      case 'End':
-        event.preventDefault();
-        nextIndex = groups.length - 1;
-        break;
-      default:
-        return;
-    }
-
-    if (nextIndex !== currentIndex) {
-      onSelectGroup(groups[nextIndex]);
-    }
-  };
+  // Determine content state
+  const hasNoResults = !isLoading && !error && categories.length === 0;
+  const canShowCategories = !isLoading && !error && categories.length > 0;
+  const canShowSampleGrid = !isLoading && !error && selectedCategoryObj;
 
   return (
     <div
@@ -116,34 +163,19 @@ export const SoundBrowserTray = ({
         />
 
         {/* Group tabs */}
-        <div role="tablist" onKeyDown={handleTabKeyDown} className="flex items-center gap-1 overflow-x-auto scrollbar-minimal flex-1">
-          {groups.map((group) => {
-            const isSelected = selectedGroup === group;
-            const groupInfo = getGroupByName(group);
-            const icon = groupInfo?.icon;
-
-            return (
-              <button
-                key={group}
-                onClick={() => onSelectGroup(group)}
-                role="tab"
-                aria-selected={isSelected}
-                tabIndex={isSelected ? 0 : -1}
-                className={`
-                  flex-shrink-0 px-2 py-1 rounded text-xs font-medium
-                  transition-colors duration-200
-                  ${
-                    isSelected
-                      ? 'bg-basilisk-accent-cool text-white'
-                      : 'bg-basilisk-gray-700/50 text-basilisk-gray-300 hover:bg-basilisk-gray-700 hover:text-white'
-                  }
-                `}
-              >
-                {icon && <span className="mr-1">{icon}</span>}
-                {group}
-              </button>
-            );
-          })}
+        <div
+          role="tablist"
+          onKeyDown={(e) => handleGroupTabNavigation(e, groups, selectedGroup, onSelectGroup)}
+          className="flex items-center gap-1 overflow-x-auto scrollbar-minimal flex-1"
+        >
+          {groups.map((group) => (
+            <GroupTabButton
+              key={group}
+              group={group}
+              isSelected={selectedGroup === group}
+              onClick={() => onSelectGroup(group)}
+            />
+          ))}
         </div>
       </div>
 
@@ -158,7 +190,7 @@ export const SoundBrowserTray = ({
       )}
 
       {/* Category chips */}
-      {!isLoading && !error && categories.length > 0 && (
+      {canShowCategories && (
         <SoundCategoryChips
           categories={categories}
           selectedCategory={selectedCategory}
@@ -167,7 +199,7 @@ export const SoundBrowserTray = ({
       )}
 
       {/* Sample grid (shown when category is selected) */}
-      {!isLoading && !error && selectedCategoryObj && (
+      {canShowSampleGrid && (
         <div className="flex-1 min-h-0 overflow-y-auto scrollbar-minimal py-1">
           <SoundSampleGrid
             categoryName={selectedCategoryObj.name}
@@ -180,7 +212,7 @@ export const SoundBrowserTray = ({
       )}
 
       {/* No results message */}
-      {!isLoading && !error && categories.length === 0 && (
+      {hasNoResults && (
         <div className="text-sm text-basilisk-gray-500 text-center py-4">
           No categories found
           {searchQuery && ` matching "${searchQuery}"`}
@@ -189,3 +221,4 @@ export const SoundBrowserTray = ({
     </div>
   );
 };
+/* eslint-enable complexity */

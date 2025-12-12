@@ -6,6 +6,9 @@ import { useState, useCallback } from 'react';
 
 import * as StrudelEngine from '../services/strudelEngine';
 
+/** Duration in milliseconds to show playing state after preview */
+const PREVIEW_PLAYING_DURATION = 1500;
+
 export interface UseSoundPreviewReturn {
   /** Preview a sample by category and index */
   previewSample: (categoryName: string, index?: number) => void;
@@ -60,7 +63,7 @@ export const useSoundPreview = (): UseSoundPreviewReturn => {
       setTimeout(() => {
         setIsPlaying(false);
         setCurrentSample(null);
-      }, 1500);
+      }, PREVIEW_PLAYING_DURATION);
     } catch (error) {
       console.error('Preview failed:', error);
       setIsPlaying(false);

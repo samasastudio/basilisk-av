@@ -47,7 +47,7 @@ describe('sampleRegistry', () => {
       const mockJSON: StrudelSamplesJSON = {
         _base: 'https://example.com/',
         '808': ['sample.wav'],
-        'invalid': 'not-an-array' as any
+        'invalid': 'not-an-array'
       };
 
       const result = SampleRegistry.parseSampleData(mockJSON);
