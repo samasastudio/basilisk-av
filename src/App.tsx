@@ -13,20 +13,20 @@ import { focusREPL } from './utils/focusREPL';
 
 import type { KeyboardShortcut } from './hooks/useGlobalKeyboardShortcuts';
 
-// Create a client for TanStack Query
-const queryClient = new QueryClient({
-  defaultOptions: {
-    queries: {
-      staleTime: Infinity, // Data never becomes stale (like our cache)
-      gcTime: Infinity, // Keep in cache forever (was cacheTime in v4)
-      retry: 3,
-      refetchOnWindowFocus: false,
-    },
-  },
-});
-
 export const App = (): JSX.Element => {
   const [hasExecutedCode, setHasExecutedCode] = useState(false);
+
+  // Create a client for TanStack Query inside the App component for proper isolation
+  const queryClient = useMemo(() => new QueryClient({
+    defaultOptions: {
+      queries: {
+        staleTime: Infinity, // Data never becomes stale (like our cache)
+        gcTime: Infinity, // Keep in cache forever (was cacheTime in v4)
+        retry: 3,
+        refetchOnWindowFocus: false,
+      },
+    },
+  }), []);
 
   const {
     engineStatus,
