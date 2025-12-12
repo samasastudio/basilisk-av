@@ -1,8 +1,7 @@
 import { renderHook, act } from '@testing-library/react';
 import { describe, it, expect, beforeEach, vi } from 'vitest';
-
-import * as StrudelEngine from '../../services/strudelEngine';
 import { useSoundPreview } from '../useSoundPreview';
+import * as StrudelEngine from '../../services/strudelEngine';
 
 // Mock StrudelEngine
 vi.mock('../../services/strudelEngine', () => ({
@@ -43,9 +42,8 @@ describe('useSoundPreview', () => {
       result.current.previewSample('808', 0);
     });
 
-    // Should NOT call hushAudio before preview (that was the bug)
-    expect(StrudelEngine.hushAudio).not.toHaveBeenCalled();
-    expect(mockRepl.evaluate).toHaveBeenCalledWith('s("808:0").gain(0.8)');
+    expect(StrudelEngine.hushAudio).toHaveBeenCalled();
+    expect(mockRepl.evaluate).toHaveBeenCalledWith('s("808:0").gain(0.8).once()');
     expect(result.current.isPlaying).toBe(true);
     expect(result.current.currentSample).toBe('808:0');
   });
@@ -57,7 +55,7 @@ describe('useSoundPreview', () => {
       result.current.previewSample('bass1');
     });
 
-    expect(mockRepl.evaluate).toHaveBeenCalledWith('s("bass1:0").gain(0.8)');
+    expect(mockRepl.evaluate).toHaveBeenCalledWith('s("bass1:0").gain(0.8).once()');
   });
 
   it('should auto-clear playing state after timeout', () => {
@@ -69,9 +67,9 @@ describe('useSoundPreview', () => {
 
     expect(result.current.isPlaying).toBe(true);
 
-    // Fast-forward time (2000ms is the new timeout)
+    // Fast-forward time
     act(() => {
-      vi.advanceTimersByTime(2000);
+      vi.advanceTimersByTime(1500);
     });
 
     expect(result.current.isPlaying).toBe(false);
@@ -88,14 +86,13 @@ describe('useSoundPreview', () => {
 
     expect(result.current.currentSample).toBe('808:0');
 
-    // Play second sample before timeout - each preview replaces the previous
+    // Play second sample before timeout
     act(() => {
       result.current.previewSample('bass1', 2);
     });
 
-    // hushAudio should NOT be called during preview
-    expect(StrudelEngine.hushAudio).not.toHaveBeenCalled();
-    expect(mockRepl.evaluate).toHaveBeenCalledWith('s("bass1:2").gain(0.8)');
+    expect(StrudelEngine.hushAudio).toHaveBeenCalledTimes(2);
+    expect(mockRepl.evaluate).toHaveBeenCalledWith('s("bass1:2").gain(0.8).once()');
     expect(result.current.currentSample).toBe('bass1:2');
   });
 
