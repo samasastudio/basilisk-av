@@ -48,6 +48,7 @@ export const SoundCategoryChips = ({
           <button
             key={category.name}
             onClick={() => handleChipClick(category.name)}
+            aria-pressed={isSelected}
             className={`
               flex-shrink-0 px-2 py-1 rounded text-xs font-mono
               transition-colors duration-200
