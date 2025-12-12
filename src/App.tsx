@@ -34,7 +34,6 @@ export const App = (): JSX.Element => {
     hydraLinked,
     hydraStatus,
     startEngine,
-    playTestPattern,
     hushAudio,
   } = useStrudelEngine();
 
