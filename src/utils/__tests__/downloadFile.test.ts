@@ -95,19 +95,26 @@ describe('generateScriptFilename', () => {
     expect(filename.endsWith('.strudel.js')).toBe(true);
   });
 
-  it('generates filenames with millisecond precision', async () => {
+  it('generates filenames with millisecond precision', () => {
+    // Use fake timers to control time precisely
+    vi.useFakeTimers();
+
+    // Set initial time with milliseconds
+    vi.setSystemTime(new Date('2024-01-15T10:30:45.123Z'));
     const filename1 = generateScriptFilename();
 
-    // Wait 1ms to ensure different millisecond
-    await new Promise(resolve => setTimeout(resolve, 1));
-
+    // Advance time by 1 millisecond
+    vi.setSystemTime(new Date('2024-01-15T10:30:45.124Z'));
     const filename2 = generateScriptFilename();
+
+    // Restore real timers
+    vi.useRealTimers();
 
     // Both should have correct format
     expect(filename1).toMatch(/^strudel-\d{4}-\d{2}-\d{2}-\d{9}\.strudel\.js$/);
     expect(filename2).toMatch(/^strudel-\d{4}-\d{2}-\d{2}-\d{9}\.strudel\.js$/);
 
-    // With 1ms delay, filenames should be different
+    // Filenames should be different (different milliseconds)
     expect(filename1).not.toBe(filename2);
   });
 });

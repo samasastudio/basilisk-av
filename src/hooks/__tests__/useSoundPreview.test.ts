@@ -1,7 +1,8 @@
 import { renderHook, act } from '@testing-library/react';
 import { describe, it, expect, beforeEach, vi } from 'vitest';
-import { useSoundPreview } from '../useSoundPreview';
+
 import * as StrudelEngine from '../../services/strudelEngine';
+import { useSoundPreview } from '../useSoundPreview';
 
 // Mock StrudelEngine
 vi.mock('../../services/strudelEngine', () => ({
