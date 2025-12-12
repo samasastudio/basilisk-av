@@ -111,26 +111,27 @@ export const DEFAULT_GROUP: SampleGroup = {
 };
 
 /**
+ * Check if a category name matches a group's criteria
+ */
+const isGroupMatch = (group: SampleGroup, categoryName: string): boolean => {
+  // Check exact matches first
+  if (group.exact?.includes(categoryName)) {
+    return true;
+  }
+
+  // Check keyword matches
+  return group.keywords.some(keyword =>
+    categoryName.includes(keyword.toLowerCase())
+  );
+};
+
+/**
  * Categorize a sample category into a group
  */
 export const categorizeToGroup = (categoryName: string): string => {
   const lowerName = categoryName.toLowerCase();
-
-  for (const group of SAMPLE_GROUPS) {
-    // Check exact matches first
-    if (group.exact?.includes(lowerName)) {
-      return group.name;
-    }
-
-    // Check keyword matches
-    for (const keyword of group.keywords) {
-      if (lowerName.includes(keyword.toLowerCase())) {
-        return group.name;
-      }
-    }
-  }
-
-  return DEFAULT_GROUP.name;
+  const matchedGroup = SAMPLE_GROUPS.find(group => isGroupMatch(group, lowerName));
+  return matchedGroup?.name ?? DEFAULT_GROUP.name;
 };
 
 /**
