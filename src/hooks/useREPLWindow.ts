@@ -98,7 +98,7 @@ export const useREPLWindow = (isSoundBrowserOpen: boolean = false): {
       : baseSize.height;
 
     return { width: baseSize.width, height };
-  }, [isSoundBrowserOpen, baseSize]);
+  }, [isSoundBrowserOpen, baseSize.width, baseSize.height]);
 
   /**
    * Handle drag stop event from react-rnd
