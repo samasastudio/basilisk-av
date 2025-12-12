@@ -125,7 +125,7 @@ export const StrudelRepl = ({ className, engineReady, onTestPattern: _onTestPatt
 
         window.addEventListener('keydown', handleKeyDown);
         return () => window.removeEventListener('keydown', handleKeyDown);
-    }, [soundBrowser.isOpen, soundBrowser]);
+    }, [soundBrowser.isOpen, soundBrowser.stopPreview]);
 
     const runCode = async (): Promise<void> => {
         if (!engineReady) {
