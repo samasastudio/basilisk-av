@@ -75,7 +75,6 @@ describe('StrudelRepl', () => {
 
   const defaultProps = {
     engineReady: true,
-    onTestPattern: vi.fn(),
     onHalt: vi.fn(),
     onExecute: vi.fn(),
     onSave: vi.fn(),

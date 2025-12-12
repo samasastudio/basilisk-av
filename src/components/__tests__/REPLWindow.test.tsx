@@ -81,7 +81,6 @@ vi.mock('../StrudelRepl', () => ({
 describe('REPLWindow', () => {
   const defaultProps = {
     engineReady: false,
-    onTestPattern: vi.fn(),
     onHalt: vi.fn(),
     onExecute: vi.fn(),
     onSave: vi.fn()
