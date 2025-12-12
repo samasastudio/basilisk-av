@@ -8,8 +8,6 @@ import { StrudelRepl } from './StrudelRepl';
 type Props = {
   /** Whether the audio engine is ready to execute code */
   engineReady: boolean;
-  /** Callback to play a test pattern */
-  onTestPattern: () => void;
   /** Callback to halt/stop all audio */
   onHalt: () => void;
   /** Callback when code is executed */
@@ -25,7 +23,6 @@ type Props = {
  */
 export const REPLWindow = ({
   engineReady,
-  onTestPattern,
   onHalt,
   onExecute,
   onSave
@@ -61,7 +58,6 @@ export const REPLWindow = ({
       <div className="w-full h-full bg-basilisk-gray-900/85 backdrop-blur-lg border border-basilisk-gray-600 rounded-lg shadow-2xl overflow-hidden">
         <StrudelRepl
           engineReady={engineReady}
-          onTestPattern={onTestPattern}
           onHalt={onHalt}
           onExecute={onExecute}
           onSave={onSave}

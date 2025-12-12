@@ -34,7 +34,6 @@ export const App = (): JSX.Element => {
     hydraLinked,
     hydraStatus,
     startEngine,
-    playTestPattern,
     hushAudio,
   } = useStrudelEngine();
 
@@ -104,7 +103,6 @@ export const App = (): JSX.Element => {
         {replVisible && (
           <REPLWindow
             engineReady={engineInitialized}
-            onTestPattern={playTestPattern}
             onHalt={hushAudio}
             onExecute={() => setHasExecutedCode(true)}
             onSave={handleSaveScript}
