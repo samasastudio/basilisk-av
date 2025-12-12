@@ -2,7 +2,7 @@
  * React hook for fetching and managing Strudel sample data
  */
 
-import { useEffect, useState } from 'react';
+import { useQuery } from '@tanstack/react-query';
 
 import * as SampleRegistry from '../services/sampleRegistry';
 
@@ -20,10 +20,11 @@ export interface UseSampleDataReturn {
 }
 
 /**
- * Hook to fetch and cache Strudel sample data
+ * Hook to fetch and cache Strudel sample data using TanStack Query
  *
- * Automatically fetches on mount. Uses module-level caching
- * so subsequent calls return cached data instantly.
+ * Automatically fetches on mount with intelligent caching, deduplication,
+ * and automatic retry logic. TanStack Query handles all the complexity
+ * of data fetching, caching, and synchronization.
  *
  * @example
  * const { data, status, error } = useSampleData();
@@ -35,78 +36,28 @@ export interface UseSampleDataReturn {
  * return <div>{data.categories.length} categories</div>;
  */
 export const useSampleData = (): UseSampleDataReturn => {
-  const [data, setData] = useState<SampleData | null>(
-    () => SampleRegistry.getCachedSampleData()
-  );
-  const [status, setStatus] = useState<FetchStatus>(() => {
-    const cached = SampleRegistry.getCachedSampleData();
-    return cached ? 'success' : 'idle';
+  const query = useQuery({
+    queryKey: ['samples'],
+    queryFn: SampleRegistry.fetchSampleData,
+    // Query options are set globally in App.tsx QueryClient config
   });
-  const [error, setError] = useState<string | null>(null);
 
-  const fetchData = async (): Promise<void> => {
-    // Don't fetch if already fetching
-    if (status === 'loading') return;
-
-    setStatus('loading');
-    setError(null);
-
-    try {
-      const sampleData = await SampleRegistry.fetchSampleData();
-      setData(sampleData);
-      setStatus('success');
-    } catch (err) {
-      const message = err instanceof Error ? err.message : 'Failed to fetch sample data';
-      setError(message);
-      setStatus('error');
-      console.error('useSampleData:', message);
-    }
-  };
-
-  // Fetch on mount (only if not already cached)
-  useEffect(() => {
-    // Skip if already cached
-    if (SampleRegistry.getCachedSampleData()) {
-      return;
-    }
-
-    let cancelled = false;
-
-    const doFetch = async (): Promise<void> => {
-      // If not already fetching, set loading state
-      if (!SampleRegistry.isFetching()) {
-        setStatus('loading');
-        setError(null);
-      }
-
-      try {
-        // This will either start a new fetch or return the in-flight promise
-        const sampleData = await SampleRegistry.fetchSampleData();
-        if (!cancelled) {
-          setData(sampleData);
-          setStatus('success');
-        }
-      } catch (err) {
-        if (!cancelled) {
-          const message = err instanceof Error ? err.message : 'Failed to fetch sample data';
-          setError(message);
-          setStatus('error');
-          console.error('useSampleData:', message);
-        }
-      }
-    };
-
-    void doFetch();
-
-    return () => {
-      cancelled = true;
-    };
-  }, []);
+  // Map TanStack Query states to our custom FetchStatus type
+  let status: FetchStatus = 'idle';
+  if (query.isPending) {
+    status = 'loading';
+  } else if (query.isError) {
+    status = 'error';
+  } else if (query.isSuccess) {
+    status = 'success';
+  }
 
   return {
-    data,
+    data: query.data ?? null,
     status,
-    error,
-    refetch: fetchData
+    error: query.error instanceof Error ? query.error.message : null,
+    refetch: async () => {
+      await query.refetch();
+    },
   };
 };
