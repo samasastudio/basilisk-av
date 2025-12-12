@@ -62,6 +62,7 @@ export const SoundSampleGrid = ({
               }
             `}
             title={`Play s("${sampleKey}")`}
+            aria-label={isPlaying ? `Stop ${sampleKey}` : `Play ${sampleKey}`}
           >
             {isPlaying ? (
               <Square size={10} className="flex-shrink-0 fill-current" />
