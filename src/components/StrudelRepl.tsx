@@ -7,11 +7,12 @@ import CodeMirror from '@uiw/react-codemirror';
 import { Music } from 'lucide-react';
 import { useState, useEffect } from 'react';
 
-import { useSoundBrowser } from '../hooks/useSoundBrowser';
 import * as StrudelEngine from '../services/strudelEngine';
 
 import { SoundBrowserTray } from './sound-browser';
 import { Button } from './ui/Button';
+
+import type { UseSoundBrowserReturn } from '../hooks/useSoundBrowser';
 
 // Expose Strudel functions globally for the REPL
 Object.assign(window, Strudel, { samples, initHydra, H });
@@ -108,19 +109,17 @@ type Props = {
     onExecute?: () => void;
     onSave?: (code: string) => void;
     statusLabel?: string;
+    soundBrowser: UseSoundBrowserReturn;
 };
 
-export const StrudelRepl = ({ className, engineReady, onTestPattern: _onTestPattern, onHalt, onExecute, onSave, statusLabel }: Props): JSX.Element => {
+export const StrudelRepl = ({ className, engineReady, onTestPattern: _onTestPattern, onHalt, onExecute, onSave, statusLabel, soundBrowser }: Props): JSX.Element => {
     const [code, setCode] = useState(defaultCode);
 
-    // Sound browser state
-    const soundBrowser = useSoundBrowser();
-
-    // Keyboard navigation: Escape to close sound browser
+    // Keyboard navigation: Escape to stop preview
     useEffect(() => {
         const handleKeyDown = (e: KeyboardEvent): void => {
             if (e.key === 'Escape' && soundBrowser.isOpen) {
-                soundBrowser.close();
+                soundBrowser.stopPreview();
             }
         };
 
@@ -228,21 +227,23 @@ export const StrudelRepl = ({ className, engineReady, onTestPattern: _onTestPatt
                 />
             </div>
             {soundBrowser.isOpen && (
-                <SoundBrowserTray
-                    categories={soundBrowser.filteredCategories}
-                    groups={soundBrowser.groups}
-                    selectedGroup={soundBrowser.selectedGroup}
-                    onSelectGroup={soundBrowser.setSelectedGroup}
-                    searchQuery={soundBrowser.searchQuery}
-                    onSearchChange={soundBrowser.setSearchQuery}
-                    selectedCategory={soundBrowser.selectedCategory}
-                    onSelectCategory={soundBrowser.setSelectedCategory}
-                    currentlyPlaying={soundBrowser.currentlyPlaying}
-                    onPreviewSample={soundBrowser.previewSample}
-                    onStopPreview={soundBrowser.stopPreview}
-                    isLoading={soundBrowser.isLoading}
-                    error={soundBrowser.error}
-                />
+                <div className="flex-1 min-h-[300px] flex flex-col overflow-hidden">
+                    <SoundBrowserTray
+                        categories={soundBrowser.filteredCategories}
+                        groups={soundBrowser.groups}
+                        selectedGroup={soundBrowser.selectedGroup}
+                        onSelectGroup={soundBrowser.setSelectedGroup}
+                        searchQuery={soundBrowser.searchQuery}
+                        onSearchChange={soundBrowser.setSearchQuery}
+                        selectedCategory={soundBrowser.selectedCategory}
+                        onSelectCategory={soundBrowser.setSelectedCategory}
+                        currentlyPlaying={soundBrowser.currentlyPlaying}
+                        onPreviewSample={soundBrowser.previewSample}
+                        onStopPreview={soundBrowser.stopPreview}
+                        isLoading={soundBrowser.isLoading}
+                        error={soundBrowser.error}
+                    />
+                </div>
             )}
         </div>
     );

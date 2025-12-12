@@ -46,15 +46,24 @@ vi.mock('../../services/strudelEngine', () => ({
   hushAudio: vi.fn()
 }));
 
-// Mock sound browser hook
-vi.mock('../../hooks/useSoundBrowser', () => ({
-  useSoundBrowser: () => ({
+// Mock lucide-react icons
+vi.mock('lucide-react', () => ({
+  Music: () => <span>Music Icon</span>
+}));
+
+describe('StrudelRepl', () => {
+  const mockSoundBrowser = {
     isOpen: false,
+    open: vi.fn(),
     toggle: vi.fn(),
     close: vi.fn(),
     categories: [],
+    filteredCategories: [],
     isLoading: false,
     error: null,
+    groups: [],
+    selectedGroup: 'all',
+    setSelectedGroup: vi.fn(),
     searchQuery: '',
     setSearchQuery: vi.fn(),
     selectedCategory: null,
@@ -62,22 +71,16 @@ vi.mock('../../hooks/useSoundBrowser', () => ({
     previewSample: vi.fn(),
     stopPreview: vi.fn(),
     currentlyPlaying: null
-  })
-}));
+  };
 
-// Mock lucide-react icons
-vi.mock('lucide-react', () => ({
-  Music: () => <span>Music Icon</span>
-}));
-
-describe('StrudelRepl', () => {
   const defaultProps = {
     engineReady: true,
     onTestPattern: vi.fn(),
     onHalt: vi.fn(),
     onExecute: vi.fn(),
     onSave: vi.fn(),
-    statusLabel: 'ready'
+    statusLabel: 'ready',
+    soundBrowser: mockSoundBrowser
   };
 
   it('renders the editor', () => {
@@ -122,6 +125,7 @@ describe('StrudelRepl', () => {
       <StrudelRepl
         engineReady={true}
         statusLabel="ready"
+        soundBrowser={mockSoundBrowser}
       />
     );
 

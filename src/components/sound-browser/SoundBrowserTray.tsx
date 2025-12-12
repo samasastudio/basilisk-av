@@ -67,14 +67,15 @@ export const SoundBrowserTray = ({
   return (
     <div
       className={`
-        flex flex-col gap-2 p-3
+        h-full flex flex-col gap-1 px-2 py-1.5
         bg-basilisk-gray-800/50
         border-t border-basilisk-gray-700
+        animate-in fade-in slide-in-from-bottom-4 duration-200
         ${className}
       `}
     >
       {/* Top row: Search and Group tabs */}
-      <div className="flex items-center gap-3">
+      <div className="flex items-center gap-2">
         <SoundSearch
           value={searchQuery}
           onChange={onSearchChange}
@@ -132,7 +133,7 @@ export const SoundBrowserTray = ({
 
       {/* Sample grid (shown when category is selected) */}
       {!isLoading && !error && selectedCategoryObj && (
-        <div className="max-h-32 overflow-y-auto scrollbar-minimal py-1">
+        <div className="flex-1 min-h-0 overflow-y-auto scrollbar-minimal py-1">
           <SoundSampleGrid
             categoryName={selectedCategoryObj.name}
             samples={selectedCategoryObj.samples}
@@ -143,32 +144,11 @@ export const SoundBrowserTray = ({
         </div>
       )}
 
-      {/* Hint when no category selected */}
-      {!isLoading && !error && categories.length > 0 && !selectedCategoryObj && (
-        <div className="text-xs text-basilisk-gray-500 text-center py-2">
-          Select a category above to browse samples
-        </div>
-      )}
-
       {/* No results message */}
       {!isLoading && !error && categories.length === 0 && (
         <div className="text-sm text-basilisk-gray-500 text-center py-4">
           No categories found
           {searchQuery && ` matching "${searchQuery}"`}
-        </div>
-      )}
-
-      {/* Stats footer */}
-      {!isLoading && !error && categories.length > 0 && (
-        <div className="text-xs text-basilisk-gray-500 flex items-center justify-between">
-          <span>
-            {categories.length} categories in {selectedGroup}
-          </span>
-          {selectedCategoryObj && (
-            <span className="font-mono text-basilisk-gray-400">
-              s("{selectedCategoryObj.name}:n") · {selectedCategoryObj.count} samples
-            </span>
-          )}
         </div>
       )}
     </div>

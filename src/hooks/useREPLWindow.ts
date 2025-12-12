@@ -1,3 +1,5 @@
+import { useMemo } from 'react';
+
 import { usePersistedState } from './usePersistedState';
 
 import type { DraggableData, DraggableEvent, Position, ResizableDelta, ResizeDirection } from 'react-rnd';
@@ -9,6 +11,11 @@ const DEFAULT_MIN_HEIGHT = 300;
 const DEFAULT_WIDTH = 600;
 const DEFAULT_HEIGHT = 400;
 const DEFAULT_MARGIN = 16;
+
+// Estimated height of the sound browser when open
+// Includes: padding (12px), search/tabs (~40px), categories (~32px), sample grid (flex, ~350px)
+// Total: ~434px for comfortable sample browsing
+const SOUND_BROWSER_HEIGHT = 434;
 
 // Calculate offset to position window near bottom (height + margin)
 const BOTTOM_OFFSET = DEFAULT_HEIGHT + DEFAULT_MARGIN;
@@ -45,9 +52,10 @@ const WINDOW_BOUNDS: WindowBounds = {
  * Handles drag and resize interactions for the floating REPL panel.
  * Bounds use viewport units and are automatically responsive without reactive state.
  *
+ * @param isSoundBrowserOpen - Whether the sound browser is currently open
  * @returns Object containing position, size, bounds, and event handlers
  */
-export const useREPLWindow = (): {
+export const useREPLWindow = (isSoundBrowserOpen: boolean = false): {
   position: Position;
   size: { width: number; height: number };
   bounds: WindowBounds;
@@ -73,10 +81,24 @@ export const useREPLWindow = (): {
     STORAGE_KEY_POSITION,
     { x: DEFAULT_MARGIN, y: calculateInitialY() }
   );
-  const [size, setSize] = usePersistedState(
+
+  // Store base size (what user set, excluding sound browser expansion)
+  const [baseSize, setBaseSize] = usePersistedState(
     STORAGE_KEY_SIZE,
     { width: DEFAULT_WIDTH, height: DEFAULT_HEIGHT }
   );
+
+  /**
+   * Derive actual window size from base size and sound browser state.
+   * No useEffect needed - this is pure computation, not external sync.
+   */
+  const size = useMemo(() => {
+    const height = isSoundBrowserOpen
+      ? baseSize.height + SOUND_BROWSER_HEIGHT
+      : baseSize.height;
+
+    return { width: baseSize.width, height };
+  }, [isSoundBrowserOpen, baseSize]);
 
   /**
    * Handle drag stop event from react-rnd
@@ -86,7 +108,8 @@ export const useREPLWindow = (): {
   };
 
   /**
-   * Handle resize stop event from react-rnd
+   * Handle resize stop event from react-rnd.
+   * Back-calculate the base height (excluding sound browser) to persist.
    */
   const handleResizeStop = (
     _e: MouseEvent | TouchEvent,
@@ -95,10 +118,15 @@ export const useREPLWindow = (): {
     _delta: ResizableDelta,
     position: Position
   ): void => {
-    setSize({
-      width: parseInt(ref.style.width, 10),
-      height: parseInt(ref.style.height, 10),
-    });
+    const newWidth = parseInt(ref.style.width, 10);
+    const newHeight = parseInt(ref.style.height, 10);
+
+    // Back-calculate base height (exclude sound browser expansion if open)
+    const baseHeight = isSoundBrowserOpen
+      ? newHeight - SOUND_BROWSER_HEIGHT
+      : newHeight;
+
+    setBaseSize({ width: newWidth, height: baseHeight });
     setPosition(position);
   };
 
