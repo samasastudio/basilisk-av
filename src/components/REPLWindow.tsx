@@ -1,14 +1,13 @@
 import { Rnd } from 'react-rnd';
 
 import { useREPLWindow } from '../hooks/useREPLWindow';
+import { useSoundBrowser } from '../hooks/useSoundBrowser';
 
 import { StrudelRepl } from './StrudelRepl';
 
 type Props = {
   /** Whether the audio engine is ready to execute code */
   engineReady: boolean;
-  /** Callback to play a test pattern */
-  onTestPattern: () => void;
   /** Callback to halt/stop all audio */
   onHalt: () => void;
   /** Callback when code is executed */
@@ -24,18 +23,20 @@ type Props = {
  */
 export const REPLWindow = ({
   engineReady,
-  onTestPattern,
   onHalt,
   onExecute,
   onSave
 }: Props): JSX.Element => {
+  // Sound browser state (lifted up from StrudelRepl)
+  const soundBrowser = useSoundBrowser();
+
   const {
     position,
     size,
     bounds,
     handleDragStop,
     handleResizeStop
-  } = useREPLWindow();
+  } = useREPLWindow(soundBrowser.isOpen);
 
   return (
     <Rnd
@@ -49,16 +50,19 @@ export const REPLWindow = ({
       maxHeight={bounds.maxHeight}
       bounds="window"
       className="z-30"
+      style={{
+        transition: 'width 300ms ease-in-out, height 300ms ease-in-out'
+      }}
       dragHandleClassName="drag-handle"
     >
       <div className="w-full h-full bg-basilisk-gray-900/85 backdrop-blur-lg border border-basilisk-gray-600 rounded-lg shadow-2xl overflow-hidden">
         <StrudelRepl
           engineReady={engineReady}
-          onTestPattern={onTestPattern}
           onHalt={onHalt}
           onExecute={onExecute}
           onSave={onSave}
           statusLabel={engineReady ? 'ready' : 'stopped'}
+          soundBrowser={soundBrowser}
         />
       </div>
     </Rnd>

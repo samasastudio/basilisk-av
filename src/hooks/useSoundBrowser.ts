@@ -1,0 +1,152 @@
+/**
+ * Orchestration hook for sound browser state
+ */
+
+import { useState, useMemo } from 'react';
+
+import { categorizeToGroup, getAllGroupNames } from '../config/sampleGroups';
+
+import { usePersistedState } from './usePersistedState';
+import { useSampleData } from './useSampleData';
+import { useSoundPreview } from './useSoundPreview';
+
+import type { SampleCategory } from '../types/samples';
+
+export interface CategorizedSampleCategory extends SampleCategory {
+  /** The group this category belongs to */
+  group: string;
+}
+
+export interface UseSoundBrowserReturn {
+  // Visibility
+  isOpen: boolean;
+  open: () => void;
+  close: () => void;
+  toggle: () => void;
+
+  // Data
+  categories: CategorizedSampleCategory[];
+  filteredCategories: CategorizedSampleCategory[];
+  isLoading: boolean;
+  error: string | null;
+
+  // Groups
+  groups: string[];
+  selectedGroup: string;
+  setSelectedGroup: (group: string) => void;
+
+  // Search
+  searchQuery: string;
+  setSearchQuery: (query: string) => void;
+
+  // Category selection
+  selectedCategory: string | null;
+  setSelectedCategory: (category: string | null) => void;
+
+  // Preview
+  previewSample: (categoryName: string, index: number) => void;
+  stopPreview: () => void;
+  currentlyPlaying: string | null;
+}
+
+const STORAGE_KEY_TRAY_OPEN = 'basilisk-sound-browser-open';
+const STORAGE_KEY_GROUP = 'basilisk-sound-browser-group';
+
+/**
+ * Main orchestration hook for the Sound Browser
+ *
+ * Combines:
+ * - useSampleData (fetching)
+ * - useSoundPreview (playback)
+ * - usePersistedState (visibility persistence)
+ * - Sample grouping by instrument type
+ * - Local state (search, category selection)
+ */
+export const useSoundBrowser = (): UseSoundBrowserReturn => {
+  // Fetch sample data
+  const { data, status, error } = useSampleData();
+
+  // Sound preview
+  const { previewSample, stopPreview, currentSample } = useSoundPreview();
+
+  // Persisted visibility state
+  const [isOpen, setIsOpen] = usePersistedState<boolean>(STORAGE_KEY_TRAY_OPEN, false);
+
+  // Persisted group selection
+  const [selectedGroup, setSelectedGroup] = usePersistedState<string>(STORAGE_KEY_GROUP, 'All');
+
+  // Local search state
+  const [searchQuery, setSearchQuery] = useState('');
+
+  // Local category selection state
+  const [selectedCategory, setSelectedCategory] = useState<string | null>(null);
+
+  // Get all group names
+  const groups = useMemo(() => getAllGroupNames(), []);
+
+  // Categorize all samples into groups
+  const categories = useMemo((): CategorizedSampleCategory[] => {
+    if (!data?.categories) return [];
+
+    return data.categories.map((cat) => ({
+      ...cat,
+      group: categorizeToGroup(cat.name)
+    }));
+  }, [data]);
+
+  // Filter categories by group and search query
+  const filteredCategories = useMemo((): CategorizedSampleCategory[] => {
+    let filtered = categories;
+
+    // Filter by group (unless "All" is selected)
+    if (selectedGroup !== 'All') {
+      filtered = filtered.filter((cat) => cat.group === selectedGroup);
+    }
+
+    // Filter by search query
+    if (searchQuery) {
+      const query = searchQuery.toLowerCase();
+      filtered = filtered.filter((cat) => cat.name.toLowerCase().includes(query));
+    }
+
+    return filtered;
+  }, [categories, selectedGroup, searchQuery]);
+
+  // Clear category selection when group changes
+  const handleGroupChange = (group: string): void => {
+    setSelectedGroup(group);
+    setSelectedCategory(null);
+  };
+
+  return {
+    // Visibility
+    isOpen,
+    open: () => setIsOpen(true),
+    close: () => setIsOpen(false),
+    toggle: () => setIsOpen((prev) => !prev),
+
+    // Data
+    categories,
+    filteredCategories,
+    isLoading: status === 'loading',
+    error,
+
+    // Groups
+    groups,
+    selectedGroup,
+    setSelectedGroup: handleGroupChange,
+
+    // Search
+    searchQuery,
+    setSearchQuery,
+
+    // Category selection
+    selectedCategory,
+    setSelectedCategory,
+
+    // Preview
+    previewSample,
+    stopPreview,
+    currentlyPlaying: currentSample
+  };
+};

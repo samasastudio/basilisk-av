@@ -4,11 +4,15 @@ import * as Strudel from '@strudel/core';
 import { initHydra, H } from '@strudel/hydra';
 import { samples } from '@strudel/webaudio';
 import CodeMirror from '@uiw/react-codemirror';
-import { useState } from 'react';
+import { Music } from 'lucide-react';
+import { useState, useEffect } from 'react';
 
 import * as StrudelEngine from '../services/strudelEngine';
 
+import { SoundBrowserTray } from './sound-browser';
 import { Button } from './ui/Button';
+
+import type { UseSoundBrowserReturn } from '../hooks/useSoundBrowser';
 
 // Expose Strudel functions globally for the REPL
 Object.assign(window, Strudel, { samples, initHydra, H });
@@ -100,15 +104,27 @@ s("bd sd, hh*4")`;
 type Props = {
     className?: string;
     engineReady: boolean;
-    onTestPattern?: () => void;
     onHalt?: () => void;
     onExecute?: () => void;
     onSave?: (code: string) => void;
     statusLabel?: string;
+    soundBrowser: UseSoundBrowserReturn;
 };
 
-export const StrudelRepl = ({ className, engineReady, onTestPattern, onHalt, onExecute, onSave, statusLabel }: Props): JSX.Element => {
+export const StrudelRepl = ({ className, engineReady, onHalt, onExecute, onSave, statusLabel, soundBrowser }: Props): JSX.Element => {
     const [code, setCode] = useState(defaultCode);
+
+    // Keyboard navigation: Escape to stop preview
+    useEffect(() => {
+        const handleKeyDown = (e: KeyboardEvent): void => {
+            if (e.key === 'Escape' && soundBrowser.isOpen) {
+                soundBrowser.stopPreview();
+            }
+        };
+
+        window.addEventListener('keydown', handleKeyDown);
+        return () => window.removeEventListener('keydown', handleKeyDown);
+    }, [soundBrowser.isOpen, soundBrowser.stopPreview]);
 
     const runCode = async (): Promise<void> => {
         if (!engineReady) {
@@ -154,11 +170,15 @@ export const StrudelRepl = ({ className, engineReady, onTestPattern, onHalt, onE
                     <Button onClick={stopCode} variant="secondary" size="sm">
                         Halt ■
                     </Button>
-                    {onTestPattern && (
-                        <Button onClick={onTestPattern} disabled={!engineReady} variant="secondary" size="sm">
-                            Test
-                        </Button>
-                    )}
+                    <Button
+                        onClick={soundBrowser.toggle}
+                        disabled={!engineReady}
+                        variant={soundBrowser.isOpen ? 'primary' : 'secondary'}
+                        size="sm"
+                        title="Toggle sound browser"
+                    >
+                        <Music size={14} />
+                    </Button>
                 </div>
             </div>
             <div className="flex-1 overflow-hidden relative min-h-0">
@@ -205,6 +225,25 @@ export const StrudelRepl = ({ className, engineReady, onTestPattern, onHalt, onE
                     }}
                 />
             </div>
+            {soundBrowser.isOpen && (
+                <div className="flex-1 min-h-[300px] flex flex-col overflow-hidden">
+                    <SoundBrowserTray
+                        categories={soundBrowser.filteredCategories}
+                        groups={soundBrowser.groups}
+                        selectedGroup={soundBrowser.selectedGroup}
+                        onSelectGroup={soundBrowser.setSelectedGroup}
+                        searchQuery={soundBrowser.searchQuery}
+                        onSearchChange={soundBrowser.setSearchQuery}
+                        selectedCategory={soundBrowser.selectedCategory}
+                        onSelectCategory={soundBrowser.setSelectedCategory}
+                        currentlyPlaying={soundBrowser.currentlyPlaying}
+                        onPreviewSample={soundBrowser.previewSample}
+                        onStopPreview={soundBrowser.stopPreview}
+                        isLoading={soundBrowser.isLoading}
+                        error={soundBrowser.error}
+                    />
+                </div>
+            )}
         </div>
     );
 }

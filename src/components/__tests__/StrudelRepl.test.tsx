@@ -46,14 +46,40 @@ vi.mock('../../services/strudelEngine', () => ({
   hushAudio: vi.fn()
 }));
 
+// Mock lucide-react icons
+vi.mock('lucide-react', () => ({
+  Music: () => <span>Music Icon</span>
+}));
+
 describe('StrudelRepl', () => {
+  const mockSoundBrowser = {
+    isOpen: false,
+    open: vi.fn(),
+    toggle: vi.fn(),
+    close: vi.fn(),
+    categories: [],
+    filteredCategories: [],
+    isLoading: false,
+    error: null,
+    groups: [],
+    selectedGroup: 'all',
+    setSelectedGroup: vi.fn(),
+    searchQuery: '',
+    setSearchQuery: vi.fn(),
+    selectedCategory: null,
+    setSelectedCategory: vi.fn(),
+    previewSample: vi.fn(),
+    stopPreview: vi.fn(),
+    currentlyPlaying: null
+  };
+
   const defaultProps = {
     engineReady: true,
-    onTestPattern: vi.fn(),
     onHalt: vi.fn(),
     onExecute: vi.fn(),
     onSave: vi.fn(),
-    statusLabel: 'ready'
+    statusLabel: 'ready',
+    soundBrowser: mockSoundBrowser
   };
 
   it('renders the editor', () => {
@@ -98,6 +124,7 @@ describe('StrudelRepl', () => {
       <StrudelRepl
         engineReady={true}
         statusLabel="ready"
+        soundBrowser={mockSoundBrowser}
       />
     );
 
@@ -133,17 +160,22 @@ describe('StrudelRepl', () => {
     expect(screen.getByText(/Halt/i)).toBeInTheDocument();
   });
 
-  it('renders Test button when onTestPattern is provided', () => {
-    render(<StrudelRepl {...defaultProps} onTestPattern={vi.fn()} />);
-    expect(screen.getByText(/Test/i)).toBeInTheDocument();
+  it('renders Sounds browser toggle button', () => {
+    render(<StrudelRepl {...defaultProps} />);
+    // The Music icon button (3rd button after Execute and Halt)
+    const buttons = screen.getAllByRole('button');
+    // Should have Execute, Halt, and Sounds buttons
+    expect(buttons.length).toBeGreaterThanOrEqual(3);
+    const soundsButton = buttons.find(btn => btn.textContent?.includes('Music Icon'));
+    expect(soundsButton).toBeDefined();
   });
 
-  it('does not render Test button when onTestPattern is not provided', () => {
-    const props = { ...defaultProps };
-    delete (props as Partial<typeof props>).onTestPattern;
-
-    render(<StrudelRepl {...props} />);
-    expect(screen.queryByText(/Test/i)).not.toBeInTheDocument();
+  it('Sounds button is disabled when engine is not ready', () => {
+    render(<StrudelRepl {...defaultProps} engineReady={false} />);
+    const buttons = screen.getAllByRole('button');
+    const soundsButton = buttons.find(btn => btn.textContent?.includes('Music Icon'));
+    expect(soundsButton).toBeDefined();
+    expect(soundsButton).toBeDisabled();
   });
 
   it('displays status label', () => {
