@@ -104,7 +104,6 @@ s("bd sd, hh*4")`;
 type Props = {
     className?: string;
     engineReady: boolean;
-    onTestPattern?: () => void;
     onHalt?: () => void;
     onExecute?: () => void;
     onSave?: (code: string) => void;
@@ -112,7 +111,7 @@ type Props = {
     soundBrowser: UseSoundBrowserReturn;
 };
 
-export const StrudelRepl = ({ className, engineReady, onTestPattern: _onTestPattern, onHalt, onExecute, onSave, statusLabel, soundBrowser }: Props): JSX.Element => {
+export const StrudelRepl = ({ className, engineReady, onHalt, onExecute, onSave, statusLabel, soundBrowser }: Props): JSX.Element => {
     const [code, setCode] = useState(defaultCode);
 
     // Keyboard navigation: Escape to stop preview
