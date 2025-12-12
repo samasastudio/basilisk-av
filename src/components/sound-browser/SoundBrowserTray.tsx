@@ -84,7 +84,7 @@ export const SoundBrowserTray = ({
         />
 
         {/* Group tabs */}
-        <div className="flex items-center gap-1 overflow-x-auto scrollbar-minimal flex-1">
+        <div role="tablist" className="flex items-center gap-1 overflow-x-auto scrollbar-minimal flex-1">
           {groups.map((group) => {
             const isSelected = selectedGroup === group;
             const groupInfo = getGroupByName(group);
@@ -94,6 +94,8 @@ export const SoundBrowserTray = ({
               <button
                 key={group}
                 onClick={() => onSelectGroup(group)}
+                role="tab"
+                aria-selected={isSelected}
                 className={`
                   flex-shrink-0 px-2 py-1 rounded text-xs font-medium
                   transition-colors duration-200
