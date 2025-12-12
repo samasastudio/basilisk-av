@@ -67,6 +67,7 @@ export const SoundBrowserTray = ({
   // Handle keyboard navigation for tabs
   const handleTabKeyDown = (event: React.KeyboardEvent<HTMLDivElement>) => {
     const currentIndex = groups.indexOf(selectedGroup);
+    if (currentIndex === -1) return; // Guard against invalid selectedGroup
     let nextIndex = currentIndex;
 
     switch (event.key) {
