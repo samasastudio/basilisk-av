@@ -1,3 +1,4 @@
+import { useRef, useEffect } from 'react';
 import { Rnd } from 'react-rnd';
 
 import { useREPLWindow } from '../hooks/useREPLWindow';
@@ -28,7 +29,7 @@ export const REPLWindow = ({
   onSave
 }: Props): JSX.Element => {
   // Sound browser state (lifted up from StrudelRepl)
-  const soundBrowser = useSoundBrowser();
+  const soundBrowser = useSoundBrowser(engineReady);
 
   const {
     position,
@@ -37,6 +38,35 @@ export const REPLWindow = ({
     handleDragStop,
     handleResizeStop
   } = useREPLWindow(soundBrowser.isOpen);
+
+  // Ref for click-away detection
+  const replContainerRef = useRef<HTMLDivElement>(null);
+
+  // Click-away handler: close sound browser when clicking outside REPL
+  useEffect(() => {
+    if (!soundBrowser.isOpen) return;
+
+    const handleClickOutside = (event: MouseEvent): void => {
+      const target = event.target as Node;
+
+      // Check if click is outside REPL container
+      if (replContainerRef.current && !replContainerRef.current.contains(target)) {
+        soundBrowser.close();
+      }
+    };
+
+    // Add listener with slight delay to avoid immediate close on toggle
+    const CLICK_AWAY_DELAY = 100; // ms - prevents immediate close on toggle button click
+    const timeoutId = setTimeout(() => {
+      document.addEventListener('mousedown', handleClickOutside);
+    }, CLICK_AWAY_DELAY);
+
+    return () => {
+      clearTimeout(timeoutId);
+      document.removeEventListener('mousedown', handleClickOutside);
+    };
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [soundBrowser.isOpen, soundBrowser.close]);
 
   return (
     <Rnd
@@ -55,7 +85,10 @@ export const REPLWindow = ({
       }}
       dragHandleClassName="drag-handle"
     >
-      <div className="w-full h-full bg-basilisk-gray-900/85 backdrop-blur-lg border border-basilisk-gray-600 rounded-lg shadow-2xl overflow-hidden">
+      <div
+        ref={replContainerRef}
+        className="w-full h-full bg-basilisk-gray-900/85 backdrop-blur-lg border border-basilisk-gray-600 rounded-lg shadow-2xl overflow-hidden"
+      >
         <StrudelRepl
           engineReady={engineReady}
           onHalt={onHalt}

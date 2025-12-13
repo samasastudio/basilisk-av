@@ -20,7 +20,7 @@
         "Sample count displayed per category",
         "Panel closes on toggle or click-away"
       ],
-      "passes": false
+      "passes": true
     },
     {
       "id": "p6-sound-search",
@@ -36,7 +36,7 @@
         "Empty state shown when no matches",
         "Clear button resets search"
       ],
-      "passes": false
+      "passes": true
     },
     {
       "id": "p6-sound-preview",
@@ -52,7 +52,7 @@
         "Preview stops when another sample clicked",
         "Preview works even when engine not started"
       ],
-      "passes": false
+      "passes": true
     },
     {
       "id": "p6-sound-toggle-button",
@@ -68,7 +68,7 @@
         "Tooltip explains button purpose",
         "Button state reflects panel open/closed"
       ],
-      "passes": false
+      "passes": true
     },
     {
       "id": "p6-sound-insert",
@@ -83,7 +83,7 @@
         "Editor receives focus after insert",
         "Works with category:sample format (e.g., bd:0)"
       ],
-      "passes": false
+      "passes": true
     },
     {
       "id": "p6-repl-dark-toggle",

@@ -47,6 +47,7 @@ export interface UseSoundBrowserReturn {
   previewSample: (categoryName: string, index: number) => void;
   stopPreview: () => void;
   currentlyPlaying: string | null;
+  canPreview: boolean;
 }
 
 const STORAGE_KEY_TRAY_OPEN = 'basilisk-sound-browser-open';
@@ -61,13 +62,15 @@ const STORAGE_KEY_GROUP = 'basilisk-sound-browser-group';
  * - usePersistedState (visibility persistence)
  * - Sample grouping by instrument type
  * - Local state (search, category selection)
+ *
+ * @param engineReady - Whether the Strudel engine is initialized and ready
  */
-export const useSoundBrowser = (): UseSoundBrowserReturn => {
+export const useSoundBrowser = (engineReady: boolean): UseSoundBrowserReturn => {
   // Fetch sample data
   const { data, status, error } = useSampleData();
 
   // Sound preview
-  const { previewSample, stopPreview, currentSample } = useSoundPreview();
+  const { previewSample, stopPreview, currentSample, canPreview } = useSoundPreview(engineReady);
 
   // Persisted visibility state
   const [isOpen, setIsOpen] = usePersistedState<boolean>(STORAGE_KEY_TRAY_OPEN, false);
@@ -147,6 +150,7 @@ export const useSoundBrowser = (): UseSoundBrowserReturn => {
     // Preview
     previewSample,
     stopPreview,
-    currentlyPlaying: currentSample
+    currentlyPlaying: currentSample,
+    canPreview
   };
 };

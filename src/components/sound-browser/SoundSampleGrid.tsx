@@ -15,6 +15,10 @@ export interface SoundSampleGridProps {
   onPreviewSample: (categoryName: string, index: number) => void;
   /** Callback to stop preview */
   onStopPreview?: () => void;
+  /** Whether preview is available (engine ready) */
+  canPreview?: boolean;
+  /** Callback to insert sample into editor on double-click */
+  onInsertSample?: (categoryName: string, index: number) => void;
   /** Additional CSS classes */
   className?: string;
 }
@@ -34,6 +38,8 @@ export const SoundSampleGrid = ({
   currentlyPlaying,
   onPreviewSample,
   onStopPreview,
+  canPreview = true,
+  onInsertSample,
   className = ''
 }: SoundSampleGridProps): JSX.Element => (
     <div className={`grid grid-cols-2 sm:grid-cols-3 md:grid-cols-4 lg:grid-cols-5 gap-1.5 ${className}`}>
@@ -42,27 +48,55 @@ export const SoundSampleGrid = ({
         const sampleKey = `${categoryName}:${index}`;
         const isPlaying = currentlyPlaying === sampleKey;
 
+        // Determine aria-label based on state
+        let ariaLabel: string;
+        if (!canPreview) {
+          ariaLabel = `${sampleKey} (preview disabled - start engine)`;
+        } else if (isPlaying) {
+          ariaLabel = `Stop ${sampleKey}`;
+        } else {
+          ariaLabel = `Play ${sampleKey}`;
+        }
+
+        // Determine title tooltip based on state
+        let titleText: string;
+        if (!canPreview) {
+          titleText = 'Start engine to preview samples';
+        } else if (onInsertSample) {
+          titleText = `Click: preview | Double-click: insert s("${sampleKey}")`;
+        } else {
+          titleText = `Play s("${sampleKey}")`;
+        }
+
         return (
           <button
             key={sampleKey}
             onClick={() => {
+              if (!canPreview) return;
               if (isPlaying && onStopPreview) {
                 onStopPreview();
               } else {
                 onPreviewSample(categoryName, index);
               }
             }}
+            onDoubleClick={() => {
+              if (onInsertSample) {
+                onInsertSample(categoryName, index);
+              }
+            }}
+            disabled={!canPreview}
             className={`
               flex items-center justify-start gap-1.5 px-2 py-1.5 rounded text-xs font-mono
               transition-colors duration-200 w-full
+              ${!canPreview ? 'opacity-50 cursor-not-allowed' : ''}
               ${
                 isPlaying
                   ? 'bg-basilisk-accent-cool/30 border border-basilisk-accent-cool text-basilisk-accent-cool'
                   : 'bg-basilisk-gray-700/50 border border-basilisk-gray-600 text-basilisk-gray-300 hover:bg-basilisk-gray-700 hover:border-basilisk-gray-500 hover:text-white'
               }
             `}
-            title={`Play s("${sampleKey}")`}
-            aria-label={isPlaying ? `Stop ${sampleKey}` : `Play ${sampleKey}`}
+            title={titleText}
+            aria-label={ariaLabel}
           >
             {isPlaying ? (
               <Square size={10} className="flex-shrink-0 fill-current" />

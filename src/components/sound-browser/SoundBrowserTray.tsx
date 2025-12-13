@@ -109,6 +109,10 @@ export interface SoundBrowserTrayProps {
   isLoading?: boolean;
   /** Error message */
   error?: string | null;
+  /** Whether preview is available (engine ready) */
+  canPreview?: boolean;
+  /** Callback to insert sample into editor on double-click */
+  onInsertSample?: (categoryName: string, index: number) => void;
   /** Additional CSS classes */
   className?: string;
 }
@@ -133,6 +137,8 @@ export const SoundBrowserTray = ({
   onStopPreview,
   isLoading = false,
   error = null,
+  canPreview = true,
+  onInsertSample,
   className = ''
 }: SoundBrowserTrayProps): JSX.Element => {
   // Get selected category object
@@ -195,6 +201,7 @@ export const SoundBrowserTray = ({
           categories={categories}
           selectedCategory={selectedCategory}
           onSelectCategory={onSelectCategory}
+          searchQuery={searchQuery}
         />
       )}
 
@@ -207,6 +214,8 @@ export const SoundBrowserTray = ({
             currentlyPlaying={currentlyPlaying}
             onPreviewSample={onPreviewSample}
             onStopPreview={onStopPreview}
+            canPreview={canPreview}
+            onInsertSample={onInsertSample}
           />
         </div>
       )}

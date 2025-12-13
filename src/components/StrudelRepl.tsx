@@ -5,7 +5,7 @@ import { initHydra, H } from '@strudel/hydra';
 import { samples } from '@strudel/webaudio';
 import CodeMirror from '@uiw/react-codemirror';
 import { Music } from 'lucide-react';
-import { useState, useEffect } from 'react';
+import { useState, useEffect, useRef, useCallback } from 'react';
 
 import * as StrudelEngine from '../services/strudelEngine';
 
@@ -13,6 +13,7 @@ import { SoundBrowserTray } from './sound-browser';
 import { Button } from './ui/Button';
 
 import type { UseSoundBrowserReturn } from '../hooks/useSoundBrowser';
+import type { ReactCodeMirrorRef } from '@uiw/react-codemirror';
 
 /** Configuration for CodeMirror basic setup */
 const CODE_MIRROR_SETUP = {
@@ -130,8 +131,50 @@ type Props = {
     soundBrowser: UseSoundBrowserReturn;
 };
 
+/* eslint-disable max-lines-per-function */
 export const StrudelRepl = ({ className, engineReady, onHalt, onExecute, onSave, statusLabel, soundBrowser }: Props): JSX.Element => {
     const [code, setCode] = useState(defaultCode);
+
+    // Ref for CodeMirror editor to enable text insertion
+    const editorRef = useRef<ReactCodeMirrorRef>(null);
+
+    /**
+     * Insert text at current cursor position in the editor
+     */
+    const insertTextAtCursor = useCallback((text: string): void => {
+      const view = editorRef.current?.view;
+
+      if (!view) {
+        console.warn('Cannot insert: editor view not available');
+        return;
+      }
+
+      // Get current cursor position
+      const cursorPos = view.state.selection.main.head;
+
+      // Insert text at cursor
+      view.dispatch({
+        changes: {
+          from: cursorPos,
+          insert: text
+        },
+        selection: {
+          anchor: cursorPos + text.length  // Move cursor to end of inserted text
+        }
+      });
+
+      // Focus editor after insertion
+      view.focus();
+    }, []);
+
+    /**
+     * Handle sample insertion from sound browser
+     * Formats as Strudel pattern string: s("category:index")
+     */
+    const handleSampleInsert = useCallback((categoryName: string, index: number): void => {
+      const patternString = `s("${categoryName}:${index}")`;
+      insertTextAtCursor(patternString);
+    }, [insertTextAtCursor]);
 
     // Keyboard navigation: Escape to stop preview
     useEffect(() => {
@@ -194,7 +237,7 @@ export const StrudelRepl = ({ className, engineReady, onHalt, onExecute, onSave,
                         disabled={!engineReady}
                         variant={soundBrowser.isOpen ? 'primary' : 'secondary'}
                         size="sm"
-                        title="Toggle sound browser"
+                        title="Sound Browser - Browse and preview Strudel samples"
                     >
                         <Music size={14} />
                     </Button>
@@ -202,6 +245,7 @@ export const StrudelRepl = ({ className, engineReady, onHalt, onExecute, onSave,
             </div>
             <div className="flex-1 overflow-hidden relative min-h-0">
                 <CodeMirror
+                    ref={editorRef}
                     value={code}
                     height="100%"
                     theme="dark"
@@ -244,9 +288,12 @@ export const StrudelRepl = ({ className, engineReady, onHalt, onExecute, onSave,
                         onStopPreview={soundBrowser.stopPreview}
                         isLoading={soundBrowser.isLoading}
                         error={soundBrowser.error}
+                        canPreview={soundBrowser.canPreview}
+                        onInsertSample={handleSampleInsert}
                     />
                 </div>
             )}
         </div>
     );
-}
+};
+/* eslint-enable max-lines-per-function */

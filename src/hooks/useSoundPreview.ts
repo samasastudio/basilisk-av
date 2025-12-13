@@ -18,39 +18,49 @@ export interface UseSoundPreviewReturn {
   isPlaying: boolean;
   /** Currently playing sample (format: "category:index") */
   currentSample: string | null;
+  /** Whether preview is available (engine ready) */
+  canPreview: boolean;
 }
 
 /**
  * Hook for previewing Strudel samples
  *
- * Uses Strudel's evaluate() to play a single sample with .once()
+ * Uses Strudel's evaluate() to play a single sample with .cut()
  * Stops any currently playing pattern before previewing.
  *
- * @example
- * const { previewSample, stopPreview, isPlaying } = useSoundPreview();
+ * @param engineReady - Whether the Strudel engine is initialized and ready
  *
- * <button onClick={() => previewSample('808', 0)}>
+ * @example
+ * const { previewSample, stopPreview, isPlaying, canPreview } = useSoundPreview(engineReady);
+ *
+ * <button onClick={() => previewSample('808', 0)} disabled={!canPreview}>
  *   Preview 808 kick
  * </button>
  */
-export const useSoundPreview = (): UseSoundPreviewReturn => {
+export const useSoundPreview = (engineReady: boolean): UseSoundPreviewReturn => {
   const [isPlaying, setIsPlaying] = useState(false);
   const [currentSample, setCurrentSample] = useState<string | null>(null);
 
   const previewSample = useCallback((categoryName: string, index: number = 0): void => {
+    // Check if engine is ready first
+    if (!engineReady) {
+      console.warn('Cannot preview: engine not ready');
+      return;
+    }
+
     const repl = StrudelEngine.getReplInstance();
 
     if (!repl?.evaluate) {
-      console.warn('Cannot preview: engine not ready');
+      console.warn('Cannot preview: REPL not available');
       return;
     }
 
     // Stop any currently playing patterns
     StrudelEngine.hushAudio();
 
-    // Format: s("category:index").gain(0.8).once()
-    // .once() ensures it plays exactly once without looping
-    const pattern = `s("${categoryName}:${index}").gain(0.8).once()`;
+    // Format: s("category:index").gain(0.8).cut(1)
+    // .cut(1) prevents overlapping samples in the same cutgroup
+    const pattern = `s("${categoryName}:${index}").gain(0.8).cut(1)`;
     const sampleKey = `${categoryName}:${index}`;
 
     try {
@@ -69,7 +79,7 @@ export const useSoundPreview = (): UseSoundPreviewReturn => {
       setIsPlaying(false);
       setCurrentSample(null);
     }
-  }, []);
+  }, [engineReady]);
 
   const stopPreview = useCallback((): void => {
     StrudelEngine.hushAudio();
@@ -81,6 +91,7 @@ export const useSoundPreview = (): UseSoundPreviewReturn => {
     previewSample,
     stopPreview,
     isPlaying,
-    currentSample
+    currentSample,
+    canPreview: engineReady
   };
 };
