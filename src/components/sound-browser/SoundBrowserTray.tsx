@@ -24,7 +24,7 @@ const GroupTabButton = ({
   onClick: () => void;
 }): JSX.Element => {
   const groupInfo = getGroupByName(group);
-  const icon = groupInfo?.icon;
+  const IconComponent = groupInfo?.icon;
 
   return (
     <button
@@ -33,7 +33,7 @@ const GroupTabButton = ({
       aria-selected={isSelected}
       tabIndex={isSelected ? 0 : -1}
       className={`
-        flex-shrink-0 px-2 py-1 rounded text-xs font-medium
+        flex items-center gap-1.5 flex-shrink-0 px-2 py-1 rounded text-xs font-medium
         transition-colors duration-200
         ${
           isSelected
@@ -42,7 +42,7 @@ const GroupTabButton = ({
         }
       `}
     >
-      {icon && <span className="mr-1">{icon}</span>}
+      {IconComponent && <IconComponent size={14} className="flex-shrink-0" />}
       {group}
     </button>
   );

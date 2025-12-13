@@ -80,9 +80,6 @@ export const REPLWindow = ({
       maxHeight={bounds.maxHeight}
       bounds="window"
       className="z-30"
-      style={{
-        transition: 'width 300ms ease-in-out, height 300ms ease-in-out'
-      }}
       dragHandleClassName="drag-handle"
     >
       <div
