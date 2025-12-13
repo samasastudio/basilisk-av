@@ -14,6 +14,25 @@ import { Button } from './ui/Button';
 
 import type { UseSoundBrowserReturn } from '../hooks/useSoundBrowser';
 
+/** Configuration for CodeMirror basic setup */
+const CODE_MIRROR_SETUP = {
+    lineNumbers: true,
+    highlightActiveLineGutter: true,
+    highlightActiveLine: true,
+    foldGutter: false,
+    drawSelection: true,
+    dropCursor: true,
+    allowMultipleSelections: true,
+    indentOnInput: true,
+    bracketMatching: true,
+    closeBrackets: true,
+    autocompletion: true,
+    rectangularSelection: true,
+    crosshairCursor: false,
+    highlightSelectionMatches: false,
+    syntaxHighlighting: true
+} as const;
+
 // Expose Strudel functions globally for the REPL
 Object.assign(window, Strudel, { samples, initHydra, H });
 
@@ -124,7 +143,7 @@ export const StrudelRepl = ({ className, engineReady, onHalt, onExecute, onSave,
 
         window.addEventListener('keydown', handleKeyDown);
         return () => window.removeEventListener('keydown', handleKeyDown);
-    }, [soundBrowser.isOpen, soundBrowser.stopPreview]);
+    }, [soundBrowser]);
 
     const runCode = async (): Promise<void> => {
         if (!engineReady) {
@@ -189,23 +208,7 @@ export const StrudelRepl = ({ className, engineReady, onHalt, onExecute, onSave,
                     extensions={[javascript(), transparentTheme]}
                     onChange={(val) => setCode(val)}
                     className="h-full font-mono"
-                    basicSetup={{
-                        lineNumbers: true,
-                        highlightActiveLineGutter: true,
-                        highlightActiveLine: true,
-                        foldGutter: false,
-                        drawSelection: true,
-                        dropCursor: true,
-                        allowMultipleSelections: true,
-                        indentOnInput: true,
-                        bracketMatching: true,
-                        closeBrackets: true,
-                        autocompletion: true,
-                        rectangularSelection: true,
-                        crosshairCursor: false,
-                        highlightSelectionMatches: false,
-                        syntaxHighlighting: true
-                    }}
+                    basicSetup={CODE_MIRROR_SETUP}
                     onKeyDown={(e) => {
                         // Shift+Enter to execute code
                         if (e.shiftKey && e.key === 'Enter') {

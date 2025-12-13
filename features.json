@@ -3,7 +3,7 @@
     "project": "basilisk-av",
     "currentPhase": 6,
     "lastUpdated": "2025-12-12",
-    "notes": "Only modify 'passes' field during development. Never remove verification steps."
+    "notes": "Only modify 'passes' field during development. Never remove verification steps. Last verified: 2025-12-12 via manual testing and code inspection."
   },
   "features": [
     {
@@ -129,7 +129,7 @@
         "No-op if engine already running",
         "Visual feedback confirms engine started"
       ],
-      "passes": false
+      "passes": true
     },
     {
       "id": "p6-shortcut-halt",
@@ -145,7 +145,7 @@
         "Can restart pattern after halt",
         "Shortcut is memorable (e.g., Escape or Ctrl+.)"
       ],
-      "passes": false
+      "passes": true
     },
     {
       "id": "p6-shortcut-hide-repl",
@@ -161,7 +161,7 @@
         "Works when REPL is/isn't focused",
         "Hydra canvas fills viewport when hidden"
       ],
-      "passes": false
+      "passes": true
     },
     {
       "id": "p6-shortcut-help",

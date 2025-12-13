@@ -1,7 +1,10 @@
 import { renderHook, act } from '@testing-library/react';
 import { describe, it, expect, beforeEach, vi } from 'vitest';
-import { useSoundPreview } from '../useSoundPreview';
+
 import * as StrudelEngine from '../../services/strudelEngine';
+import { useSoundPreview } from '../useSoundPreview';
+
+import type { StrudelRepl } from '../../services/strudelEngine';
 
 // Mock StrudelEngine
 vi.mock('../../services/strudelEngine', () => ({
@@ -10,7 +13,7 @@ vi.mock('../../services/strudelEngine', () => ({
 }));
 
 describe('useSoundPreview', () => {
-  let mockRepl: { evaluate: ReturnType<typeof vi.fn>; stop: ReturnType<typeof vi.fn> };
+  let mockRepl: StrudelRepl;
 
   beforeEach(() => {
     vi.clearAllMocks();
@@ -21,7 +24,7 @@ describe('useSoundPreview', () => {
       stop: vi.fn()
     };
 
-    vi.mocked(StrudelEngine.getReplInstance).mockReturnValue(mockRepl as any);
+    vi.mocked(StrudelEngine.getReplInstance).mockReturnValue(mockRepl);
   });
 
   afterEach(() => {
@@ -97,7 +100,7 @@ describe('useSoundPreview', () => {
   });
 
   it('should handle engine not ready', () => {
-    vi.mocked(StrudelEngine.getReplInstance).mockReturnValue(null as any);
+    vi.mocked(StrudelEngine.getReplInstance).mockReturnValue(undefined);
 
     const { result } = renderHook(() => useSoundPreview());
 
