@@ -24,6 +24,36 @@ export interface SoundSampleGridProps {
 }
 
 /**
+ * Get aria-label for sample button based on state
+ */
+const getAriaLabel = (sampleKey: string, canPreview: boolean, isPlaying: boolean): string => {
+  if (!canPreview) {
+    return `${sampleKey} (preview disabled - start engine)`;
+  }
+
+  if (isPlaying) {
+    return `Stop ${sampleKey}`;
+  }
+
+  return `Play ${sampleKey}`;
+};
+
+/**
+ * Get title tooltip for sample button based on state
+ */
+const getTitleText = (sampleKey: string, canPreview: boolean, hasInsertHandler: boolean): string => {
+  if (!canPreview) {
+    return 'Start engine to preview samples';
+  }
+
+  if (hasInsertHandler) {
+    return `Click: preview | Double-click: insert s("${sampleKey}")`;
+  }
+
+  return `Play s("${sampleKey}")`;
+};
+
+/**
  * Grid of sample buttons for preview
  *
  * Features:
@@ -48,25 +78,9 @@ export const SoundSampleGrid = ({
         const sampleKey = `${categoryName}:${index}`;
         const isPlaying = currentlyPlaying === sampleKey;
 
-        // Determine aria-label based on state
-        let ariaLabel: string;
-        if (!canPreview) {
-          ariaLabel = `${sampleKey} (preview disabled - start engine)`;
-        } else if (isPlaying) {
-          ariaLabel = `Stop ${sampleKey}`;
-        } else {
-          ariaLabel = `Play ${sampleKey}`;
-        }
-
-        // Determine title tooltip based on state
-        let titleText: string;
-        if (!canPreview) {
-          titleText = 'Start engine to preview samples';
-        } else if (onInsertSample) {
-          titleText = `Click: preview | Double-click: insert s("${sampleKey}")`;
-        } else {
-          titleText = `Play s("${sampleKey}")`;
-        }
+        // Determine aria-label and title based on state
+        const ariaLabel = getAriaLabel(sampleKey, canPreview, isPlaying);
+        const titleText = getTitleText(sampleKey, canPreview, !!onInsertSample);
 
         return (
           <button
