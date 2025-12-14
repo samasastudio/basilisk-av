@@ -2,6 +2,8 @@
  * Horizontal scrollable category filter chips
  */
 
+import { highlightMatch } from '../../utils/highlightMatch';
+
 import type { SampleCategory } from '../../types/samples';
 
 export interface SoundCategoryChipsProps {
@@ -11,6 +13,8 @@ export interface SoundCategoryChipsProps {
   selectedCategory: string | null;
   /** Callback when category is selected */
   onSelectCategory: (categoryName: string | null) => void;
+  /** Search query for highlighting matches */
+  searchQuery?: string;
   /** Additional CSS classes */
   className?: string;
 }
@@ -28,6 +32,7 @@ export const SoundCategoryChips = ({
   categories,
   selectedCategory,
   onSelectCategory,
+  searchQuery = '',
   className = ''
 }: SoundCategoryChipsProps): JSX.Element => {
   const handleChipClick = (categoryName: string): void => {
@@ -59,7 +64,7 @@ export const SoundCategoryChips = ({
               }
             `}
           >
-            {category.name}
+            {highlightMatch(category.name, searchQuery)}
             <span className="text-xs opacity-60 ml-1">({category.count})</span>
           </button>
         );

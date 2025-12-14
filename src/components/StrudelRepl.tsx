@@ -5,14 +5,16 @@ import { initHydra, H } from '@strudel/hydra';
 import { samples } from '@strudel/webaudio';
 import CodeMirror from '@uiw/react-codemirror';
 import { Music } from 'lucide-react';
-import { useState, useEffect } from 'react';
+import { useState, useEffect, useRef, useCallback } from 'react';
 
+import { basiliskSyntaxTheme } from '../config/editorTheme';
 import * as StrudelEngine from '../services/strudelEngine';
 
 import { SoundBrowserTray } from './sound-browser';
 import { Button } from './ui/Button';
 
 import type { UseSoundBrowserReturn } from '../hooks/useSoundBrowser';
+import type { ReactCodeMirrorRef } from '@uiw/react-codemirror';
 
 /** Configuration for CodeMirror basic setup */
 const CODE_MIRROR_SETUP = {
@@ -45,8 +47,8 @@ const transparentTheme = EditorView.theme({
   '.cm-scroller': {
     backgroundColor: 'transparent !important',
     fontFamily: 'JetBrains Mono, Fira Code, SF Mono, Consolas, Monaco, monospace',
-    fontSize: '14px',
-    lineHeight: '1.6',
+    fontSize: '12px',
+    lineHeight: '1.5',
     scrollbarWidth: 'thin',
     scrollbarColor: 'rgba(255, 255, 255, 0.1) transparent',
   },
@@ -109,13 +111,26 @@ await initHydra({
   height: window.innerHeight
 })
 
-// Audio-reactive kaleidoscope (Algorithmic Minimalism)
-osc(3.762, () => (a.fft[3] * 0.05) + 0.01, -3.794)
-    .rotate()
-    .kaleid()
-    .colorama(() => a.fft[0] / 1e4)
-    .pixelate(128)
-    .out();
+// Audio-reactive feedback loop with noise modulation
+src(o0)
+ .saturate(1.01)
+ .scale(0.99)
+ .color(1.01,1.01,1.01)
+ .hue(() => a.fft[3])
+ .modulateHue(src(o1).hue(.3).posterize(-1).contrast(.7),2)
+  .layer(src(o1)
+         .luma()
+         .mult(gradient(1)
+               .saturate(.9)))
+  .out(o0)
+
+noise(1, .2)
+  .rotate(2,.5)
+  .layer(src(o0)
+  .scrollX(.2))
+  .out(o1)
+
+render(o0)
 
 // Audio pattern
 s("bd sd, hh*4")`;
@@ -130,8 +145,50 @@ type Props = {
     soundBrowser: UseSoundBrowserReturn;
 };
 
+/* eslint-disable max-lines-per-function */
 export const StrudelRepl = ({ className, engineReady, onHalt, onExecute, onSave, statusLabel, soundBrowser }: Props): JSX.Element => {
     const [code, setCode] = useState(defaultCode);
+
+    // Ref for CodeMirror editor to enable text insertion
+    const editorRef = useRef<ReactCodeMirrorRef>(null);
+
+    /**
+     * Insert text at current cursor position in the editor
+     */
+    const insertTextAtCursor = useCallback((text: string): void => {
+      const view = editorRef.current?.view;
+
+      if (!view) {
+        console.warn('Cannot insert: editor view not available');
+        return;
+      }
+
+      // Get current cursor position
+      const cursorPos = view.state.selection.main.head;
+
+      // Insert text at cursor
+      view.dispatch({
+        changes: {
+          from: cursorPos,
+          insert: text
+        },
+        selection: {
+          anchor: cursorPos + text.length  // Move cursor to end of inserted text
+        }
+      });
+
+      // Focus editor after insertion
+      view.focus();
+    }, []);
+
+    /**
+     * Handle sample insertion from sound browser
+     * Formats as Strudel pattern string: s("category:index")
+     */
+    const handleSampleInsert = useCallback((categoryName: string, index: number): void => {
+      const patternString = `s("${categoryName}:${index}")`;
+      insertTextAtCursor(patternString);
+    }, [insertTextAtCursor]);
 
     // Keyboard navigation: Escape to stop preview
     useEffect(() => {
@@ -194,7 +251,7 @@ export const StrudelRepl = ({ className, engineReady, onHalt, onExecute, onSave,
                         disabled={!engineReady}
                         variant={soundBrowser.isOpen ? 'primary' : 'secondary'}
                         size="sm"
-                        title="Toggle sound browser"
+                        title="Sound Browser - Browse and preview Strudel samples"
                     >
                         <Music size={14} />
                     </Button>
@@ -202,10 +259,10 @@ export const StrudelRepl = ({ className, engineReady, onHalt, onExecute, onSave,
             </div>
             <div className="flex-1 overflow-hidden relative min-h-0">
                 <CodeMirror
+                    ref={editorRef}
                     value={code}
                     height="100%"
-                    theme="dark"
-                    extensions={[javascript(), transparentTheme]}
+                    extensions={[javascript(), transparentTheme, basiliskSyntaxTheme]}
                     onChange={(val) => setCode(val)}
                     className="h-full font-mono"
                     basicSetup={CODE_MIRROR_SETUP}
@@ -244,9 +301,12 @@ export const StrudelRepl = ({ className, engineReady, onHalt, onExecute, onSave,
                         onStopPreview={soundBrowser.stopPreview}
                         isLoading={soundBrowser.isLoading}
                         error={soundBrowser.error}
+                        canPreview={soundBrowser.canPreview}
+                        onInsertSample={handleSampleInsert}
                     />
                 </div>
             )}
         </div>
     );
-}
+};
+/* eslint-enable max-lines-per-function */

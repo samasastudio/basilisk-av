@@ -121,7 +121,7 @@
 ## 🚀 Phase 6: UX Polish & Production Mode (IN PROGRESS)
 **Status**: In progress
 **Started**: December 12, 2025
-**Features**: 25 total (0 passing)
+**Features**: 25 total (5 passing)
 
 ### Development Infrastructure
 - ✅ Playwright MCP integration for automated verification
@@ -137,11 +137,11 @@
   - Consistent glassmorphism styling
 
 ### Sound Browser (Strudel Samples)
-- ⏳ Sound menu showing all loaded Strudel samples
-- ⏳ Searchable/filterable sound list
-- ⏳ Preview sounds on click
-- ⏳ Replace "Test" button with Sound Browser toggle
-- ⏳ Insert sample name into editor on double-click
+- ✅ Sound menu showing all loaded Strudel samples (with click-away detection)
+- ✅ Searchable/filterable sound list (with match highlighting)
+- ✅ Preview sounds on click (with engine-ready check)
+- ✅ Sound Browser toggle button with tooltip
+- ✅ Insert sample name into editor on double-click
 
 ### User Library (User Samples) — NEW
 - ⏳ User Library button with waveform icon
@@ -294,7 +294,7 @@ See [PLAYWRIGHT_MCP.md](PLAYWRIGHT_MCP.md) for setup instructions.
 
 | Metric | Value |
 |--------|-------|
-| Total Tests | 150+ |
+| Total Tests | 225 |
 | ESLint Errors | 0 |
 | TypeScript Coverage | 100% |
 | App.tsx Reduction | 66% (165 → 60 lines) |
@@ -302,7 +302,7 @@ See [PLAYWRIGHT_MCP.md](PLAYWRIGHT_MCP.md) for setup instructions.
 | Service Modules | 2 |
 | UI Components | 5 major + 4 primitives |
 | Documentation Files | 7 |
-| Phase 6 Features | 25 |
+| Phase 6 Features Passing | 5 / 25 (20%) |
 
 ---
 

@@ -1,5 +1,7 @@
+import { useRef } from 'react';
 import { Rnd } from 'react-rnd';
 
+import { useClickAway } from '../hooks/useClickAway';
 import { useREPLWindow } from '../hooks/useREPLWindow';
 import { useSoundBrowser } from '../hooks/useSoundBrowser';
 
@@ -28,7 +30,7 @@ export const REPLWindow = ({
   onSave
 }: Props): JSX.Element => {
   // Sound browser state (lifted up from StrudelRepl)
-  const soundBrowser = useSoundBrowser();
+  const soundBrowser = useSoundBrowser(engineReady);
 
   const {
     position,
@@ -37,6 +39,12 @@ export const REPLWindow = ({
     handleDragStop,
     handleResizeStop
   } = useREPLWindow(soundBrowser.isOpen);
+
+  // Ref for click-away detection
+  const replContainerRef = useRef<HTMLDivElement>(null);
+
+  // Close sound browser when clicking outside REPL
+  useClickAway(replContainerRef, soundBrowser.close, soundBrowser.isOpen);
 
   return (
     <Rnd
@@ -50,12 +58,12 @@ export const REPLWindow = ({
       maxHeight={bounds.maxHeight}
       bounds="window"
       className="z-30"
-      style={{
-        transition: 'width 300ms ease-in-out, height 300ms ease-in-out'
-      }}
       dragHandleClassName="drag-handle"
     >
-      <div className="w-full h-full bg-basilisk-gray-900/85 backdrop-blur-lg border border-basilisk-gray-600 rounded-lg shadow-2xl overflow-hidden">
+      <div
+        ref={replContainerRef}
+        className="w-full h-full bg-basilisk-gray-900/85 backdrop-blur-lg border border-basilisk-gray-600 rounded-lg shadow-2xl overflow-hidden"
+      >
         <StrudelRepl
           engineReady={engineReady}
           onHalt={onHalt}

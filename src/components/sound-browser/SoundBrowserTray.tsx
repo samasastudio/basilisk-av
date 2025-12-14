@@ -24,7 +24,7 @@ const GroupTabButton = ({
   onClick: () => void;
 }): JSX.Element => {
   const groupInfo = getGroupByName(group);
-  const icon = groupInfo?.icon;
+  const IconComponent = groupInfo?.icon;
 
   return (
     <button
@@ -33,7 +33,7 @@ const GroupTabButton = ({
       aria-selected={isSelected}
       tabIndex={isSelected ? 0 : -1}
       className={`
-        flex-shrink-0 px-2 py-1 rounded text-xs font-medium
+        flex items-center gap-1.5 flex-shrink-0 px-2 py-1 rounded text-xs font-medium
         transition-colors duration-200
         ${
           isSelected
@@ -42,7 +42,7 @@ const GroupTabButton = ({
         }
       `}
     >
-      {icon && <span className="mr-1">{icon}</span>}
+      {IconComponent && <IconComponent size={14} className="flex-shrink-0" />}
       {group}
     </button>
   );
@@ -109,6 +109,10 @@ export interface SoundBrowserTrayProps {
   isLoading?: boolean;
   /** Error message */
   error?: string | null;
+  /** Whether preview is available (engine ready) */
+  canPreview?: boolean;
+  /** Callback to insert sample into editor on double-click */
+  onInsertSample?: (categoryName: string, index: number) => void;
   /** Additional CSS classes */
   className?: string;
 }
@@ -133,6 +137,8 @@ export const SoundBrowserTray = ({
   onStopPreview,
   isLoading = false,
   error = null,
+  canPreview = true,
+  onInsertSample,
   className = ''
 }: SoundBrowserTrayProps): JSX.Element => {
   // Get selected category object
@@ -195,6 +201,7 @@ export const SoundBrowserTray = ({
           categories={categories}
           selectedCategory={selectedCategory}
           onSelectCategory={onSelectCategory}
+          searchQuery={searchQuery}
         />
       )}
 
@@ -207,6 +214,8 @@ export const SoundBrowserTray = ({
             currentlyPlaying={currentlyPlaying}
             onPreviewSample={onPreviewSample}
             onStopPreview={onStopPreview}
+            canPreview={canPreview}
+            onInsertSample={onInsertSample}
           />
         </div>
       )}

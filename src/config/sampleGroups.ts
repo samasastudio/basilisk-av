@@ -5,11 +5,28 @@
  * Categories are assigned to the first matching group.
  */
 
+import {
+  CircleDot,
+  Disc3,
+  Drum,
+  Factory,
+  FolderOpen,
+  Leaf,
+  Mic,
+  Music,
+  Piano,
+  Radio,
+  Sparkles,
+  Wand2,
+  Waves,
+  type LucideIcon
+} from 'lucide-react';
+
 export interface SampleGroup {
   /** Display name for the group */
   name: string;
-  /** Icon/emoji for the group (optional) */
-  icon?: string;
+  /** Icon component for the group (optional) */
+  icon?: LucideIcon;
   /** Keywords to match against category names (case-insensitive) */
   keywords: string[];
   /** Exact category names to include */
@@ -22,79 +39,79 @@ export interface SampleGroup {
 export const SAMPLE_GROUPS: SampleGroup[] = [
   {
     name: 'Drums',
-    icon: '🥁',
+    icon: Disc3,
     keywords: ['808', '909', 'drum', 'dr_', 'gretsch', 'casio', 'roland', 'linn', 'dmx', 'oberheim'],
     exact: ['jazz', 'tabla', 'techno', 'house', 'electro', 'breakbeat', 'rave']
   },
   {
     name: 'Bass',
-    icon: '🎸',
+    icon: Waves,
     keywords: ['bass', 'jvbass', 'wobble', 'sub', 'reese'],
     exact: ['db', 'moog']
   },
   {
     name: 'Kicks',
-    icon: '💥',
+    icon: CircleDot,
     keywords: ['kick', 'bd'],
     exact: ['bd']
   },
   {
     name: 'Snares',
-    icon: '🪘',
+    icon: Drum,
     keywords: ['snare', 'sd', 'rim', 'clap', 'cp'],
     exact: ['sd', 'cp', 'hc', 'lt', 'mt', 'ht']
   },
   {
     name: 'Hi-Hats',
-    icon: '🎩',
+    icon: Sparkles,
     keywords: ['hat', 'hh', 'hihat', 'oh', 'ch'],
     exact: ['hh', 'oh', 'ch']
   },
   {
     name: 'Percussion',
-    icon: '🪇',
+    icon: Radio,
     keywords: ['perc', 'conga', 'bongo', 'tom', 'shaker', 'tamb', 'clave', 'cow', 'bell', 'click', 'rim', 'wood'],
     exact: ['tabla', 'hand', 'finger', 'click']
   },
   {
     name: 'Synth',
-    icon: '🎹',
+    icon: Wand2,
     keywords: ['synth', 'arp', 'lead', 'pad', 'pluck', 'square', 'saw', 'sine', 'wave', 'fm', 'analog'],
     exact: ['arpy', 'blip', 'bleep', 'ades']
   },
   {
     name: 'Keys',
-    icon: '🎹',
+    icon: Piano,
     keywords: ['piano', 'keys', 'rhodes', 'organ', 'ep', 'clav', 'wurli', 'elec'],
     exact: ['keys', 'epiano']
   },
   {
     name: 'Strings',
-    icon: '🎻',
+    icon: Music,
     keywords: ['string', 'violin', 'cello', 'viola', 'orch', 'pizz'],
     exact: []
   },
   {
     name: 'Vocal',
-    icon: '🎤',
+    icon: Mic,
     keywords: ['vocal', 'voice', 'vox', 'speak', 'speech', 'mouth', 'sing', 'choir', 'human'],
     exact: ['alphabet', 'numbers']
   },
   {
     name: 'FX',
-    icon: '✨',
+    icon: Wand2,
     keywords: ['fx', 'noise', 'glitch', 'ambient', 'atmos', 'texture', 'hit', 'impact', 'sweep', 'riser', 'down'],
     exact: ['noise', 'static', 'hiss']
   },
   {
     name: 'Nature',
-    icon: '🌿',
+    icon: Leaf,
     keywords: ['nature', 'bird', 'water', 'wind', 'rain', 'thunder', 'animal', 'forest', 'ocean', 'fire'],
     exact: ['wind', 'rain']
   },
   {
     name: 'Industrial',
-    icon: '🏭',
+    icon: Factory,
     keywords: ['industrial', 'metal', 'machine', 'mech', 'robot', 'factory'],
     exact: ['industrial', 'metal']
   }
@@ -105,7 +122,7 @@ export const SAMPLE_GROUPS: SampleGroup[] = [
  */
 export const DEFAULT_GROUP: SampleGroup = {
   name: 'Other',
-  icon: '📁',
+  icon: FolderOpen,
   keywords: [],
   exact: []
 };

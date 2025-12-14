@@ -48,7 +48,19 @@ vi.mock('../../services/strudelEngine', () => ({
 
 // Mock lucide-react icons
 vi.mock('lucide-react', () => ({
-  Music: () => <span>Music Icon</span>
+  Music: () => <span>Music Icon</span>,
+  Disc3: () => <span>Disc3 Icon</span>,
+  Waves: () => <span>Waves Icon</span>,
+  CircleDot: () => <span>CircleDot Icon</span>,
+  Drum: () => <span>Drum Icon</span>,
+  Sparkles: () => <span>Sparkles Icon</span>,
+  Radio: () => <span>Radio Icon</span>,
+  Piano: () => <span>Piano Icon</span>,
+  Mic: () => <span>Mic Icon</span>,
+  Wand2: () => <span>Wand2 Icon</span>,
+  Leaf: () => <span>Leaf Icon</span>,
+  Factory: () => <span>Factory Icon</span>,
+  FolderOpen: () => <span>FolderOpen Icon</span>
 }));
 
 describe('StrudelRepl', () => {
