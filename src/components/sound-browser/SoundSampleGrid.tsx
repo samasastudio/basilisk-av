@@ -80,7 +80,7 @@ export const SoundSampleGrid = ({
 
         // Determine aria-label and title based on state
         const ariaLabel = getAriaLabel(sampleKey, canPreview, isPlaying);
-        const titleText = getTitleText(sampleKey, canPreview, !!onInsertSample);
+        const titleText = getTitleText(sampleKey, canPreview, Boolean(onInsertSample));
 
         return (
           <button

@@ -3,8 +3,8 @@
  * Muted, desaturated color scheme with subtle variations
  */
 
-import { tags as t } from '@lezer/highlight';
 import { HighlightStyle, syntaxHighlighting } from '@codemirror/language';
+import { tags as t } from '@lezer/highlight';
 
 /**
  * Basilisk muted syntax highlighting color scheme

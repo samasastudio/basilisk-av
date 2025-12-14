@@ -5,21 +5,21 @@
  * Categories are assigned to the first matching group.
  */
 
-import type { LucideIcon } from 'lucide-react';
 import {
-  Disc3,
-  Waves,
   CircleDot,
+  Disc3,
   Drum,
-  Sparkles,
-  Radio,
-  Piano,
-  Music,
-  Mic,
-  Wand2,
-  Leaf,
   Factory,
-  FolderOpen
+  FolderOpen,
+  Leaf,
+  Mic,
+  Music,
+  Piano,
+  Radio,
+  Sparkles,
+  Wand2,
+  Waves,
+  type LucideIcon
 } from 'lucide-react';
 
 export interface SampleGroup {
