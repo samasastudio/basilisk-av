@@ -1,19 +1,22 @@
 import { javascript } from '@codemirror/lang-javascript';
-import { EditorView } from '@codemirror/view';
 import * as Strudel from '@strudel/core';
 import { initHydra, H } from '@strudel/hydra';
 import { samples } from '@strudel/webaudio';
 import CodeMirror from '@uiw/react-codemirror';
-import { Music } from 'lucide-react';
+import { AudioWaveform, Music } from 'lucide-react';
 import { useState, useEffect, useRef, useCallback } from 'react';
 
-import { basiliskSyntaxTheme } from '../config/editorTheme';
+import { basiliskSyntaxTheme, transparentEditorTheme } from '../config/editorTheme';
 import * as StrudelEngine from '../services/strudelEngine';
 
 import { SoundBrowserTray } from './sound-browser';
 import { Button } from './ui/Button';
+import { UserLibraryTray } from './user-library';
 
+import type { UsePanelExclusivityReturn } from '../hooks/usePanelExclusivity';
 import type { UseSoundBrowserReturn } from '../hooks/useSoundBrowser';
+import type { UseUserLibraryReturn } from '../hooks/useUserLibrary';
+import type { SampleItem } from '../types/userLibrary';
 import type { ReactCodeMirrorRef } from '@uiw/react-codemirror';
 
 /** Configuration for CodeMirror basic setup */
@@ -37,73 +40,6 @@ const CODE_MIRROR_SETUP = {
 
 // Expose Strudel functions globally for the REPL
 Object.assign(window, Strudel, { samples, initHydra, H });
-
-// Transparent glassmorphic theme for CodeMirror
-const transparentTheme = EditorView.theme({
-  '&': {
-    backgroundColor: 'transparent !important',
-    height: '100%'
-  },
-  '.cm-scroller': {
-    backgroundColor: 'transparent !important',
-    fontFamily: 'JetBrains Mono, Fira Code, SF Mono, Consolas, Monaco, monospace',
-    fontSize: '12px',
-    lineHeight: '1.5',
-    scrollbarWidth: 'thin',
-    scrollbarColor: 'rgba(255, 255, 255, 0.1) transparent',
-  },
-  '.cm-scroller::-webkit-scrollbar': {
-    width: '8px',
-    height: '8px'
-  },
-  '.cm-scroller::-webkit-scrollbar-track': {
-    background: 'transparent'
-  },
-  '.cm-scroller::-webkit-scrollbar-thumb': {
-    backgroundColor: 'rgba(255, 255, 255, 0.1)',
-    borderRadius: '4px',
-    border: '2px solid transparent',
-    backgroundClip: 'padding-box'
-  },
-  '.cm-scroller::-webkit-scrollbar-thumb:hover': {
-    backgroundColor: 'rgba(255, 255, 255, 0.15)'
-  },
-  '.cm-gutters': {
-    backgroundColor: 'transparent !important',
-    backdropFilter: 'blur(8px)',
-    WebkitBackdropFilter: 'blur(8px)',
-    border: 'none',
-    borderRight: '1px solid rgba(71, 85, 105, 0.3)'
-  },
-  '.cm-gutter, .cm-lineNumbers': {
-    backgroundColor: 'rgba(15, 23, 42, 0.15) !important',
-    color: 'rgba(255, 255, 255, 0.65) !important'
-  },
-  '.cm-gutterElement': {
-    color: 'rgba(255, 255, 255, 0.65) !important'
-  },
-  '.cm-activeLineGutter': {
-    backgroundColor: 'rgba(255, 255, 255, 0.2) !important',
-    borderRadius: '2px'
-  },
-  '.cm-activeLine': {
-    backgroundColor: 'rgba(255, 255, 255, 0.05)'
-  },
-  '.cm-content': {
-    caretColor: '#ffffff',
-    color: 'rgba(255, 255, 255, 0.95)',
-    padding: '8px 0'
-  },
-  '.cm-line': {
-    color: 'rgba(255, 255, 255, 0.95) !important'
-  },
-  '.cm-cursor': {
-    borderLeftColor: '#ffffff'
-  },
-  '.cm-selectionBackground, &.cm-focused .cm-selectionBackground': {
-    backgroundColor: 'rgba(255, 255, 255, 0.2) !important'
-  }
-});
 
 const defaultCode = `// Initialize Hydra
 await initHydra({
@@ -143,11 +79,14 @@ type Props = {
     onSave?: (code: string) => void;
     statusLabel?: string;
     soundBrowser: UseSoundBrowserReturn;
+    userLibrary: UseUserLibraryReturn;
+    panelState: UsePanelExclusivityReturn;
 };
 
 /* eslint-disable max-lines-per-function */
-export const StrudelRepl = ({ className, engineReady, onHalt, onExecute, onSave, statusLabel, soundBrowser }: Props): JSX.Element => {
+export const StrudelRepl = ({ className, engineReady, onHalt, onExecute, onSave, statusLabel, soundBrowser, userLibrary, panelState }: Props): JSX.Element => {
     const [code, setCode] = useState(defaultCode);
+    const [userLibraryPlaying, setUserLibraryPlaying] = useState<string | null>(null);
 
     // Ref for CodeMirror editor to enable text insertion
     const editorRef = useRef<ReactCodeMirrorRef>(null);
@@ -187,6 +126,37 @@ export const StrudelRepl = ({ className, engineReady, onHalt, onExecute, onSave,
      */
     const handleSampleInsert = useCallback((categoryName: string, index: number): void => {
       const patternString = `s("${categoryName}:${index}")`;
+      insertTextAtCursor(patternString);
+    }, [insertTextAtCursor]);
+
+    /**
+     * Handle user library sample preview
+     * Uses Web Audio API directly for independent playback
+     */
+    const handleUserLibraryPreview = useCallback((item: SampleItem): void => {
+      if (item.type !== 'sample' || !item.url) return;
+
+      // Stop any currently playing preview
+      setUserLibraryPlaying(item.id);
+
+      // Simple Web Audio playback (will be enhanced with dedicated service later)
+      const audio = new Audio(item.url);
+      audio.volume = 0.7;
+      audio.onended = (): void => setUserLibraryPlaying(null);
+      audio.onerror = (): void => setUserLibraryPlaying(null);
+      void audio.play();
+    }, []);
+
+    /**
+     * Handle user library sample insertion
+     * Inserts s("sampleName") pattern at cursor
+     */
+    const handleUserLibraryInsert = useCallback((item: SampleItem): void => {
+      if (item.type !== 'sample') return;
+
+      // Use filename without extension
+      const sampleName = item.name.replace(/\.[^.]+$/, '');
+      const patternString = `s("${sampleName}")`;
       insertTextAtCursor(patternString);
     }, [insertTextAtCursor]);
 
@@ -255,6 +225,14 @@ export const StrudelRepl = ({ className, engineReady, onHalt, onExecute, onSave,
                     >
                         <Music size={14} />
                     </Button>
+                    <Button
+                        onClick={panelState.toggleUserLibrary}
+                        variant={panelState.isUserLibraryOpen ? 'primary' : 'secondary'}
+                        size="sm"
+                        title="User Library - Browse and use your own samples"
+                    >
+                        <AudioWaveform size={14} />
+                    </Button>
                 </div>
             </div>
             <div className="flex-1 overflow-hidden relative min-h-0">
@@ -262,7 +240,7 @@ export const StrudelRepl = ({ className, engineReady, onHalt, onExecute, onSave,
                     ref={editorRef}
                     value={code}
                     height="100%"
-                    extensions={[javascript(), transparentTheme, basiliskSyntaxTheme]}
+                    extensions={[javascript(), transparentEditorTheme, basiliskSyntaxTheme]}
                     onChange={(val) => setCode(val)}
                     className="h-full font-mono"
                     basicSetup={CODE_MIRROR_SETUP}
@@ -303,6 +281,16 @@ export const StrudelRepl = ({ className, engineReady, onHalt, onExecute, onSave,
                         error={soundBrowser.error}
                         canPreview={soundBrowser.canPreview}
                         onInsertSample={handleSampleInsert}
+                    />
+                </div>
+            )}
+            {userLibrary.isOpen && (
+                <div className="flex-1 min-h-[300px] flex flex-col overflow-hidden">
+                    <UserLibraryTray
+                        library={userLibrary}
+                        currentlyPlaying={userLibraryPlaying}
+                        onPreview={handleUserLibraryPreview}
+                        onInsert={handleUserLibraryInsert}
                     />
                 </div>
             )}

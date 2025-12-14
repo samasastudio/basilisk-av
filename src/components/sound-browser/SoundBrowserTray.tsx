@@ -3,11 +3,10 @@
  */
 
 import { getGroupByName } from '../../config/sampleGroups';
+import { SamplePanel, SampleSearch } from '../shared';
 
 import { SoundCategoryChips } from './SoundCategoryChips';
 import { SoundSampleGrid } from './SoundSampleGrid';
-import { SoundSearch } from './SoundSearch';
-
 
 import type { CategorizedSampleCategory } from '../../hooks/useSoundBrowser';
 
@@ -150,18 +149,10 @@ export const SoundBrowserTray = ({
   const canShowSampleGrid = !isLoading && !error && selectedCategoryObj;
 
   return (
-    <div
-      className={`
-        h-full flex flex-col gap-1 px-2 py-1.5
-        bg-basilisk-gray-800/50
-        border-t border-basilisk-gray-700
-        animate-in fade-in slide-in-from-bottom-4 duration-200
-        ${className}
-      `}
-    >
+    <SamplePanel className={className}>
       {/* Top row: Search and Group tabs */}
       <div className="flex items-center gap-2">
-        <SoundSearch
+        <SampleSearch
           value={searchQuery}
           onChange={onSearchChange}
           placeholder="Search..."
@@ -227,7 +218,7 @@ export const SoundBrowserTray = ({
           {searchQuery && ` matching "${searchQuery}"`}
         </div>
       )}
-    </div>
+    </SamplePanel>
   );
 };
 /* eslint-enable complexity */

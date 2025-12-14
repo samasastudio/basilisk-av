@@ -2,7 +2,7 @@
  * Orchestration hook for sound browser state
  */
 
-import { useState, useMemo } from 'react';
+import { useState, useMemo, useCallback } from 'react';
 
 import { categorizeToGroup, getAllGroupNames } from '../config/sampleGroups';
 
@@ -10,6 +10,7 @@ import { usePersistedState } from './usePersistedState';
 import { useSampleData } from './useSampleData';
 import { useSoundPreview } from './useSoundPreview';
 
+import type { UsePanelExclusivityReturn } from './usePanelExclusivity';
 import type { SampleCategory } from '../types/samples';
 
 export interface CategorizedSampleCategory extends SampleCategory {
@@ -64,16 +65,47 @@ const STORAGE_KEY_GROUP = 'basilisk-sound-browser-group';
  * - Local state (search, category selection)
  *
  * @param engineReady - Whether the Strudel engine is initialized and ready
+ * @param panelState - Optional panel exclusivity state (when provided, uses shared panel state)
  */
-export const useSoundBrowser = (engineReady: boolean): UseSoundBrowserReturn => {
+export const useSoundBrowser = (
+  engineReady: boolean,
+  panelState?: UsePanelExclusivityReturn
+): UseSoundBrowserReturn => {
   // Fetch sample data
   const { data, status, error } = useSampleData();
 
   // Sound preview
   const { previewSample, stopPreview, currentSample, canPreview } = useSoundPreview(engineReady);
 
-  // Persisted visibility state
-  const [isOpen, setIsOpen] = usePersistedState<boolean>(STORAGE_KEY_TRAY_OPEN, false);
+  // Persisted visibility state (fallback when panelState not provided)
+  const [internalIsOpen, setInternalIsOpen] = usePersistedState<boolean>(STORAGE_KEY_TRAY_OPEN, false);
+
+  // Use panel state if provided, otherwise use internal state
+  const isOpen = panelState ? panelState.isSoundBrowserOpen : internalIsOpen;
+
+  const open = useCallback(() => {
+    if (panelState) {
+      panelState.openSoundBrowser();
+    } else {
+      setInternalIsOpen(true);
+    }
+  }, [panelState, setInternalIsOpen]);
+
+  const close = useCallback(() => {
+    if (panelState) {
+      panelState.closePanel();
+    } else {
+      setInternalIsOpen(false);
+    }
+  }, [panelState, setInternalIsOpen]);
+
+  const toggle = useCallback(() => {
+    if (panelState) {
+      panelState.toggleSoundBrowser();
+    } else {
+      setInternalIsOpen((prev) => !prev);
+    }
+  }, [panelState, setInternalIsOpen]);
 
   // Persisted group selection
   const [selectedGroup, setSelectedGroup] = usePersistedState<string>(STORAGE_KEY_GROUP, 'All');
@@ -124,9 +156,9 @@ export const useSoundBrowser = (engineReady: boolean): UseSoundBrowserReturn => 
   return {
     // Visibility
     isOpen,
-    open: () => setIsOpen(true),
-    close: () => setIsOpen(false),
-    toggle: () => setIsOpen((prev) => !prev),
+    open,
+    close,
+    toggle,
 
     // Data
     categories,
