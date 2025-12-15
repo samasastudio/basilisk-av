@@ -1,3 +1,4 @@
+import { QueryClient, QueryClientProvider } from '@tanstack/react-query';
 import { useState, useMemo } from 'react';
 
 import './utils/patchSuperdough'; // MUST be imported BEFORE @strudel/web
@@ -15,13 +16,24 @@ import type { KeyboardShortcut } from './hooks/useGlobalKeyboardShortcuts';
 export const App = (): JSX.Element => {
   const [hasExecutedCode, setHasExecutedCode] = useState(false);
 
+  // Create a client for TanStack Query inside the App component for proper isolation
+  const queryClient = useMemo(() => new QueryClient({
+    defaultOptions: {
+      queries: {
+        staleTime: Infinity, // Data never becomes stale (like our cache)
+        gcTime: Infinity, // Keep in cache forever (was cacheTime in v4)
+        retry: 3,
+        refetchOnWindowFocus: false,
+      },
+    },
+  }), []);
+
   const {
     engineStatus,
     engineInitialized,
     hydraLinked,
     hydraStatus,
     startEngine,
-    playTestPattern,
     hushAudio,
   } = useStrudelEngine();
 
@@ -77,25 +89,26 @@ export const App = (): JSX.Element => {
   };
 
   return (
-    <div className="w-screen h-screen bg-basilisk-black text-basilisk-white overflow-hidden relative">
-      <HydraCanvas showStartupText={!hasExecutedCode} />
+    <QueryClientProvider client={queryClient}>
+      <div className="w-screen h-screen bg-basilisk-black text-basilisk-white overflow-hidden relative">
+        <HydraCanvas showStartupText={!hasExecutedCode} />
 
-      <AppHeader
-        engineStatus={engineStatus}
-        hydraLinked={hydraLinked}
-        hydraStatus={hydraStatus}
-        onStartEngine={startEngine}
-      />
-
-      {replVisible && (
-        <REPLWindow
-          engineReady={engineInitialized}
-          onTestPattern={playTestPattern}
-          onHalt={hushAudio}
-          onExecute={() => setHasExecutedCode(true)}
-          onSave={handleSaveScript}
+        <AppHeader
+          engineStatus={engineStatus}
+          hydraLinked={hydraLinked}
+          hydraStatus={hydraStatus}
+          onStartEngine={startEngine}
         />
-      )}
-    </div>
+
+        {replVisible && (
+          <REPLWindow
+            engineReady={engineInitialized}
+            onHalt={hushAudio}
+            onExecute={() => setHasExecutedCode(true)}
+            onSave={handleSaveScript}
+          />
+        )}
+      </div>
+    </QueryClientProvider>
   );
 };

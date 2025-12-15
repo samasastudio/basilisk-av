@@ -1,0 +1,397 @@
+{
+  "meta": {
+    "project": "basilisk-av",
+    "currentPhase": 6,
+    "lastUpdated": "2025-12-14",
+    "notes": "Only modify 'passes' field during development. Never remove verification steps. Last verified: 2025-12-14 via Playwright automated testing.",
+    "testSamples": {
+      "location": "public/test-samples/",
+      "manifest": "public/test-samples/samples.json",
+      "files": ["GR08_09_PERC_B.wav", "sb00.wav", "sd00.wav", "sp00.wav", "ss00.wav"],
+      "cdnUrl": "http://localhost:5174/test-samples",
+      "usage": "Use CDN URL feature to load test samples for verifying User Library functionality"
+    }
+  },
+  "features": [
+    {
+      "id": "p6-sound-list",
+      "phase": 6,
+      "category": "sound-browser",
+      "description": "Sound menu displaying all loaded Strudel samples",
+      "priority": "high",
+      "dependencies": [],
+      "verification": [
+        "Click Sound Browser toggle button",
+        "Panel opens showing sample categories",
+        "Each category expands to show sample names",
+        "Sample count displayed per category",
+        "Panel closes on toggle or click-away"
+      ],
+      "passes": true
+    },
+    {
+      "id": "p6-sound-search",
+      "phase": 6,
+      "category": "sound-browser",
+      "description": "Searchable/filterable sound list",
+      "priority": "high",
+      "dependencies": ["p6-sound-list"],
+      "verification": [
+        "Search input visible at top of Sound Browser",
+        "Typing filters samples in real-time",
+        "Matches highlight in results",
+        "Empty state shown when no matches",
+        "Clear button resets search"
+      ],
+      "passes": true
+    },
+    {
+      "id": "p6-sound-preview",
+      "phase": 6,
+      "category": "sound-browser",
+      "description": "Preview sounds on click",
+      "priority": "high",
+      "dependencies": ["p6-sound-list"],
+      "verification": [
+        "Single-click on sample name plays preview",
+        "Preview plays without interrupting current pattern",
+        "Visual indicator shows which sample is playing",
+        "Preview stops when another sample clicked",
+        "Preview works even when engine not started"
+      ],
+      "passes": true
+    },
+    {
+      "id": "p6-sound-toggle-button",
+      "phase": 6,
+      "category": "sound-browser",
+      "description": "Replace Test button with Sound Browser toggle",
+      "priority": "medium",
+      "dependencies": ["p6-sound-list"],
+      "verification": [
+        "Test button removed from header",
+        "Sound Browser button in its place",
+        "Icon clearly indicates sound/sample function",
+        "Tooltip explains button purpose",
+        "Button state reflects panel open/closed"
+      ],
+      "passes": true
+    },
+    {
+      "id": "p6-sound-insert",
+      "phase": 6,
+      "category": "sound-browser",
+      "description": "Insert sample name into editor on double-click",
+      "priority": "low",
+      "dependencies": ["p6-sound-list"],
+      "verification": [
+        "Double-click sample inserts name at cursor",
+        "Inserted text formatted correctly for Strudel",
+        "Editor receives focus after insert",
+        "Works with category:sample format (e.g., bd:0)"
+      ],
+      "passes": true
+    },
+    {
+      "id": "p6-repl-dark-toggle",
+      "phase": 6,
+      "category": "repl-theming",
+      "description": "Dark mode toggle for REPL editor",
+      "priority": "medium",
+      "dependencies": [],
+      "verification": [
+        "Toggle button visible in REPL header",
+        "Click switches between light/dark themes",
+        "Theme preference persists via localStorage",
+        "Theme applies immediately without flicker",
+        "Default matches system preference or dark"
+      ],
+      "passes": false
+    },
+    {
+      "id": "p6-repl-syntax-theme",
+      "phase": 6,
+      "category": "repl-theming",
+      "description": "Syntax highlighting color scheme",
+      "priority": "low",
+      "dependencies": ["p6-repl-dark-toggle"],
+      "verification": [
+        "Syntax colors readable in dark mode",
+        "Syntax colors readable in light mode",
+        "Keywords, strings, numbers visually distinct",
+        "Colors don't clash with Hydra visuals behind"
+      ],
+      "passes": false
+    },
+    {
+      "id": "p6-shortcut-engine-start",
+      "phase": 6,
+      "category": "keyboard",
+      "description": "Keyboard shortcut to start engine",
+      "priority": "medium",
+      "dependencies": [],
+      "verification": [
+        "Designated shortcut starts Strudel engine",
+        "Works when REPL not focused",
+        "No-op if engine already running",
+        "Visual feedback confirms engine started"
+      ],
+      "passes": true
+    },
+    {
+      "id": "p6-shortcut-halt",
+      "phase": 6,
+      "category": "keyboard",
+      "description": "Emergency halt/stop audio shortcut",
+      "priority": "high",
+      "dependencies": [],
+      "verification": [
+        "Shortcut immediately stops all audio",
+        "Works regardless of focus state",
+        "Hydra visuals continue (audio only halt)",
+        "Can restart pattern after halt",
+        "Shortcut is memorable (e.g., Escape or Ctrl+.)"
+      ],
+      "passes": true
+    },
+    {
+      "id": "p6-shortcut-hide-repl",
+      "phase": 6,
+      "category": "keyboard",
+      "description": "Hide/show REPL toggle shortcut",
+      "priority": "medium",
+      "dependencies": [],
+      "verification": [
+        "Shortcut hides REPL panel completely",
+        "Same shortcut shows REPL again",
+        "REPL position preserved on restore",
+        "Works when REPL is/isn't focused",
+        "Hydra canvas fills viewport when hidden"
+      ],
+      "passes": true
+    },
+    {
+      "id": "p6-shortcut-help",
+      "phase": 6,
+      "category": "keyboard",
+      "description": "Keyboard shortcut help overlay",
+      "priority": "low",
+      "dependencies": ["p6-shortcut-engine-start", "p6-shortcut-halt", "p6-shortcut-hide-repl"],
+      "verification": [
+        "Shortcut (e.g., ?) opens help overlay",
+        "Overlay lists all available shortcuts",
+        "Overlay dismisses on Escape or click-away",
+        "Overlay styled consistently with glassmorphism",
+        "Shortcuts grouped by category"
+      ],
+      "passes": false
+    },
+    {
+      "id": "p6-hud-fft-bands",
+      "phase": 6,
+      "category": "production-hud",
+      "description": "Compact FFT analyzer per a.fft band",
+      "priority": "medium",
+      "dependencies": [],
+      "verification": [
+        "4 mini visualizers shown (a.fft[0-3])",
+        "Each bar responds to its frequency band",
+        "Visualizers update in real-time",
+        "Positioned non-intrusively (corner)",
+        "Labels identify each band"
+      ],
+      "passes": false
+    },
+    {
+      "id": "p6-hud-cpu",
+      "phase": 6,
+      "category": "production-hud",
+      "description": "CPU/processing power percentage display",
+      "priority": "low",
+      "dependencies": [],
+      "verification": [
+        "CPU percentage displayed in HUD",
+        "Updates at reasonable interval (1-2s)",
+        "Warns visually if CPU high (>80%)",
+        "Uses Performance API accurately"
+      ],
+      "passes": false
+    },
+    {
+      "id": "p6-hud-fps",
+      "phase": 6,
+      "category": "production-hud",
+      "description": "FPS counter display",
+      "priority": "medium",
+      "dependencies": [],
+      "verification": [
+        "FPS counter visible in HUD",
+        "Shows current frame rate",
+        "Updates smoothly (rolling average)",
+        "Warns if FPS drops below 30"
+      ],
+      "passes": false
+    },
+    {
+      "id": "p6-hud-toggle",
+      "phase": 6,
+      "category": "production-hud",
+      "description": "Toggle HUD visibility",
+      "priority": "medium",
+      "dependencies": ["p6-hud-fft-bands"],
+      "verification": [
+        "Button or shortcut toggles HUD",
+        "HUD completely hidden when off",
+        "Preference persists via localStorage",
+        "Default state is hidden (production mode)"
+      ],
+      "passes": false
+    },
+    {
+      "id": "p6-hud-styling",
+      "phase": 6,
+      "category": "production-hud",
+      "description": "Minimal non-intrusive HUD design",
+      "priority": "low",
+      "dependencies": ["p6-hud-fft-bands", "p6-hud-fps"],
+      "verification": [
+        "HUD uses glassmorphism consistent with REPL",
+        "Semi-transparent, doesn't block visuals",
+        "Monochrome palette per basilisk-style",
+        "Compact layout, minimal footprint"
+      ],
+      "passes": false
+    },
+    {
+      "id": "p6-sample-panel-base",
+      "phase": 6,
+      "category": "shared-components",
+      "description": "Shared base component for Sound Browser and User Library panels",
+      "priority": "high",
+      "dependencies": [],
+      "verification": [
+        "SamplePanel component in src/components/shared/",
+        "SampleSearch component with value/onChange props",
+        "Components export from shared/index.ts",
+        "Glassmorphic styling consistent with app theme"
+      ],
+      "passes": true
+    },
+    {
+      "id": "p6-user-library-button",
+      "phase": 6,
+      "category": "user-library",
+      "description": "User Library toggle button in header with waveform icon",
+      "priority": "high",
+      "dependencies": ["p6-sample-panel-base"],
+      "verification": [
+        "User Library button visible in REPL header",
+        "Button uses AudioWaveform icon from lucide-react",
+        "Tooltip shows 'User Library - Browse and use your own samples'",
+        "Button state reflects panel open/closed (active styling)",
+        "Button positioned next to Sound Browser button"
+      ],
+      "passes": true
+    },
+    {
+      "id": "p6-user-library-panel",
+      "phase": 6,
+      "category": "user-library",
+      "description": "User Library panel displaying user's linked sample directories",
+      "priority": "high",
+      "dependencies": ["p6-user-library-button", "p6-sample-panel-base"],
+      "verification": [
+        "Click User Library button opens panel",
+        "Panel shows Local/URL source selection tabs",
+        "TEST: Enter CDN URL http://localhost:5174/test-samples and click Load Samples",
+        "5 test samples display with file format badges",
+        "Panel header shows green checkmark with '5 samples' count",
+        "Expand/Collapse/Unlink buttons visible in header"
+      ],
+      "passes": true
+    },
+    {
+      "id": "p6-panel-exclusivity",
+      "phase": 6,
+      "category": "user-library",
+      "description": "Only one panel (Sound Browser or User Library) open at a time",
+      "priority": "high",
+      "dependencies": ["p6-sound-list", "p6-user-library-panel"],
+      "verification": [
+        "Opening Sound Browser closes User Library",
+        "Opening User Library closes Sound Browser",
+        "Panel state managed by usePanelExclusivity hook",
+        "No visual glitch during panel switch",
+        "Both panels closed is valid state"
+      ],
+      "passes": true
+    },
+    {
+      "id": "p6-user-library-link",
+      "phase": 6,
+      "category": "user-library",
+      "description": "Link master user directory of sounds via Local folder or CDN URL",
+      "priority": "high",
+      "dependencies": ["p6-user-library-panel"],
+      "verification": [
+        "Local tab: Click 'Choose Folder' opens native directory picker (Chrome/Edge)",
+        "URL tab: Enter CDN URL with samples.json manifest",
+        "TEST: Use http://localhost:5174/test-samples to load 5 test samples",
+        "CDN URL persists via localStorage",
+        "Unlink button clears source and samples",
+        "Error state shown if manifest fetch fails",
+        "REPL: Samples auto-register when audio engine starts (not before)",
+        "REPL: Execute s(\"sd00\") - no 'sound not found' error",
+        "REPL: Pattern plays user sample successfully"
+      ],
+      "passes": true
+    },
+    {
+      "id": "p6-user-library-preview",
+      "phase": 6,
+      "category": "user-library",
+      "description": "Preview user samples on click",
+      "priority": "medium",
+      "dependencies": ["p6-user-library-panel", "p6-sound-preview"],
+      "verification": [
+        "TEST: Load test-samples, single-click sb00.wav",
+        "Sample plays via HTML5 Audio element",
+        "Button shows active state with Volume2 icon while playing",
+        "Clicking another sample stops previous preview",
+        "Audio engine does not need to be started for preview"
+      ],
+      "passes": true
+    },
+    {
+      "id": "p6-user-library-insert",
+      "phase": 6,
+      "category": "user-library",
+      "description": "Insert user sample path into editor on double-click",
+      "priority": "medium",
+      "dependencies": ["p6-user-library-panel", "p6-sound-insert"],
+      "verification": [
+        "TEST: Double-click sd00.wav in User Library panel",
+        "Inserts s(\"sd00\") at editor cursor position",
+        "Editor receives focus after insert",
+        "Sample name uses filename without extension"
+      ],
+      "passes": true
+    },
+    {
+      "id": "p6-user-library-search",
+      "phase": 6,
+      "category": "user-library",
+      "description": "Search user samples",
+      "priority": "low",
+      "dependencies": ["p6-user-library-panel", "p6-sound-search"],
+      "verification": [
+        "Search input visible at top of User Library when samples loaded",
+        "TEST: Type 'sd' to filter samples - shows sd00.wav",
+        "Typing filters samples in real-time",
+        "Empty state shown when no matches (e.g., search 'xyz')",
+        "Clearing search shows all samples again"
+      ],
+      "passes": true
+    }
+  ]
+}

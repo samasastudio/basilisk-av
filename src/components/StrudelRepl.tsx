@@ -1,84 +1,45 @@
 import { javascript } from '@codemirror/lang-javascript';
-import { EditorView } from '@codemirror/view';
 import * as Strudel from '@strudel/core';
 import { initHydra, H } from '@strudel/hydra';
 import { samples } from '@strudel/webaudio';
 import CodeMirror from '@uiw/react-codemirror';
-import { useState } from 'react';
+import { AudioWaveform, Music } from 'lucide-react';
+import { useState, useEffect, useRef, useCallback } from 'react';
 
+import { basiliskSyntaxTheme, transparentEditorTheme } from '../config/editorTheme';
 import * as StrudelEngine from '../services/strudelEngine';
 
+import { SoundBrowserTray } from './sound-browser';
 import { Button } from './ui/Button';
+import { UserLibraryTray } from './user-library';
+
+import type { UsePanelExclusivityReturn } from '../hooks/usePanelExclusivity';
+import type { UseSoundBrowserReturn } from '../hooks/useSoundBrowser';
+import type { UseUserLibraryReturn } from '../hooks/useUserLibrary';
+import type { SampleItem } from '../types/userLibrary';
+import type { ReactCodeMirrorRef } from '@uiw/react-codemirror';
+
+/** Configuration for CodeMirror basic setup */
+const CODE_MIRROR_SETUP = {
+    lineNumbers: true,
+    highlightActiveLineGutter: true,
+    highlightActiveLine: true,
+    foldGutter: false,
+    drawSelection: true,
+    dropCursor: true,
+    allowMultipleSelections: true,
+    indentOnInput: true,
+    bracketMatching: true,
+    closeBrackets: true,
+    autocompletion: true,
+    rectangularSelection: true,
+    crosshairCursor: false,
+    highlightSelectionMatches: false,
+    syntaxHighlighting: true
+} as const;
 
 // Expose Strudel functions globally for the REPL
 Object.assign(window, Strudel, { samples, initHydra, H });
-
-// Transparent glassmorphic theme for CodeMirror
-const transparentTheme = EditorView.theme({
-  '&': {
-    backgroundColor: 'transparent !important',
-    height: '100%'
-  },
-  '.cm-scroller': {
-    backgroundColor: 'transparent !important',
-    fontFamily: 'JetBrains Mono, Fira Code, SF Mono, Consolas, Monaco, monospace',
-    fontSize: '14px',
-    lineHeight: '1.6',
-    scrollbarWidth: 'thin',
-    scrollbarColor: 'rgba(255, 255, 255, 0.1) transparent',
-  },
-  '.cm-scroller::-webkit-scrollbar': {
-    width: '8px',
-    height: '8px'
-  },
-  '.cm-scroller::-webkit-scrollbar-track': {
-    background: 'transparent'
-  },
-  '.cm-scroller::-webkit-scrollbar-thumb': {
-    backgroundColor: 'rgba(255, 255, 255, 0.1)',
-    borderRadius: '4px',
-    border: '2px solid transparent',
-    backgroundClip: 'padding-box'
-  },
-  '.cm-scroller::-webkit-scrollbar-thumb:hover': {
-    backgroundColor: 'rgba(255, 255, 255, 0.15)'
-  },
-  '.cm-gutters': {
-    backgroundColor: 'transparent !important',
-    backdropFilter: 'blur(8px)',
-    WebkitBackdropFilter: 'blur(8px)',
-    border: 'none',
-    borderRight: '1px solid rgba(71, 85, 105, 0.3)'
-  },
-  '.cm-gutter, .cm-lineNumbers': {
-    backgroundColor: 'rgba(15, 23, 42, 0.15) !important',
-    color: 'rgba(255, 255, 255, 0.65) !important'
-  },
-  '.cm-gutterElement': {
-    color: 'rgba(255, 255, 255, 0.65) !important'
-  },
-  '.cm-activeLineGutter': {
-    backgroundColor: 'rgba(255, 255, 255, 0.2) !important',
-    borderRadius: '2px'
-  },
-  '.cm-activeLine': {
-    backgroundColor: 'rgba(255, 255, 255, 0.05)'
-  },
-  '.cm-content': {
-    caretColor: '#ffffff',
-    color: 'rgba(255, 255, 255, 0.95)',
-    padding: '8px 0'
-  },
-  '.cm-line': {
-    color: 'rgba(255, 255, 255, 0.95) !important'
-  },
-  '.cm-cursor': {
-    borderLeftColor: '#ffffff'
-  },
-  '.cm-selectionBackground, &.cm-focused .cm-selectionBackground': {
-    backgroundColor: 'rgba(255, 255, 255, 0.2) !important'
-  }
-});
 
 const defaultCode = `// Initialize Hydra
 await initHydra({
@@ -86,13 +47,26 @@ await initHydra({
   height: window.innerHeight
 })
 
-// Audio-reactive kaleidoscope (Algorithmic Minimalism)
-osc(3.762, () => (a.fft[3] * 0.05) + 0.01, -3.794)
-    .rotate()
-    .kaleid()
-    .colorama(() => a.fft[0] / 1e4)
-    .pixelate(128)
-    .out();
+// Audio-reactive feedback loop with noise modulation
+src(o0)
+ .saturate(1.01)
+ .scale(0.99)
+ .color(1.01,1.01,1.01)
+ .hue(() => a.fft[3])
+ .modulateHue(src(o1).hue(.3).posterize(-1).contrast(.7),2)
+  .layer(src(o1)
+         .luma()
+         .mult(gradient(1)
+               .saturate(.9)))
+  .out(o0)
+
+noise(1, .2)
+  .rotate(2,.5)
+  .layer(src(o0)
+  .scrollX(.2))
+  .out(o1)
+
+render(o0)
 
 // Audio pattern
 s("bd sd, hh*4")`;
@@ -100,15 +74,113 @@ s("bd sd, hh*4")`;
 type Props = {
     className?: string;
     engineReady: boolean;
-    onTestPattern?: () => void;
     onHalt?: () => void;
     onExecute?: () => void;
     onSave?: (code: string) => void;
     statusLabel?: string;
+    soundBrowser: UseSoundBrowserReturn;
+    userLibrary: UseUserLibraryReturn;
+    panelState: UsePanelExclusivityReturn;
 };
 
-export const StrudelRepl = ({ className, engineReady, onTestPattern, onHalt, onExecute, onSave, statusLabel }: Props): JSX.Element => {
+/* eslint-disable max-lines-per-function */
+export const StrudelRepl = ({ className, engineReady, onHalt, onExecute, onSave, statusLabel, soundBrowser, userLibrary, panelState }: Props): JSX.Element => {
     const [code, setCode] = useState(defaultCode);
+    const [userLibraryPlaying, setUserLibraryPlaying] = useState<string | null>(null);
+
+    // Ref for CodeMirror editor to enable text insertion
+    const editorRef = useRef<ReactCodeMirrorRef>(null);
+
+    /**
+     * Insert text at current cursor position in the editor
+     */
+    const insertTextAtCursor = useCallback((text: string): void => {
+      const view = editorRef.current?.view;
+
+      if (!view) {
+        console.warn('Cannot insert: editor view not available');
+        return;
+      }
+
+      // Get current cursor position
+      const cursorPos = view.state.selection.main.head;
+
+      // Insert text at cursor
+      view.dispatch({
+        changes: {
+          from: cursorPos,
+          insert: text
+        },
+        selection: {
+          anchor: cursorPos + text.length  // Move cursor to end of inserted text
+        }
+      });
+
+      // Focus editor after insertion
+      view.focus();
+    }, []);
+
+    /**
+     * Handle sample insertion from sound browser
+     * Formats as Strudel pattern string: s("category:index")
+     */
+    const handleSampleInsert = useCallback((categoryName: string, index: number): void => {
+      const patternString = `s("${categoryName}:${index}")`;
+      insertTextAtCursor(patternString);
+    }, [insertTextAtCursor]);
+
+    /**
+     * Handle user library sample preview
+     * Uses Web Audio API directly for independent playback.
+     * For local samples, blob URLs are created lazily on-demand.
+     */
+    const handleUserLibraryPreview = useCallback((item: SampleItem): void => {
+      if (item.type !== 'sample') return;
+
+      // Stop any currently playing preview
+      setUserLibraryPlaying(item.id);
+
+      // Get sample URL (async for local files, sync for CDN)
+      void (async (): Promise<void> => {
+        const url = await userLibrary.getSampleUrl(item);
+        if (!url) {
+          setUserLibraryPlaying(null);
+          return;
+        }
+
+        // Simple Web Audio playback
+        const audio = new Audio(url);
+        audio.volume = 0.7;
+        audio.onended = (): void => setUserLibraryPlaying(null);
+        audio.onerror = (): void => setUserLibraryPlaying(null);
+        void audio.play();
+      })();
+    }, [userLibrary]);
+
+    /**
+     * Handle user library sample insertion
+     * Inserts s("sampleName") pattern at cursor
+     */
+    const handleUserLibraryInsert = useCallback((item: SampleItem): void => {
+      if (item.type !== 'sample') return;
+
+      // Use filename without extension
+      const sampleName = item.name.replace(/\.[^.]+$/, '');
+      const patternString = `s("${sampleName}")`;
+      insertTextAtCursor(patternString);
+    }, [insertTextAtCursor]);
+
+    // Keyboard navigation: Escape to stop preview
+    useEffect(() => {
+        const handleKeyDown = (e: KeyboardEvent): void => {
+            if (e.key === 'Escape' && soundBrowser.isOpen) {
+                soundBrowser.stopPreview();
+            }
+        };
+
+        window.addEventListener('keydown', handleKeyDown);
+        return () => window.removeEventListener('keydown', handleKeyDown);
+    }, [soundBrowser]);
 
     const runCode = async (): Promise<void> => {
         if (!engineReady) {
@@ -154,38 +226,34 @@ export const StrudelRepl = ({ className, engineReady, onTestPattern, onHalt, onE
                     <Button onClick={stopCode} variant="secondary" size="sm">
                         Halt ■
                     </Button>
-                    {onTestPattern && (
-                        <Button onClick={onTestPattern} disabled={!engineReady} variant="secondary" size="sm">
-                            Test
-                        </Button>
-                    )}
+                    <Button
+                        onClick={soundBrowser.toggle}
+                        disabled={!engineReady}
+                        variant={soundBrowser.isOpen ? 'primary' : 'secondary'}
+                        size="sm"
+                        title="Sound Browser - Browse and preview Strudel samples"
+                    >
+                        <Music size={14} />
+                    </Button>
+                    <Button
+                        onClick={panelState.toggleUserLibrary}
+                        variant={panelState.isUserLibraryOpen ? 'primary' : 'secondary'}
+                        size="sm"
+                        title="User Library - Browse and use your own samples"
+                    >
+                        <AudioWaveform size={14} />
+                    </Button>
                 </div>
             </div>
             <div className="flex-1 overflow-hidden relative min-h-0">
                 <CodeMirror
+                    ref={editorRef}
                     value={code}
                     height="100%"
-                    theme="dark"
-                    extensions={[javascript(), transparentTheme]}
+                    extensions={[javascript(), transparentEditorTheme, basiliskSyntaxTheme]}
                     onChange={(val) => setCode(val)}
                     className="h-full font-mono"
-                    basicSetup={{
-                        lineNumbers: true,
-                        highlightActiveLineGutter: true,
-                        highlightActiveLine: true,
-                        foldGutter: false,
-                        drawSelection: true,
-                        dropCursor: true,
-                        allowMultipleSelections: true,
-                        indentOnInput: true,
-                        bracketMatching: true,
-                        closeBrackets: true,
-                        autocompletion: true,
-                        rectangularSelection: true,
-                        crosshairCursor: false,
-                        highlightSelectionMatches: false,
-                        syntaxHighlighting: true
-                    }}
+                    basicSetup={CODE_MIRROR_SETUP}
                     onKeyDown={(e) => {
                         // Shift+Enter to execute code
                         if (e.shiftKey && e.key === 'Enter') {
@@ -205,6 +273,38 @@ export const StrudelRepl = ({ className, engineReady, onTestPattern, onHalt, onE
                     }}
                 />
             </div>
+            {soundBrowser.isOpen && (
+                <div className="flex-1 min-h-[300px] flex flex-col overflow-hidden">
+                    <SoundBrowserTray
+                        categories={soundBrowser.filteredCategories}
+                        groups={soundBrowser.groups}
+                        selectedGroup={soundBrowser.selectedGroup}
+                        onSelectGroup={soundBrowser.setSelectedGroup}
+                        searchQuery={soundBrowser.searchQuery}
+                        onSearchChange={soundBrowser.setSearchQuery}
+                        selectedCategory={soundBrowser.selectedCategory}
+                        onSelectCategory={soundBrowser.setSelectedCategory}
+                        currentlyPlaying={soundBrowser.currentlyPlaying}
+                        onPreviewSample={soundBrowser.previewSample}
+                        onStopPreview={soundBrowser.stopPreview}
+                        isLoading={soundBrowser.isLoading}
+                        error={soundBrowser.error}
+                        canPreview={soundBrowser.canPreview}
+                        onInsertSample={handleSampleInsert}
+                    />
+                </div>
+            )}
+            {userLibrary.isOpen && (
+                <div className="flex-1 min-h-[300px] flex flex-col overflow-hidden">
+                    <UserLibraryTray
+                        library={userLibrary}
+                        currentlyPlaying={userLibraryPlaying}
+                        onPreview={handleUserLibraryPreview}
+                        onInsert={handleUserLibraryInsert}
+                    />
+                </div>
+            )}
         </div>
     );
-}
+};
+/* eslint-enable max-lines-per-function */

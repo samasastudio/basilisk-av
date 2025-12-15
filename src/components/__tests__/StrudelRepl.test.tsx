@@ -46,14 +46,95 @@ vi.mock('../../services/strudelEngine', () => ({
   hushAudio: vi.fn()
 }));
 
+// Mock lucide-react icons
+vi.mock('lucide-react', () => ({
+  AudioWaveform: () => <span>AudioWaveform Icon</span>,
+  Music: () => <span>Music Icon</span>,
+  Disc3: () => <span>Disc3 Icon</span>,
+  Waves: () => <span>Waves Icon</span>,
+  CircleDot: () => <span>CircleDot Icon</span>,
+  Drum: () => <span>Drum Icon</span>,
+  Sparkles: () => <span>Sparkles Icon</span>,
+  Radio: () => <span>Radio Icon</span>,
+  Piano: () => <span>Piano Icon</span>,
+  Mic: () => <span>Mic Icon</span>,
+  Wand2: () => <span>Wand2 Icon</span>,
+  Leaf: () => <span>Leaf Icon</span>,
+  Factory: () => <span>Factory Icon</span>,
+  FolderOpen: () => <span>FolderOpen Icon</span>
+}));
+
 describe('StrudelRepl', () => {
+  const mockSoundBrowser = {
+    isOpen: false,
+    open: vi.fn(),
+    toggle: vi.fn(),
+    close: vi.fn(),
+    categories: [],
+    filteredCategories: [],
+    isLoading: false,
+    error: null,
+    groups: [],
+    selectedGroup: 'all',
+    setSelectedGroup: vi.fn(),
+    searchQuery: '',
+    setSearchQuery: vi.fn(),
+    selectedCategory: null,
+    setSelectedCategory: vi.fn(),
+    previewSample: vi.fn(),
+    stopPreview: vi.fn(),
+    currentlyPlaying: null,
+    canPreview: true
+  };
+
+  const mockPanelState = {
+    activePanel: 'none' as const,
+    openSoundBrowser: vi.fn(),
+    openUserLibrary: vi.fn(),
+    closePanel: vi.fn(),
+    toggleSoundBrowser: vi.fn(),
+    toggleUserLibrary: vi.fn(),
+    isSoundBrowserOpen: false,
+    isUserLibraryOpen: false
+  };
+
+  const mockUserLibrary = {
+    isOpen: false,
+    open: vi.fn(),
+    close: vi.fn(),
+    toggle: vi.fn(),
+    source: null,
+    setSource: vi.fn(),
+    sourceName: null,
+    items: [],
+    flatItems: [],
+    isLoading: false,
+    error: null,
+    isFileSystemSupported: true,
+    linkLocalDirectory: vi.fn(),
+    cdnUrl: null,
+    linkCDN: vi.fn(),
+    unlinkSource: vi.fn(),
+    expandedPaths: new Set<string>(),
+    toggleExpanded: vi.fn(),
+    expandAll: vi.fn(),
+    collapseAll: vi.fn(),
+    searchQuery: '',
+    setSearchQuery: vi.fn(),
+    filteredItems: [],
+    isRegistered: false,
+    registeredCount: 0
+  };
+
   const defaultProps = {
     engineReady: true,
-    onTestPattern: vi.fn(),
     onHalt: vi.fn(),
     onExecute: vi.fn(),
     onSave: vi.fn(),
-    statusLabel: 'ready'
+    statusLabel: 'ready',
+    soundBrowser: mockSoundBrowser,
+    userLibrary: mockUserLibrary,
+    panelState: mockPanelState
   };
 
   it('renders the editor', () => {
@@ -98,6 +179,9 @@ describe('StrudelRepl', () => {
       <StrudelRepl
         engineReady={true}
         statusLabel="ready"
+        soundBrowser={mockSoundBrowser}
+        userLibrary={mockUserLibrary}
+        panelState={mockPanelState}
       />
     );
 
@@ -133,17 +217,22 @@ describe('StrudelRepl', () => {
     expect(screen.getByText(/Halt/i)).toBeInTheDocument();
   });
 
-  it('renders Test button when onTestPattern is provided', () => {
-    render(<StrudelRepl {...defaultProps} onTestPattern={vi.fn()} />);
-    expect(screen.getByText(/Test/i)).toBeInTheDocument();
+  it('renders Sounds browser toggle button', () => {
+    render(<StrudelRepl {...defaultProps} />);
+    // The Music icon button (3rd button after Execute and Halt)
+    const buttons = screen.getAllByRole('button');
+    // Should have Execute, Halt, and Sounds buttons
+    expect(buttons.length).toBeGreaterThanOrEqual(3);
+    const soundsButton = buttons.find(btn => btn.textContent?.includes('Music Icon'));
+    expect(soundsButton).toBeDefined();
   });
 
-  it('does not render Test button when onTestPattern is not provided', () => {
-    const props = { ...defaultProps };
-    delete (props as Partial<typeof props>).onTestPattern;
-
-    render(<StrudelRepl {...props} />);
-    expect(screen.queryByText(/Test/i)).not.toBeInTheDocument();
+  it('Sounds button is disabled when engine is not ready', () => {
+    render(<StrudelRepl {...defaultProps} engineReady={false} />);
+    const buttons = screen.getAllByRole('button');
+    const soundsButton = buttons.find(btn => btn.textContent?.includes('Music Icon'));
+    expect(soundsButton).toBeDefined();
+    expect(soundsButton).toBeDisabled();
   });
 
   it('displays status label', () => {

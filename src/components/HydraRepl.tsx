@@ -3,6 +3,7 @@ import CodeMirror from '@uiw/react-codemirror';
 import { Play } from 'lucide-react';
 import React, { useState, useCallback } from 'react';
 
+import { basiliskSyntaxTheme } from '../config/editorTheme';
 import { DEFAULT_CODE, presetMap } from '../constants/hydraPresets';
 import { getBridgeInstance } from '../services/audioBridge';
 
@@ -125,8 +126,7 @@ export const HydraRepl = ({ className, onExecute, initialCode = DEFAULT_CODE, on
                 <CodeMirror
                     value={code}
                     height="100%"
-                    theme="dark"
-                    extensions={[javascript()]}
+                    extensions={[javascript(), basiliskSyntaxTheme]}
                     onChange={(val) => setCode(val)}
                     className="h-full text-sm font-mono"
                     basicSetup={{
