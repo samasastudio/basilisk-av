@@ -15,6 +15,15 @@ import { SourceSelector } from './SourceSelector';
 import type { UseUserLibraryReturn } from '../../hooks/useUserLibrary';
 import type { SampleItem } from '../../types/userLibrary';
 
+/** Safely extract hostname from URL, returns null if invalid */
+const getHostname = (url: string): string | null => {
+  try {
+    return new URL(url).hostname;
+  } catch {
+    return null;
+  }
+};
+
 const iconBtnClass = 'p-1 text-basilisk-gray-400 hover:text-basilisk-gray-200 transition-colors';
 
 /** Header action buttons when source is linked */
@@ -80,7 +89,7 @@ export const UserLibraryTray = ({ library, currentlyPlaying, onPreview, onInsert
 
       <div className="flex items-center justify-between gap-2 py-1">
         <SourceSelector source={library.source} onSelectSource={library.setSource} isFileSystemSupported={library.isFileSystemSupported} />
-        {hasSource && library.sourceName ? <span className="text-[10px] text-basilisk-gray-500 truncate max-w-[150px]" title={library.sourceName}>{library.source === 'local' ? library.sourceName : new URL(library.sourceName).hostname}</span> : null}
+        {hasSource && library.sourceName ? <span className="text-[10px] text-basilisk-gray-500 truncate max-w-[150px]" title={library.sourceName}>{library.source === 'local' ? library.sourceName : (getHostname(library.sourceName) ?? library.sourceName)}</span> : null}
       </div>
 
       {hasSource ? <SampleSearch value={library.searchQuery} onChange={library.setSearchQuery} placeholder="Search samples..." /> : null}

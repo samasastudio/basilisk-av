@@ -33,16 +33,28 @@ export const registerSample = async (name: string, url: string): Promise<void> =
   }
 };
 
+/** Options for registering samples */
+export interface RegisterSamplesOptions {
+  /** Function to get URL for a sample (for lazy loading local files) */
+  getUrl?: (item: SampleItem) => Promise<string | null>;
+}
+
 /**
  * Register multiple samples with Strudel
  *
  * @param items - Sample items to register (can include directories)
+ * @param options - Optional configuration including URL getter for lazy loading
  * @returns Object with success count and any errors
  */
-export const registerSamples = async (items: SampleItem[]): Promise<{
+export const registerSamples = async (
+  items: SampleItem[],
+  options: RegisterSamplesOptions = {}
+): Promise<{
   registered: number;
   errors: string[];
 }> => {
+  const { getUrl } = options;
+
   // Strudel expects arrays of URLs per sample name
   const { samples } = window as unknown as { samples?: (config: Record<string, string[]>) => Promise<void> };
 
@@ -60,7 +72,13 @@ export const registerSamples = async (items: SampleItem[]): Promise<{
   const errors: string[] = [];
 
   for (const item of sampleList) {
-    if (!item.url) {
+    // Get URL - either from item directly or via the getUrl function (for lazy loading)
+    let url = item.url;
+    if (!url && getUrl) {
+      url = await getUrl(item) ?? undefined;
+    }
+
+    if (!url) {
       errors.push(`Sample "${item.name}" has no URL`);
       continue;
     }
@@ -70,12 +88,11 @@ export const registerSamples = async (items: SampleItem[]): Promise<{
     // Check for naming conflicts - add to array if exists
     if (sampleMap[name]) {
       // Add additional URL to existing sample name
-      sampleMap[name].push(item.url);
-      console.info(`Sample "${name}" has multiple sources, accessible as ${name}:0, ${name}:1, etc.`);
+      sampleMap[name].push(url);
     } else {
       // Strudel expects arrays of URLs
-      sampleMap[name] = [item.url];
-      urlMap[name] = item.url;
+      sampleMap[name] = [url];
+      urlMap[name] = url;
     }
   }
 
@@ -87,8 +104,6 @@ export const registerSamples = async (items: SampleItem[]): Promise<{
     for (const [name, url] of Object.entries(urlMap)) {
       registeredSamples.set(name, url);
     }
-
-    console.info(`[UserSampleRegistry] Registered ${Object.keys(sampleMap).length} samples with Strudel`);
 
     return {
       registered: Object.keys(sampleMap).length,

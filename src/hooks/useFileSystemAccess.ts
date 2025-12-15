@@ -1,9 +1,12 @@
 /**
  * Hook for accessing the File System Access API
  * Provides directory picking and file reading capabilities for local samples
+ *
+ * Uses lazy blob URL creation to minimize memory usage - URLs are created
+ * on-demand when samples are previewed rather than upfront during scan.
  */
 
-import { useState, useCallback } from 'react';
+import { useState, useCallback, useRef } from 'react';
 
 import { isAudioFile, getAudioFormat } from '../types/userLibrary';
 
@@ -38,6 +41,10 @@ export interface UseFileSystemAccessReturn {
   unlinkDirectory: () => void;
   /** Get a file from the directory by path */
   getFile: (path: string) => Promise<File | null>;
+  /** Get or create a blob URL for a sample (lazy loading) */
+  getBlobUrl: (path: string) => Promise<string | null>;
+  /** Revoke a specific blob URL when no longer needed */
+  revokeBlobUrl: (path: string) => void;
 }
 
 /**
@@ -60,7 +67,8 @@ const sortItems = (items: SampleItem[]): SampleItem[] =>
   });
 
 /**
- * Recursively scan a directory and build the sample tree
+ * Recursively scan a directory and build the sample tree.
+ * Does NOT create blob URLs upfront - those are created lazily on-demand.
  */
 const scanDirectory = async (
   handle: FileSystemDirectoryHandle,
@@ -86,17 +94,14 @@ const scanDirectory = async (
         });
       }
     } else if (isAudioFile(entry.name)) {
-      const fileHandle = await handle.getFileHandle(entry.name);
-      const file = await fileHandle.getFile();
-      const blobUrl = URL.createObjectURL(file);
-
+      // Don't create blob URL here - it will be created lazily when needed
       items.push({
         id: itemPath,
         name: entry.name,
         type: 'sample',
         path: itemPath,
-        format: getAudioFormat(entry.name),
-        url: blobUrl
+        format: getAudioFormat(entry.name)
+        // url is intentionally omitted - will be created on-demand via getBlobUrl
       });
     }
   }
@@ -124,6 +129,9 @@ export const useFileSystemAccess = (): UseFileSystemAccessReturn => {
   const [items, setItems] = useState<SampleItem[]>([]);
   const [isLoading, setIsLoading] = useState(false);
   const [error, setError] = useState<string | null>(null);
+
+  // Cache for lazily-created blob URLs: path -> blobUrl
+  const blobUrlCache = useRef<Map<string, string>>(new Map());
 
   const isSupported = isFileSystemAccessSupported();
 
@@ -172,27 +180,20 @@ export const useFileSystemAccess = (): UseFileSystemAccessReturn => {
   }, [isSupported]);
 
   /**
-   * Clear the linked directory and revoke blob URLs
+   * Clear the linked directory and revoke all cached blob URLs
    */
   const unlinkDirectory = useCallback((): void => {
-    // Revoke all blob URLs to free memory
-    const revokeUrls = (itemList: SampleItem[]): void => {
-      for (const item of itemList) {
-        if (item.type === 'sample' && item.url?.startsWith('blob:')) {
-          URL.revokeObjectURL(item.url);
-        } else if (item.children) {
-          revokeUrls(item.children);
-        }
-      }
-    };
-
-    revokeUrls(items);
+    // Revoke all cached blob URLs to free memory
+    for (const blobUrl of blobUrlCache.current.values()) {
+      URL.revokeObjectURL(blobUrl);
+    }
+    blobUrlCache.current.clear();
 
     setDirectoryHandle(null);
     setDirectoryName(null);
     setItems([]);
     setError(null);
-  }, [items]);
+  }, []);
 
   /**
    * Get a file from the directory by relative path
@@ -221,6 +222,40 @@ export const useFileSystemAccess = (): UseFileSystemAccessReturn => {
     }
   }, [directoryHandle]);
 
+  /**
+   * Get or create a blob URL for a sample (lazy loading).
+   * Returns cached URL if available, otherwise creates a new one.
+   */
+  const getBlobUrl = useCallback(async (path: string): Promise<string | null> => {
+    // Return cached URL if available
+    const cached = blobUrlCache.current.get(path);
+    if (cached) {
+      return cached;
+    }
+
+    // Get the file and create a blob URL
+    const file = await getFile(path);
+    if (!file) {
+      return null;
+    }
+
+    const blobUrl = URL.createObjectURL(file);
+    blobUrlCache.current.set(path, blobUrl);
+    return blobUrl;
+  }, [getFile]);
+
+  /**
+   * Revoke a specific blob URL when no longer needed.
+   * Useful for cleaning up after preview playback ends.
+   */
+  const revokeBlobUrl = useCallback((path: string): void => {
+    const blobUrl = blobUrlCache.current.get(path);
+    if (blobUrl) {
+      URL.revokeObjectURL(blobUrl);
+      blobUrlCache.current.delete(path);
+    }
+  }, []);
+
   return {
     isSupported,
     directoryHandle,
@@ -230,6 +265,8 @@ export const useFileSystemAccess = (): UseFileSystemAccessReturn => {
     error,
     linkDirectory,
     unlinkDirectory,
-    getFile
+    getFile,
+    getBlobUrl,
+    revokeBlobUrl
   };
 };

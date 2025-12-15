@@ -54,7 +54,7 @@ export const DirectoryItem = ({
       } else {
         onInsert();
       }
-    } else if (e.key === ' ' && !isDirectory) {
+    } else if (e.key === ' ' && !isDirectory && !e.ctrlKey && !e.shiftKey && !e.altKey && !e.metaKey) {
       e.preventDefault();
       onPreview();
     }

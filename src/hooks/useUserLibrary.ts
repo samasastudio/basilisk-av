@@ -58,6 +58,10 @@ export interface UseUserLibraryReturn {
   // Registration status
   isRegistered: boolean;
   registeredCount: number;
+
+  // Lazy blob URL loading (for local files)
+  /** Get or create a blob URL for a local sample. Returns the URL directly for CDN samples. */
+  getSampleUrl: (item: SampleItem) => Promise<string | null>;
 }
 
 const STORAGE_KEY_SOURCE = 'basilisk-user-library-source';
@@ -227,6 +231,27 @@ export const useUserLibrary = (options: UseUserLibraryOptions = {}): UseUserLibr
 
   const filteredItems = useMemo(() => searchQuery.trim() ? filterItems(items, searchQuery) : items, [items, searchQuery]);
 
+  /**
+   * Get the URL for a sample (lazy loading for local files).
+   * For CDN samples, returns the URL directly.
+   * For local samples, creates a blob URL on-demand.
+   */
+  const getSampleUrl = useCallback(async (item: SampleItem): Promise<string | null> => {
+    if (item.type !== 'sample') return null;
+
+    // CDN samples already have URLs
+    if (source === 'cdn' && item.url) {
+      return item.url;
+    }
+
+    // Local samples need lazy blob URL creation
+    if (source === 'local') {
+      return fileSystem.getBlobUrl(item.path);
+    }
+
+    return null;
+  }, [source, fileSystem]);
+
   // Auto-register samples when items change OR when engine becomes ready
   // Samples must be registered after the audio engine starts for Strudel to find them
   useEffect(() => {
@@ -244,7 +269,12 @@ export const useUserLibrary = (options: UseUserLibraryOptions = {}): UseUserLibr
       }
 
       try {
-        const result = await UserSampleRegistry.registerSamples(items);
+        // For local files, provide a URL getter since URLs are created lazily
+        const getUrl = source === 'local'
+          ? async (item: SampleItem): Promise<string | null> => fileSystem.getBlobUrl(item.path)
+          : undefined;
+
+        const result = await UserSampleRegistry.registerSamples(items, { getUrl });
         setIsRegistered(true);
         setRegisteredCount(result.registered);
 
@@ -258,7 +288,7 @@ export const useUserLibrary = (options: UseUserLibraryOptions = {}): UseUserLibr
     };
 
     registerAllSamples();
-  }, [items, engineReady]);
+  }, [items, engineReady, source, fileSystem]);
 
   return {
     // Panel visibility
@@ -302,6 +332,9 @@ export const useUserLibrary = (options: UseUserLibraryOptions = {}): UseUserLibr
 
     // Registration
     isRegistered,
-    registeredCount
+    registeredCount,
+
+    // Lazy blob URL loading
+    getSampleUrl
   };
 };

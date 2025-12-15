@@ -72,8 +72,12 @@ const createDirectoryItem = (path: string, name: string, children: SampleItem[] 
   children
 });
 
+/** Map to track child maps for directories during tree building */
+const directoryChildMaps = new WeakMap<SampleItem, Map<string, SampleItem>>();
+
 /**
- * Process a directory part in path building
+ * Process a directory part in path building.
+ * Returns a map for the directory's children to enable efficient lookups.
  */
 const processDirectoryPart = (
   currentLevel: Map<string, SampleItem>,
@@ -89,13 +93,17 @@ const processDirectoryPart = (
 
   dirItem.children ??= [];
 
-  // Convert children array to map for easier manipulation
-  const childMap = new Map<string, SampleItem>();
-  for (const child of dirItem.children) {
-    childMap.set(child.name, child);
+  // Get or create the child map for this directory
+  let childMap = directoryChildMaps.get(dirItem);
+  if (!childMap) {
+    childMap = new Map<string, SampleItem>();
+    for (const child of dirItem.children) {
+      childMap.set(child.name, child);
+    }
+    directoryChildMaps.set(dirItem, childMap);
   }
 
-  // Update children from map
+  // Keep children array in sync with the map
   dirItem.children = [...childMap.values()];
 
   return childMap;
@@ -217,12 +225,12 @@ export const useCDNSamples = (): UseCDNSamplesReturn => {
       // Build the sample tree
       let sampleItems: SampleItem[];
 
-      if (manifest.samples && Array.isArray(manifest.samples)) {
-        // Simple flat list
-        sampleItems = buildTreeFromPaths(normalizedUrl, manifest.samples);
-      } else if (manifest.directories) {
-        // Nested structure
+      if (manifest.directories) {
+        // Has nested structure - use manifest builder (handles both root samples and directories)
         sampleItems = buildTreeFromManifest(normalizedUrl, manifest);
+      } else if (manifest.samples && Array.isArray(manifest.samples)) {
+        // Simple flat list only
+        sampleItems = buildTreeFromPaths(normalizedUrl, manifest.samples);
       } else {
         throw new Error('Invalid manifest format: expected "samples" array or "directories" object');
       }

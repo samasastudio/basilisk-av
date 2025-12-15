@@ -131,21 +131,31 @@ export const StrudelRepl = ({ className, engineReady, onHalt, onExecute, onSave,
 
     /**
      * Handle user library sample preview
-     * Uses Web Audio API directly for independent playback
+     * Uses Web Audio API directly for independent playback.
+     * For local samples, blob URLs are created lazily on-demand.
      */
     const handleUserLibraryPreview = useCallback((item: SampleItem): void => {
-      if (item.type !== 'sample' || !item.url) return;
+      if (item.type !== 'sample') return;
 
       // Stop any currently playing preview
       setUserLibraryPlaying(item.id);
 
-      // Simple Web Audio playback (will be enhanced with dedicated service later)
-      const audio = new Audio(item.url);
-      audio.volume = 0.7;
-      audio.onended = (): void => setUserLibraryPlaying(null);
-      audio.onerror = (): void => setUserLibraryPlaying(null);
-      void audio.play();
-    }, []);
+      // Get sample URL (async for local files, sync for CDN)
+      void (async (): Promise<void> => {
+        const url = await userLibrary.getSampleUrl(item);
+        if (!url) {
+          setUserLibraryPlaying(null);
+          return;
+        }
+
+        // Simple Web Audio playback
+        const audio = new Audio(url);
+        audio.volume = 0.7;
+        audio.onended = (): void => setUserLibraryPlaying(null);
+        audio.onerror = (): void => setUserLibraryPlaying(null);
+        void audio.play();
+      })();
+    }, [userLibrary]);
 
     /**
      * Handle user library sample insertion
