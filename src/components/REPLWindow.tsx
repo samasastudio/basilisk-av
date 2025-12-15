@@ -2,8 +2,10 @@ import { useRef } from 'react';
 import { Rnd } from 'react-rnd';
 
 import { useClickAway } from '../hooks/useClickAway';
+import { usePanelExclusivity } from '../hooks/usePanelExclusivity';
 import { useREPLWindow } from '../hooks/useREPLWindow';
 import { useSoundBrowser } from '../hooks/useSoundBrowser';
+import { useUserLibrary } from '../hooks/useUserLibrary';
 
 import { StrudelRepl } from './StrudelRepl';
 
@@ -29,8 +31,18 @@ export const REPLWindow = ({
   onExecute,
   onSave
 }: Props): JSX.Element => {
-  // Sound browser state (lifted up from StrudelRepl)
-  const soundBrowser = useSoundBrowser(engineReady);
+  // Panel exclusivity state (manages which panel is open)
+  const panelState = usePanelExclusivity();
+
+  // Sound browser state (uses panel exclusivity for visibility)
+  const soundBrowser = useSoundBrowser(engineReady, panelState);
+
+  // User library state (uses panel exclusivity for visibility)
+  // Pass engineReady so samples are registered when audio engine starts
+  const userLibrary = useUserLibrary({ panelState, engineReady });
+
+  // Check if any panel is open (for window sizing and click-away)
+  const isAnyPanelOpen = panelState.activePanel !== 'none';
 
   const {
     position,
@@ -38,13 +50,13 @@ export const REPLWindow = ({
     bounds,
     handleDragStop,
     handleResizeStop
-  } = useREPLWindow(soundBrowser.isOpen);
+  } = useREPLWindow(isAnyPanelOpen);
 
   // Ref for click-away detection
   const replContainerRef = useRef<HTMLDivElement>(null);
 
-  // Close sound browser when clicking outside REPL
-  useClickAway(replContainerRef, soundBrowser.close, soundBrowser.isOpen);
+  // Close active panel when clicking outside REPL
+  useClickAway(replContainerRef, panelState.closePanel, isAnyPanelOpen);
 
   return (
     <Rnd
@@ -71,6 +83,8 @@ export const REPLWindow = ({
           onSave={onSave}
           statusLabel={engineReady ? 'ready' : 'stopped'}
           soundBrowser={soundBrowser}
+          userLibrary={userLibrary}
+          panelState={panelState}
         />
       </div>
     </Rnd>

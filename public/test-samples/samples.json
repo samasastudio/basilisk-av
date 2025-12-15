@@ -1,0 +1,13 @@
+{
+  "samples": [
+    "GR08_09_PERC_B.wav",
+    "sb00.wav",
+    "sp00.wav",
+    "ss00.wav"
+  ],
+  "directories": {
+    "drums": {
+      "samples": ["sd00.wav"]
+    }
+  }
+}

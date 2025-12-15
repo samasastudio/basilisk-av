@@ -48,6 +48,7 @@ vi.mock('../../services/strudelEngine', () => ({
 
 // Mock lucide-react icons
 vi.mock('lucide-react', () => ({
+  AudioWaveform: () => <span>AudioWaveform Icon</span>,
   Music: () => <span>Music Icon</span>,
   Disc3: () => <span>Disc3 Icon</span>,
   Waves: () => <span>Waves Icon</span>,
@@ -82,7 +83,47 @@ describe('StrudelRepl', () => {
     setSelectedCategory: vi.fn(),
     previewSample: vi.fn(),
     stopPreview: vi.fn(),
-    currentlyPlaying: null
+    currentlyPlaying: null,
+    canPreview: true
+  };
+
+  const mockPanelState = {
+    activePanel: 'none' as const,
+    openSoundBrowser: vi.fn(),
+    openUserLibrary: vi.fn(),
+    closePanel: vi.fn(),
+    toggleSoundBrowser: vi.fn(),
+    toggleUserLibrary: vi.fn(),
+    isSoundBrowserOpen: false,
+    isUserLibraryOpen: false
+  };
+
+  const mockUserLibrary = {
+    isOpen: false,
+    open: vi.fn(),
+    close: vi.fn(),
+    toggle: vi.fn(),
+    source: null,
+    setSource: vi.fn(),
+    sourceName: null,
+    items: [],
+    flatItems: [],
+    isLoading: false,
+    error: null,
+    isFileSystemSupported: true,
+    linkLocalDirectory: vi.fn(),
+    cdnUrl: null,
+    linkCDN: vi.fn(),
+    unlinkSource: vi.fn(),
+    expandedPaths: new Set<string>(),
+    toggleExpanded: vi.fn(),
+    expandAll: vi.fn(),
+    collapseAll: vi.fn(),
+    searchQuery: '',
+    setSearchQuery: vi.fn(),
+    filteredItems: [],
+    isRegistered: false,
+    registeredCount: 0
   };
 
   const defaultProps = {
@@ -91,7 +132,9 @@ describe('StrudelRepl', () => {
     onExecute: vi.fn(),
     onSave: vi.fn(),
     statusLabel: 'ready',
-    soundBrowser: mockSoundBrowser
+    soundBrowser: mockSoundBrowser,
+    userLibrary: mockUserLibrary,
+    panelState: mockPanelState
   };
 
   it('renders the editor', () => {
@@ -137,6 +180,8 @@ describe('StrudelRepl', () => {
         engineReady={true}
         statusLabel="ready"
         soundBrowser={mockSoundBrowser}
+        userLibrary={mockUserLibrary}
+        panelState={mockPanelState}
       />
     );
 

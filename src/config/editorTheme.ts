@@ -4,6 +4,7 @@
  */
 
 import { HighlightStyle, syntaxHighlighting } from '@codemirror/language';
+import { EditorView } from '@codemirror/view';
 import { tags as t } from '@lezer/highlight';
 
 /**
@@ -106,3 +107,35 @@ const basiliskHighlightStyle = HighlightStyle.define([
  * Exports the styled syntax theme
  */
 export const basiliskSyntaxTheme = syntaxHighlighting(basiliskHighlightStyle);
+
+/**
+ * Transparent glassmorphic editor theme for CodeMirror
+ */
+export const transparentEditorTheme = EditorView.theme({
+  '&': { backgroundColor: 'transparent !important', height: '100%' },
+  '.cm-scroller': {
+    backgroundColor: 'transparent !important',
+    fontFamily: 'JetBrains Mono, Fira Code, SF Mono, Consolas, Monaco, monospace',
+    fontSize: '12px', lineHeight: '1.5',
+    scrollbarWidth: 'thin', scrollbarColor: 'rgba(255, 255, 255, 0.1) transparent',
+  },
+  '.cm-scroller::-webkit-scrollbar': { width: '8px', height: '8px' },
+  '.cm-scroller::-webkit-scrollbar-track': { background: 'transparent' },
+  '.cm-scroller::-webkit-scrollbar-thumb': {
+    backgroundColor: 'rgba(255, 255, 255, 0.1)', borderRadius: '4px',
+    border: '2px solid transparent', backgroundClip: 'padding-box'
+  },
+  '.cm-scroller::-webkit-scrollbar-thumb:hover': { backgroundColor: 'rgba(255, 255, 255, 0.15)' },
+  '.cm-gutters': {
+    backgroundColor: 'transparent !important', backdropFilter: 'blur(8px)',
+    WebkitBackdropFilter: 'blur(8px)', border: 'none', borderRight: '1px solid rgba(71, 85, 105, 0.3)'
+  },
+  '.cm-gutter, .cm-lineNumbers': { backgroundColor: 'rgba(15, 23, 42, 0.15) !important', color: 'rgba(255, 255, 255, 0.65) !important' },
+  '.cm-gutterElement': { color: 'rgba(255, 255, 255, 0.65) !important' },
+  '.cm-activeLineGutter': { backgroundColor: 'rgba(255, 255, 255, 0.2) !important', borderRadius: '2px' },
+  '.cm-activeLine': { backgroundColor: 'rgba(255, 255, 255, 0.05)' },
+  '.cm-content': { caretColor: '#ffffff', color: 'rgba(255, 255, 255, 0.95)', padding: '8px 0' },
+  '.cm-line': { color: 'rgba(255, 255, 255, 0.95) !important' },
+  '.cm-cursor': { borderLeftColor: '#ffffff' },
+  '.cm-selectionBackground, &.cm-focused .cm-selectionBackground': { backgroundColor: 'rgba(255, 255, 255, 0.2) !important' }
+});

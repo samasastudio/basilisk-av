@@ -5,9 +5,11 @@
 export { SoundBrowserTray } from './SoundBrowserTray';
 export { SoundCategoryChips } from './SoundCategoryChips';
 export { SoundSampleGrid } from './SoundSampleGrid';
-export { SoundSearch } from './SoundSearch';
+
+// Re-export from shared for backward compatibility
+export { SampleSearch as SoundSearch } from '../shared';
 
 export type { SoundBrowserTrayProps } from './SoundBrowserTray';
 export type { SoundCategoryChipsProps } from './SoundCategoryChips';
 export type { SoundSampleGridProps } from './SoundSampleGrid';
-export type { SoundSearchProps } from './SoundSearch';
+export type { SampleSearchProps as SoundSearchProps } from '../shared';
