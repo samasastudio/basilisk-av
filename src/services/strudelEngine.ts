@@ -40,15 +40,35 @@ export interface StrudelRepl {
  */
 export type WidgetUpdateCallback = (widgets: WidgetConfig[]) => void;
 
-// Store for widget update callbacks
-let widgetUpdateCallback: WidgetUpdateCallback | null = null;
-
 /**
- * Register a callback to receive widget updates after code evaluation.
- * Used by the editor to render inline slider widgets.
+ * Widget store for useSyncExternalStore pattern.
+ * Provides subscribe/getSnapshot interface for React subscriptions.
  */
-export const onWidgetUpdate = (callback: WidgetUpdateCallback | null): void => {
-  widgetUpdateCallback = callback;
+type WidgetListener = () => void;
+let currentWidgets: WidgetConfig[] = [];
+const listeners = new Set<WidgetListener>();
+
+export const widgetStore = {
+  /**
+   * Get current widget snapshot (for useSyncExternalStore)
+   */
+  getSnapshot: (): WidgetConfig[] => currentWidgets,
+
+  /**
+   * Subscribe to widget changes (for useSyncExternalStore)
+   */
+  subscribe: (listener: WidgetListener): (() => void) => {
+    listeners.add(listener);
+    return () => listeners.delete(listener);
+  },
+
+  /**
+   * Update widgets and notify all listeners
+   */
+  setWidgets: (widgets: WidgetConfig[]): void => {
+    currentWidgets = widgets;
+    listeners.forEach(listener => listener());
+  }
 };
 
 /**
@@ -63,9 +83,9 @@ export const initializeStrudel = async (): Promise<StrudelRepl> => {
   const repl = await initStrudel({
     prebake: () => window.samples?.('github:tidalcycles/dirt-samples'),
     onUpdateState: (state: StrudelState) => {
-      // Notify listeners about widget updates
-      if (widgetUpdateCallback && state.widgets?.length > 0) {
-        widgetUpdateCallback(state.widgets);
+      // Update widget store when widgets change
+      if (state.widgets?.length > 0) {
+        widgetStore.setWidgets(state.widgets);
       }
     }
   });

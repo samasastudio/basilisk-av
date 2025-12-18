@@ -1,7 +1,6 @@
 import { javascript } from '@codemirror/lang-javascript';
-import { sliderPlugin, sliderWithID, updateSliderWidgets, widgetPlugin, updateWidgets } from '@strudel/codemirror';
+import { sliderPlugin, sliderWithID, widgetPlugin } from '@strudel/codemirror';
 import * as Strudel from '@strudel/core';
-// Import @strudel/webaudio scope for _scope visualization (Pattern.prototype.scope)
 import { initHydra, H } from '@strudel/hydra';
 import { samples } from '@strudel/webaudio';
 import CodeMirror from '@uiw/react-codemirror';
@@ -9,8 +8,8 @@ import { AudioWaveform, Music } from 'lucide-react';
 import { useState, useEffect, useRef, useCallback } from 'react';
 
 import { basiliskSyntaxTheme, transparentEditorTheme } from '../config/editorTheme';
+import { useWidgetUpdates } from '../hooks/useWidgetUpdates';
 import * as StrudelEngine from '../services/strudelEngine';
-
 
 import { SoundBrowserTray } from './sound-browser';
 import { Button } from './ui/Button';
@@ -19,7 +18,6 @@ import { UserLibraryTray } from './user-library';
 import type { UsePanelExclusivityReturn } from '../hooks/usePanelExclusivity';
 import type { UseSoundBrowserReturn } from '../hooks/useSoundBrowser';
 import type { UseUserLibraryReturn } from '../hooks/useUserLibrary';
-import type { WidgetConfig } from '../services/strudelEngine';
 import type { SampleItem } from '../types/userLibrary';
 import type { ReactCodeMirrorRef } from '@uiw/react-codemirror';
 
@@ -187,31 +185,11 @@ export const StrudelRepl = ({ className, engineReady, onHalt, onExecute, onSave,
         return () => window.removeEventListener('keydown', handleKeyDown);
     }, [soundBrowser.isOpen, soundBrowser.stopPreview]);
 
-    // Store widget callback in ref to avoid recreating on each render
-    const widgetCallbackRef = useRef<StrudelEngine.WidgetUpdateCallback | null>(null);
+    // Getter for editor view - stable callback for useWidgetUpdates
+    const getEditorView = useCallback(() => editorRef.current?.view, []);
 
-    // Register widget update callback to render inline widgets (sliders and visualizations)
-    useEffect(() => {
-        widgetCallbackRef.current = (widgets: WidgetConfig[]): void => {
-            const view = editorRef.current?.view;
-            if (!view) return;
-
-            // Filter for slider widgets and update CodeMirror
-            const sliders = widgets.filter(w => w.type === 'slider');
-            if (sliders.length > 0) {
-                updateSliderWidgets(view, sliders);
-            }
-
-            // Filter for visualization widgets (_scope, _pianoroll, etc.) and update CodeMirror
-            const visualizations = widgets.filter(w => w.type !== 'slider');
-            if (visualizations.length > 0) {
-                updateWidgets(view, visualizations);
-            }
-        };
-
-        StrudelEngine.onWidgetUpdate(widgetCallbackRef.current);
-        return () => StrudelEngine.onWidgetUpdate(null);
-    }, []);
+    // Subscribe to widget updates using useSyncExternalStore pattern
+    useWidgetUpdates(getEditorView);
 
     const runCode = async (): Promise<void> => {
         if (!engineReady) {

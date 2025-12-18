@@ -45,14 +45,19 @@ vi.mock('@strudel/codemirror', () => ({
   sliderPlugin: vi.fn(() => ({})),
   sliderWithID: vi.fn(),
   updateSliderWidgets: vi.fn(),
+  updateWidgets: vi.fn(),
   widgetPlugin: vi.fn(() => ({}))
 }));
 
 // Mock Strudel engine
 vi.mock('../../services/strudelEngine', () => ({
   getReplInstance: vi.fn(),
-  hushAudio: vi.fn(),
-  onWidgetUpdate: vi.fn()
+  hushAudio: vi.fn()
+}));
+
+// Mock the useWidgetUpdates hook to avoid useSyncExternalStore issues in tests
+vi.mock('../../hooks/useWidgetUpdates', () => ({
+  useWidgetUpdates: vi.fn()
 }));
 
 // Mock lucide-react icons
@@ -132,7 +137,8 @@ describe('StrudelRepl', () => {
     setSearchQuery: vi.fn(),
     filteredItems: [],
     isRegistered: false,
-    registeredCount: 0
+    registeredCount: 0,
+    getSampleUrl: vi.fn()
   };
 
   const defaultProps = {
