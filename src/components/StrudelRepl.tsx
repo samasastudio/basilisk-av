@@ -1,5 +1,9 @@
 import { javascript } from '@codemirror/lang-javascript';
 import * as Strudel from '@strudel/core';
+import { sliderPlugin, sliderWithID, updateSliderWidgets, widgetPlugin } from '@strudel/codemirror';
+// Note: Inline visualizations (_scope, _pianoroll) require full StrudelMirror integration
+// which includes draw context setup, animation frames, and canvas management.
+// For now, only slider widgets are supported.
 import { initHydra, H } from '@strudel/hydra';
 import { samples } from '@strudel/webaudio';
 import CodeMirror from '@uiw/react-codemirror';
@@ -8,6 +12,7 @@ import { useState, useEffect, useRef, useCallback } from 'react';
 
 import { basiliskSyntaxTheme, transparentEditorTheme } from '../config/editorTheme';
 import * as StrudelEngine from '../services/strudelEngine';
+import type { WidgetConfig } from '../services/strudelEngine';
 
 import { SoundBrowserTray } from './sound-browser';
 import { Button } from './ui/Button';
@@ -39,7 +44,8 @@ const CODE_MIRROR_SETUP = {
 } as const;
 
 // Expose Strudel functions globally for the REPL
-Object.assign(window, Strudel, { samples, initHydra, H });
+// sliderWithID is required by the transpiler when slider() is used in patterns
+Object.assign(window, Strudel, { samples, initHydra, H, sliderWithID });
 
 const defaultCode = `// Initialize Hydra
 await initHydra({
@@ -182,6 +188,23 @@ export const StrudelRepl = ({ className, engineReady, onHalt, onExecute, onSave,
         return () => window.removeEventListener('keydown', handleKeyDown);
     }, [soundBrowser]);
 
+    // Register widget update callback to render inline sliders
+    useEffect(() => {
+        const handleWidgetUpdate = (widgets: WidgetConfig[]): void => {
+            const view = editorRef.current?.view;
+            if (!view) return;
+
+            // Filter for slider widgets and update CodeMirror
+            const sliders = widgets.filter(w => w.type === 'slider');
+            if (sliders.length > 0) {
+                updateSliderWidgets(view, sliders);
+            }
+        };
+
+        StrudelEngine.onWidgetUpdate(handleWidgetUpdate);
+        return () => StrudelEngine.onWidgetUpdate(null);
+    }, []);
+
     const runCode = async (): Promise<void> => {
         if (!engineReady) {
             console.warn('Engine not ready. Please start the engine first.');
@@ -250,7 +273,7 @@ export const StrudelRepl = ({ className, engineReady, onHalt, onExecute, onSave,
                     ref={editorRef}
                     value={code}
                     height="100%"
-                    extensions={[javascript(), transparentEditorTheme, basiliskSyntaxTheme]}
+                    extensions={[javascript(), transparentEditorTheme, basiliskSyntaxTheme, sliderPlugin, widgetPlugin]}
                     onChange={(val) => setCode(val)}
                     className="h-full font-mono"
                     basicSetup={CODE_MIRROR_SETUP}

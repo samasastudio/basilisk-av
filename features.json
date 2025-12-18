@@ -2,7 +2,7 @@
   "meta": {
     "project": "basilisk-av",
     "currentPhase": 6,
-    "lastUpdated": "2025-12-14",
+    "lastUpdated": "2025-12-17",
     "notes": "Only modify 'passes' field during development. Never remove verification steps. Last verified: 2025-12-14 via Playwright automated testing.",
     "testSamples": {
       "location": "public/test-samples/",
@@ -392,6 +392,68 @@
         "Clearing search shows all samples again"
       ],
       "passes": true
+    },
+    {
+      "id": "p6-strudel-upgrade",
+      "phase": 6,
+      "category": "core-upgrade",
+      "description": "Upgrade Strudel packages to v1.2.x for slider and visualization support",
+      "priority": "high",
+      "dependencies": [],
+      "verification": [
+        "All @strudel/* packages at version 1.2.x or higher",
+        "npm run dev starts without errors",
+        "Existing patterns still play correctly",
+        "Hydra integration still functions (a.fft[0-3] reactive)",
+        "initHydra() still initializes properly"
+      ],
+      "passes": true
+    },
+    {
+      "id": "p6-slider-widget",
+      "phase": 6,
+      "category": "interactive-controls",
+      "description": "Inline slider widget for real-time parameter control",
+      "priority": "high",
+      "dependencies": ["p6-strudel-upgrade"],
+      "verification": [
+        "slider(0.5, 0, 1, 0.1) renders inline slider in editor",
+        "Dragging slider updates value in code",
+        "Slider value controls pattern parameter in real-time",
+        "Multiple sliders can coexist in same pattern",
+        "Slider works with gain, lpf, speed, and other numeric params"
+      ],
+      "passes": true
+    },
+    {
+      "id": "p6-inline-scope",
+      "phase": 6,
+      "category": "interactive-controls",
+      "description": "Inline oscilloscope visualization with ._scope()",
+      "priority": "medium",
+      "dependencies": ["p6-strudel-upgrade"],
+      "verification": [
+        "._scope() renders oscilloscope below pattern",
+        "Scope responds to audio output in real-time",
+        "Scope does not obstruct code editing",
+        "Multiple scopes can exist for different patterns"
+      ],
+      "passes": false
+    },
+    {
+      "id": "p6-inline-pianoroll",
+      "phase": 6,
+      "category": "interactive-controls",
+      "description": "Inline piano roll visualization with ._pianoroll()",
+      "priority": "low",
+      "dependencies": ["p6-strudel-upgrade"],
+      "verification": [
+        "._pianoroll() renders piano roll below pattern",
+        "Notes display at correct pitches and times",
+        "Current playback position indicated",
+        "Works with note() and n() patterns"
+      ],
+      "passes": false
     }
   ]
 }

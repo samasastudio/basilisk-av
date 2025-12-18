@@ -121,7 +121,7 @@
 ## 🚀 Phase 6: UX Polish & Production Mode (IN PROGRESS)
 **Status**: In progress
 **Started**: December 12, 2025
-**Features**: 25 total (5 passing)
+**Features**: 29 total (24 passing)
 
 ### Development Infrastructure
 - ✅ Playwright MCP integration for automated verification
@@ -163,6 +163,12 @@ See [docs/USER_LIBRARY_SPEC.md](docs/USER_LIBRARY_SPEC.md) for full specificatio
 - ⏳ Emergency halt/stop audio (Escape or Ctrl+.)
 - ⏳ Hide/show REPL toggle
 - ⏳ Keyboard shortcut help overlay
+
+### Interactive Controls (NEW)
+- ✅ Upgrade Strudel packages to v1.2.x
+- ✅ Inline slider widget for real-time parameter control
+- ⏳ Inline oscilloscope (._scope())
+- ⏳ Inline piano roll (._pianoroll())
 
 ### Production HUD
 - ⏳ Compact FFT analyzer per `a.fft` band (4 mini visualizers)
@@ -302,7 +308,7 @@ See [PLAYWRIGHT_MCP.md](PLAYWRIGHT_MCP.md) for setup instructions.
 | Service Modules | 2 |
 | UI Components | 5 major + 4 primitives |
 | Documentation Files | 7 |
-| Phase 6 Features Passing | 5 / 25 (20%) |
+| Phase 6 Features Passing | 24 / 29 (83%) |
 
 ---
 
@@ -315,6 +321,7 @@ See [PLAYWRIGHT_MCP.md](PLAYWRIGHT_MCP.md) for setup instructions.
 | User Library | 8 | High/Medium |
 | REPL Theming | 2 | Medium/Low |
 | Keyboard Shortcuts | 4 | High/Medium |
+| Interactive Controls | 4 | High/Medium |
 | Production HUD | 5 | Medium/Low |
 
 ### Dependency Graph
@@ -323,6 +330,7 @@ See [PLAYWRIGHT_MCP.md](PLAYWRIGHT_MCP.md) for setup instructions.
 Independent (start here):
   p6-sample-panel-base ← Unlocks both browser tracks
   p6-shortcut-halt ← Safety critical
+  p6-strudel-upgrade ← Unlocks interactive controls
   p6-hud-fft-bands
   p6-hud-fps
 
@@ -339,6 +347,11 @@ User Library Track:
                                                → p6-user-library-preview
                                                → p6-user-library-insert
                                                → p6-user-library-search
+
+Interactive Controls Track:
+  p6-strudel-upgrade → p6-slider-widget ✅
+                     → p6-inline-scope
+                     → p6-inline-pianoroll
 ```
 
 ---

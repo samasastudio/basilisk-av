@@ -1,6 +1,33 @@
 import { initStrudel } from '@strudel/web';
 
 /**
+ * Widget configuration from Strudel transpiler
+ */
+export interface WidgetConfig {
+  type: 'slider' | '_scope' | '_pianoroll' | '_punchcard' | '_spiral';
+  from: number;
+  to: number;
+  value?: number;
+  min?: number;
+  max?: number;
+  step?: number;
+  index?: number;
+}
+
+/**
+ * Strudel state with widget information
+ */
+export interface StrudelState {
+  widgets: WidgetConfig[];
+  miniLocations: unknown[];
+  code: string;
+  activeCode: string;
+  started: boolean;
+  pending: boolean;
+  error?: Error;
+}
+
+/**
  * Strudel REPL instance type
  */
 export interface StrudelRepl {
@@ -9,15 +36,38 @@ export interface StrudelRepl {
 }
 
 /**
+ * Callback type for widget updates
+ */
+export type WidgetUpdateCallback = (widgets: WidgetConfig[]) => void;
+
+// Store for widget update callbacks
+let widgetUpdateCallback: WidgetUpdateCallback | null = null;
+
+/**
+ * Register a callback to receive widget updates after code evaluation.
+ * Used by the editor to render inline slider widgets.
+ */
+export const onWidgetUpdate = (callback: WidgetUpdateCallback | null): void => {
+  widgetUpdateCallback = callback;
+};
+
+/**
  * Initialize the Strudel audio engine with default configuration.
  * Loads the Dirt Samples library for drum patterns.
+ * Supports widget callbacks for slider/visualization integration.
  *
  * @returns Promise resolving to the initialized REPL instance
  * @throws Error if initialization fails (network, audio context, etc.)
  */
 export const initializeStrudel = async (): Promise<StrudelRepl> => {
   const repl = await initStrudel({
-    prebake: () => window.samples?.('github:tidalcycles/dirt-samples')
+    prebake: () => window.samples?.('github:tidalcycles/dirt-samples'),
+    onUpdateState: (state: StrudelState) => {
+      // Notify listeners about widget updates
+      if (widgetUpdateCallback && state.widgets?.length > 0) {
+        widgetUpdateCallback(state.widgets);
+      }
+    }
   });
   return repl;
 };

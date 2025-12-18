@@ -1,9 +1,50 @@
 === Basilisk AV - Development Progress ===
 
-Last Updated: 2025-12-12
+Last Updated: 2025-12-17
 Current Phase: 6 (UX Polish & Production Mode)
-Total Features: 25
-Passing: 0
+Total Features: 29
+Passing: 24
+
+---
+
+=== Session: 2025-12-17 (Strudel Slider Integration) ===
+
+COMPLETED:
+- Integrated @strudel/codemirror package (v1.2.6) for slider widgets
+- Added sliderPlugin and widgetPlugin CodeMirror extensions
+- Registered sliderWithID function globally for transpiler
+- Added onUpdateState callback to strudelEngine for widget updates
+- Implemented widget update callback in StrudelRepl component
+- Verified slider() renders inline slider in editor
+- Verified slider updates value in real-time
+- Audio-reactive Hydra bridge (a.fft) confirmed still working
+- Added 4 new features to features.json (p6-strudel-upgrade, p6-slider-widget, p6-inline-scope, p6-inline-pianoroll)
+- Updated roadmap.md with Interactive Controls section
+- Updated features.json with Phase 6 Interactive Controls
+
+IN PROGRESS:
+- None (clean state)
+
+BLOCKERS:
+- Inline visualizations (._scope(), ._pianoroll()) require full StrudelMirror integration
+  - Needs draw context setup, animation frames, canvas management
+  - Pattern.prototype._scope not registering via side-effect import
+  - Deferred to future session
+
+NEXT PRIORITY:
+- p6-inline-scope: Requires StrudelMirror integration for draw context
+- p6-repl-dark-toggle: REPL theming
+- Remaining Production HUD features
+
+GIT COMMITS THIS SESSION:
+- (pending: strudel-slider-integration branch)
+
+NOTES:
+- slider(0.8, 0, 1, 0.1) works - inline slider renders and controls gain in real-time
+- @strudel/codemirror provides sliderPlugin, widgetPlugin, updateSliderWidgets
+- Widget updates flow: initStrudel → onUpdateState callback → updateSliderWidgets(view)
+- Visualizations need StrudelMirror's full integration (not just side-effect imports)
+- Screenshot saved: .playwright-mcp/slider-widget-test.png
 
 ---
 
