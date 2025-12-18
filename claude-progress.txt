@@ -1,9 +1,34 @@
 === Basilisk AV - Development Progress ===
 
-Last Updated: 2025-12-17
+Last Updated: 2025-12-18
 Current Phase: 6 (UX Polish & Production Mode)
 Total Features: 29
 Passing: 24
+
+---
+
+=== Session: 2025-12-18 (Inline Visualization Integration) ===
+
+COMPLETED:
+- Imported updateWidgets from @strudel/codemirror for non-slider widget support
+- Updated widget callback to handle visualization widgets (_scope, _pianoroll, etc.)
+- Fixed useEffect dependency issue by using specific props (soundBrowser.isOpen, soundBrowser.stopPreview)
+- Fixed test expectation for onUpdateState callback in useStrudelEngine.test.ts
+- All 225 tests passing
+
+IMPLEMENTATION DETAILS:
+- Widget update callback now filters for slider vs visualization widgets
+- Sliders use updateSliderWidgets(), visualizations use updateWidgets()
+- @strudel/codemirror widget.mjs registers _scope, _pianoroll, _punchcard, _spiral, _pitchwheel, _spectrum
+- @strudel/webaudio scope.mjs provides Pattern.prototype.scope (used by _scope widget)
+- widgetPlugin already included in CodeMirror extensions
+
+IN PROGRESS:
+- None (clean state)
+
+NEXT PRIORITY:
+- p6-repl-dark-toggle: REPL theming
+- Remaining Production HUD features
 
 ---
 
@@ -22,17 +47,10 @@ COMPLETED:
 - Updated roadmap.md with Interactive Controls section
 - Updated features.json with Phase 6 Interactive Controls
 
-IN PROGRESS:
-- None (clean state)
-
-BLOCKERS:
-- Inline visualizations (._scope(), ._pianoroll()) require full StrudelMirror integration
-  - Needs draw context setup, animation frames, canvas management
-  - Pattern.prototype._scope not registering via side-effect import
-  - Deferred to future session
+BLOCKERS (RESOLVED):
+- Inline visualizations (._scope(), ._pianoroll()) now supported via updateWidgets()
 
 NEXT PRIORITY:
-- p6-inline-scope: Requires StrudelMirror integration for draw context
 - p6-repl-dark-toggle: REPL theming
 - Remaining Production HUD features
 
