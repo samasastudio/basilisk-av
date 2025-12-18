@@ -40,10 +40,19 @@ vi.mock('@strudel/webaudio', () => ({
   samples: {}
 }));
 
+// Mock Strudel codemirror
+vi.mock('@strudel/codemirror', () => ({
+  sliderPlugin: vi.fn(() => ({})),
+  sliderWithID: vi.fn(),
+  updateSliderWidgets: vi.fn(),
+  widgetPlugin: vi.fn(() => ({}))
+}));
+
 // Mock Strudel engine
 vi.mock('../../services/strudelEngine', () => ({
   getReplInstance: vi.fn(),
-  hushAudio: vi.fn()
+  hushAudio: vi.fn(),
+  onWidgetUpdate: vi.fn()
 }));
 
 // Mock lucide-react icons
