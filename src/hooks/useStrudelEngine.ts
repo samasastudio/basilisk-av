@@ -68,6 +68,9 @@ export const useStrudelEngine = (): UseStrudelEngineReturn => {
         setHydraLinked(true);
         setHydraStatus('Strudel (a.fft)');
         window.replAudio = audioContext;
+
+        // Connect audio analyser to visualization manager now that bridge is initialized
+        StrudelEngine.connectAudioAnalyser();
       });
 
       // Initialize Strudel (audio bridge created on first connection)

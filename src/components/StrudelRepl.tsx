@@ -1,7 +1,7 @@
 import { javascript } from '@codemirror/lang-javascript';
-import { sliderPlugin, sliderWithID, widgetPlugin, registerWidget, setWidget } from '@strudel/codemirror';
-import { Pattern } from '@strudel/core';
+import { sliderPlugin, sliderWithID, widgetPlugin, setWidget } from '@strudel/codemirror';
 import * as Strudel from '@strudel/core';
+// @ts-expect-error - @strudel/draw has no type definitions
 import * as StrudelDraw from '@strudel/draw';
 import { initHydra, H } from '@strudel/hydra';
 import * as StrudelWeb from '@strudel/web';

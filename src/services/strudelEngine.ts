@@ -1,4 +1,6 @@
 import { initStrudel, registerWidgetType } from '@strudel/web';
+import { visualizationManager } from './visualizationManager';
+import { getBridgeInstance } from './audioBridge';
 
 /**
  * Widget configuration from Strudel transpiler
@@ -92,16 +94,70 @@ export const initializeStrudel = async (): Promise<StrudelRepl> => {
   const repl = await initStrudel({
     prebake: () => window.samples?.('github:tidalcycles/dirt-samples'),
     onUpdateState: (state: StrudelState) => {
-      // Debug: log widget updates
-      console.log('[widgetStore] onUpdateState called, widgets:', state.widgets);
-
       // Update widget store when widgets change (including empty array to clear widgets)
       if (state.widgets) {
         widgetStore.setWidgets(state.widgets);
       }
     }
   });
+
+  // Connect visualization manager to REPL
+  connectVisualizationManager(repl);
+
   return repl;
+};
+
+/**
+ * Connect the visualization manager to the Strudel REPL.
+ * Sets up pattern and time getters.
+ */
+function connectVisualizationManager(_repl: StrudelRepl): void {
+  console.log('[connectVisualizationManager] Connecting visualization manager to REPL');
+
+  // Set pattern getter - accesses the current pattern from window.repl
+  visualizationManager.setPatternGetter(() => {
+    // The pattern is stored in window.repl.pattern or window.repl.scheduler.pattern
+    const pattern = (window.repl as any)?.scheduler?.pattern || (window.repl as any)?.pattern;
+    return pattern;
+  });
+
+  // Set time getter - accesses current playback time from scheduler
+  visualizationManager.setTimeGetter(() => {
+    // The scheduler has a now() method that returns current time
+    const scheduler = (window.repl as any)?.scheduler;
+    if (scheduler?.now) {
+      return scheduler.now();
+    }
+    return 0;
+  });
+
+  console.log('[connectVisualizationManager] Pattern and time getters connected');
+}
+
+/**
+ * Connect the audio analyser to the visualization manager.
+ * Should be called after the audio bridge is initialized.
+ */
+export const connectAudioAnalyser = (): void => {
+  console.log('[connectAudioAnalyser] Attempting to connect audio analyser');
+
+  const bridge = getBridgeInstance();
+  if (bridge?.analyser) {
+    visualizationManager.setAudioAnalyser(bridge.analyser);
+    console.log('[connectAudioAnalyser] Audio analyser connected successfully');
+  } else {
+    console.warn('[connectAudioAnalyser] No audio bridge found - retrying in 100ms');
+    // Retry after a short delay in case bridge is still initializing
+    setTimeout(() => {
+      const retryBridge = getBridgeInstance();
+      if (retryBridge?.analyser) {
+        visualizationManager.setAudioAnalyser(retryBridge.analyser);
+        console.log('[connectAudioAnalyser] Audio analyser connected on retry');
+      } else {
+        console.error('[connectAudioAnalyser] Failed to connect audio analyser - scope/spectrum will not work');
+      }
+    }, 100);
+  }
 };
 
 /**

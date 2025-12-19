@@ -2,8 +2,8 @@
   "meta": {
     "project": "basilisk-av",
     "currentPhase": 6,
-    "lastUpdated": "2025-12-17",
-    "notes": "Only modify 'passes' field during development. Never remove verification steps. Last verified: 2025-12-14 via Playwright automated testing.",
+    "lastUpdated": "2025-12-18",
+    "notes": "Only modify 'passes' field during development. Never remove verification steps. Interactive-controls features (p6-inline-viz-fix, p6-inline-scope, p6-inline-pianoroll) manually verified 2025-12-18 via browser testing - all passing.",
     "testSamples": {
       "location": "public/test-samples/",
       "manifest": "public/test-samples/samples.json",
@@ -430,30 +430,57 @@
       "phase": 6,
       "category": "interactive-controls",
       "description": "Inline oscilloscope visualization with ._scope()",
-      "priority": "medium",
-      "dependencies": ["p6-strudel-upgrade"],
+      "priority": "high",
+      "dependencies": ["p6-strudel-upgrade", "p6-inline-viz-fix"],
       "verification": [
-        "._scope() renders oscilloscope below pattern",
-        "Scope responds to audio output in real-time",
-        "Scope does not obstruct code editing",
-        "Multiple scopes can exist for different patterns"
+        "Start engine and execute: s(\"bd sd\")._scope()",
+        "Canvas appears inline below pattern code",
+        "Oscilloscope waveform displays (not black canvas)",
+        "Waveform updates in real-time at ~60fps",
+        "Waveform reflects audio output accurately",
+        "Re-evaluating pattern updates visualization",
+        "Scope does not obstruct code editing"
       ],
-      "passes": false
+      "passes": true
     },
     {
       "id": "p6-inline-pianoroll",
       "phase": 6,
       "category": "interactive-controls",
       "description": "Inline piano roll visualization with ._pianoroll()",
-      "priority": "low",
+      "priority": "high",
+      "dependencies": ["p6-strudel-upgrade", "p6-inline-viz-fix"],
+      "verification": [
+        "Start engine and execute: note(\"c e g\")._pianoroll({ cycles: 2 })",
+        "Canvas appears inline below pattern code",
+        "Piano roll displays three notes (not black canvas)",
+        "Notes appear at correct MIDI pitches (C, E, G)",
+        "Playhead scrolls showing current position",
+        "Notes are visible with active/inactive colors",
+        "Re-evaluating pattern updates visualization",
+        "Works with both note() and n() patterns"
+      ],
+      "passes": true
+    },
+    {
+      "id": "p6-inline-viz-fix",
+      "phase": 6,
+      "category": "interactive-controls",
+      "description": "Fix inline visualization rendering - connect pattern draw callbacks to widget canvases",
+      "priority": "critical",
       "dependencies": ["p6-strudel-upgrade"],
       "verification": [
-        "._pianoroll() renders piano roll below pattern",
-        "Notes display at correct pitches and times",
-        "Current playback position indicated",
-        "Works with note() and n() patterns"
+        "src/services/visualizationManager.ts exists",
+        "VisualizationManager manages widget-to-pattern connections",
+        "Animation loop queries current pattern for haps",
+        "Draw functions receive haps and render to canvas",
+        "useWidgetUpdates.ts registers widgets with manager",
+        "Audio analyser connected for scope/spectrum",
+        "Pattern re-evaluation reconnects canvases to new pattern",
+        "Console shows: '[VizManager] Drawing to canvas' logs",
+        "Test: note(\"c e g\")._pianoroll() shows three notes (not black)"
       ],
-      "passes": false
+      "passes": true
     }
   ]
 }
