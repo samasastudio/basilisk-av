@@ -81,6 +81,7 @@ describe('useStrudelEngine', () => {
 
     expect(initStrudel).toHaveBeenCalledWith({
       prebake: expect.any(Function),
+      onUpdateState: expect.any(Function),
     });
 
     // Verify prebake function calls window.samples

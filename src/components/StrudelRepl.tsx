@@ -1,18 +1,18 @@
 import { javascript } from '@codemirror/lang-javascript';
+import { sliderPlugin, sliderWithID, widgetPlugin, setWidget } from '@strudel/codemirror';
 import * as Strudel from '@strudel/core';
-import { sliderPlugin, sliderWithID, updateSliderWidgets, widgetPlugin } from '@strudel/codemirror';
-// Note: Inline visualizations (_scope, _pianoroll) require full StrudelMirror integration
-// which includes draw context setup, animation frames, and canvas management.
-// For now, only slider widgets are supported.
+// @ts-expect-error - @strudel/draw has no type definitions
+import * as StrudelDraw from '@strudel/draw';
 import { initHydra, H } from '@strudel/hydra';
+import * as StrudelWeb from '@strudel/web';
 import { samples } from '@strudel/webaudio';
 import CodeMirror from '@uiw/react-codemirror';
 import { AudioWaveform, Music } from 'lucide-react';
 import { useState, useEffect, useRef, useCallback } from 'react';
 
 import { basiliskSyntaxTheme, transparentEditorTheme } from '../config/editorTheme';
+import { useWidgetUpdates } from '../hooks/useWidgetUpdates';
 import * as StrudelEngine from '../services/strudelEngine';
-import type { WidgetConfig } from '../services/strudelEngine';
 
 import { SoundBrowserTray } from './sound-browser';
 import { Button } from './ui/Button';
@@ -45,7 +45,59 @@ const CODE_MIRROR_SETUP = {
 
 // Expose Strudel functions globally for the REPL
 // sliderWithID is required by the transpiler when slider() is used in patterns
-Object.assign(window, Strudel, { samples, initHydra, H, sliderWithID });
+// StrudelWeb includes all webaudio methods
+// StrudelDraw includes visualization methods (punchcard, pianoroll, scope, spiral, etc.)
+Object.assign(window, Strudel, StrudelWeb, StrudelDraw, { samples, initHydra, H, sliderWithID });
+
+// Helper to create and register canvas widgets
+function getCanvasWidget(id: string, options: any = {}) {
+    const { width = 500, height = 60, pixelRatio = window.devicePixelRatio } = options;
+    let canvas = document.getElementById(id) as HTMLCanvasElement || document.createElement('canvas');
+    canvas.width = width * pixelRatio;
+    canvas.height = height * pixelRatio;
+    canvas.style.width = width + 'px';
+    canvas.style.height = height + 'px';
+    setWidget(id, canvas);  // Register canvas with CodeMirror's widget system
+    return canvas;
+}
+
+// Note: Widget type registration with transpiler happens in strudelEngine.ts before REPL initialization
+// Here we manually add the inline widget methods directly to window.Pattern.prototype
+// This is needed because @strudel/codemirror's registerWidget uses its own Pattern instance
+console.log('Registering inline widget methods on window.Pattern.prototype');
+const WindowPattern = (window as any).Pattern;
+if (WindowPattern) {
+    // Directly assign methods to window.Pattern.prototype
+    WindowPattern.prototype._scope = function(this: any, id?: string, options: any = {}) {
+        id = id || 'scope';
+        options = { width: 500, height: 60, pos: 0.5, scale: 1, ...options };
+        const ctx = getCanvasWidget(id, options).getContext('2d');
+        return this.tag(id).scope({ ...options, ctx, id });
+    };
+
+    WindowPattern.prototype._pianoroll = function(this: any, id?: string, options: any = {}) {
+        id = id || 'pianoroll';
+        const ctx = getCanvasWidget(id, options).getContext('2d');
+        return this.tag(id).pianoroll({ fold: 1, ...options, ctx, id });
+    };
+
+    WindowPattern.prototype._punchcard = function(this: any, id?: string, options: any = {}) {
+        id = id || 'punchcard';
+        const ctx = getCanvasWidget(id, options).getContext('2d');
+        return this.tag(id).punchcard({ fold: 1, ...options, ctx, id });
+    };
+
+    WindowPattern.prototype._spiral = function(this: any, id?: string, options: any = {}) {
+        id = id || 'spiral';
+        let _size = options.size || 275;
+        options = { width: _size, height: _size, ...options, size: _size / 5 };
+        const ctx = getCanvasWidget(id, options).getContext('2d');
+        return this.tag(id).spiral({ ...options, ctx, id });
+    };
+    console.log('Inline widget methods registered successfully');
+} else {
+    console.error('window.Pattern not found - cannot register widget methods');
+}
 
 const defaultCode = `// Initialize Hydra
 await initHydra({
@@ -186,24 +238,13 @@ export const StrudelRepl = ({ className, engineReady, onHalt, onExecute, onSave,
 
         window.addEventListener('keydown', handleKeyDown);
         return () => window.removeEventListener('keydown', handleKeyDown);
-    }, [soundBrowser]);
+    }, [soundBrowser.isOpen, soundBrowser.stopPreview]);
 
-    // Register widget update callback to render inline sliders
-    useEffect(() => {
-        const handleWidgetUpdate = (widgets: WidgetConfig[]): void => {
-            const view = editorRef.current?.view;
-            if (!view) return;
+    // Getter for editor view - stable callback for useWidgetUpdates
+    const getEditorView = useCallback(() => editorRef.current?.view, []);
 
-            // Filter for slider widgets and update CodeMirror
-            const sliders = widgets.filter(w => w.type === 'slider');
-            if (sliders.length > 0) {
-                updateSliderWidgets(view, sliders);
-            }
-        };
-
-        StrudelEngine.onWidgetUpdate(handleWidgetUpdate);
-        return () => StrudelEngine.onWidgetUpdate(null);
-    }, []);
+    // Subscribe to widget updates using useSyncExternalStore pattern
+    useWidgetUpdates(getEditorView);
 
     const runCode = async (): Promise<void> => {
         if (!engineReady) {
