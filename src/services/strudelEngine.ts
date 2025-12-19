@@ -1,4 +1,4 @@
-import { initStrudel } from '@strudel/web';
+import { initStrudel, registerWidgetType } from '@strudel/web';
 
 /**
  * Widget configuration from Strudel transpiler
@@ -80,11 +80,23 @@ export const widgetStore = {
  * @throws Error if initialization fails (network, audio context, etc.)
  */
 export const initializeStrudel = async (): Promise<StrudelRepl> => {
+  // Register widget types with transpiler BEFORE initializing REPL
+  // This ensures the REPL's transpiler instance recognizes these widget methods
+  console.log('[initializeStrudel] Registering widget types before REPL init');
+  registerWidgetType('_scope');
+  registerWidgetType('_pianoroll');
+  registerWidgetType('_punchcard');
+  registerWidgetType('_spiral');
+  console.log('[initializeStrudel] Widget types registered');
+
   const repl = await initStrudel({
     prebake: () => window.samples?.('github:tidalcycles/dirt-samples'),
     onUpdateState: (state: StrudelState) => {
-      // Update widget store when widgets change
-      if (state.widgets?.length > 0) {
+      // Debug: log widget updates
+      console.log('[widgetStore] onUpdateState called, widgets:', state.widgets);
+
+      // Update widget store when widgets change (including empty array to clear widgets)
+      if (state.widgets) {
         widgetStore.setWidgets(state.widgets);
       }
     }

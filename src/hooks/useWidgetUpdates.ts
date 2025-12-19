@@ -27,11 +27,18 @@ export const useWidgetUpdates = (getView: () => EditorView | undefined): void =>
   // useEffect is appropriate here because updating CodeMirror is an imperative side effect
   useEffect(() => {
     const view = getView();
-    if (!view || widgets.length === 0) return;
+    console.log('[useWidgetUpdates] widgets changed:', widgets);
+
+    if (!view || widgets.length === 0) {
+      console.log('[useWidgetUpdates] skipping - no view or no widgets');
+      return;
+    }
 
     // Separate slider widgets from visualization widgets
     const sliders = widgets.filter((w: WidgetConfig) => w.type === 'slider');
     const visualizations = widgets.filter((w: WidgetConfig) => w.type !== 'slider');
+
+    console.log('[useWidgetUpdates] sliders:', sliders.length, 'visualizations:', visualizations.length);
 
     // Apply slider widgets to CodeMirror
     if (sliders.length > 0) {
@@ -40,6 +47,7 @@ export const useWidgetUpdates = (getView: () => EditorView | undefined): void =>
 
     // Apply visualization widgets (_scope, _pianoroll, etc.) to CodeMirror
     if (visualizations.length > 0) {
+      console.log('[useWidgetUpdates] calling updateWidgets with:', visualizations);
       updateWidgets(view, visualizations);
     }
   }, [getView, widgets]);

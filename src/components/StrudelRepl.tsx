@@ -1,7 +1,10 @@
 import { javascript } from '@codemirror/lang-javascript';
-import { sliderPlugin, sliderWithID, widgetPlugin } from '@strudel/codemirror';
+import { sliderPlugin, sliderWithID, widgetPlugin, registerWidget, setWidget } from '@strudel/codemirror';
+import { Pattern } from '@strudel/core';
 import * as Strudel from '@strudel/core';
+import * as StrudelDraw from '@strudel/draw';
 import { initHydra, H } from '@strudel/hydra';
+import * as StrudelWeb from '@strudel/web';
 import { samples } from '@strudel/webaudio';
 import CodeMirror from '@uiw/react-codemirror';
 import { AudioWaveform, Music } from 'lucide-react';
@@ -42,7 +45,59 @@ const CODE_MIRROR_SETUP = {
 
 // Expose Strudel functions globally for the REPL
 // sliderWithID is required by the transpiler when slider() is used in patterns
-Object.assign(window, Strudel, { samples, initHydra, H, sliderWithID });
+// StrudelWeb includes all webaudio methods
+// StrudelDraw includes visualization methods (punchcard, pianoroll, scope, spiral, etc.)
+Object.assign(window, Strudel, StrudelWeb, StrudelDraw, { samples, initHydra, H, sliderWithID });
+
+// Helper to create and register canvas widgets
+function getCanvasWidget(id: string, options: any = {}) {
+    const { width = 500, height = 60, pixelRatio = window.devicePixelRatio } = options;
+    let canvas = document.getElementById(id) as HTMLCanvasElement || document.createElement('canvas');
+    canvas.width = width * pixelRatio;
+    canvas.height = height * pixelRatio;
+    canvas.style.width = width + 'px';
+    canvas.style.height = height + 'px';
+    setWidget(id, canvas);  // Register canvas with CodeMirror's widget system
+    return canvas;
+}
+
+// Note: Widget type registration with transpiler happens in strudelEngine.ts before REPL initialization
+// Here we manually add the inline widget methods directly to window.Pattern.prototype
+// This is needed because @strudel/codemirror's registerWidget uses its own Pattern instance
+console.log('Registering inline widget methods on window.Pattern.prototype');
+const WindowPattern = (window as any).Pattern;
+if (WindowPattern) {
+    // Directly assign methods to window.Pattern.prototype
+    WindowPattern.prototype._scope = function(this: any, id?: string, options: any = {}) {
+        id = id || 'scope';
+        options = { width: 500, height: 60, pos: 0.5, scale: 1, ...options };
+        const ctx = getCanvasWidget(id, options).getContext('2d');
+        return this.tag(id).scope({ ...options, ctx, id });
+    };
+
+    WindowPattern.prototype._pianoroll = function(this: any, id?: string, options: any = {}) {
+        id = id || 'pianoroll';
+        const ctx = getCanvasWidget(id, options).getContext('2d');
+        return this.tag(id).pianoroll({ fold: 1, ...options, ctx, id });
+    };
+
+    WindowPattern.prototype._punchcard = function(this: any, id?: string, options: any = {}) {
+        id = id || 'punchcard';
+        const ctx = getCanvasWidget(id, options).getContext('2d');
+        return this.tag(id).punchcard({ fold: 1, ...options, ctx, id });
+    };
+
+    WindowPattern.prototype._spiral = function(this: any, id?: string, options: any = {}) {
+        id = id || 'spiral';
+        let _size = options.size || 275;
+        options = { width: _size, height: _size, ...options, size: _size / 5 };
+        const ctx = getCanvasWidget(id, options).getContext('2d');
+        return this.tag(id).spiral({ ...options, ctx, id });
+    };
+    console.log('Inline widget methods registered successfully');
+} else {
+    console.error('window.Pattern not found - cannot register widget methods');
+}
 
 const defaultCode = `// Initialize Hydra
 await initHydra({
