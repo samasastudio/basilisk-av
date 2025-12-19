@@ -27,6 +27,17 @@ export const useWidgetUpdates = (getView: () => EditorView | undefined): void =>
 
   // Track which widgets we've registered to avoid duplicates
   const registeredWidgets = useRef<Set<string>>(new Set());
+  // Track pending animation frame for cleanup
+  const pendingRegistration = useRef<number | null>(null);
+
+  // Generate stable widget ID based on type and position
+  const getWidgetId = (widget: WidgetConfig, index: number): string => {
+    if (widget.from !== undefined && widget.to !== undefined) {
+      return `${widget.type}-${widget.from}-${widget.to}`;
+    }
+    // Fallback with timestamp for uniqueness when position unavailable
+    return `${widget.type}-${index}-${widget.from || 'unknown'}`;
+  };
 
   // Apply widget updates to editor when widgets change
   // useEffect is appropriate here because updating CodeMirror is an imperative side effect
@@ -35,6 +46,12 @@ export const useWidgetUpdates = (getView: () => EditorView | undefined): void =>
 
     if (!view) {
       return;
+    }
+
+    // Cancel any pending registration from previous render
+    if (pendingRegistration.current !== null) {
+      cancelAnimationFrame(pendingRegistration.current);
+      pendingRegistration.current = null;
     }
 
     // Handle empty widget array - cleanup all widgets
@@ -64,12 +81,12 @@ export const useWidgetUpdates = (getView: () => EditorView | undefined): void =>
     if (visualizations.length > 0) {
       updateWidgets(view, visualizations);
 
-      // Register visualization widgets with manager after a short delay
-      // to allow CodeMirror to create the canvas elements
-      setTimeout(() => {
+      // Register visualization widgets with manager on next frame
+      // Using requestAnimationFrame instead of setTimeout for better timing
+      pendingRegistration.current = requestAnimationFrame(() => {
         visualizations.forEach((widget, index) => {
-          // Use index as ID if from is not available
-          const widgetId = widget.from?.toString() || `widget-${index}`;
+          // Generate stable widget ID
+          const widgetId = getWidgetId(widget, index);
 
           // Skip if already registered
           if (registeredWidgets.current.has(widgetId)) {
@@ -99,36 +116,75 @@ export const useWidgetUpdates = (getView: () => EditorView | undefined): void =>
 
           registeredWidgets.current.add(widgetId);
         });
-      }, 100);
+
+        pendingRegistration.current = null;
+      });
     }
 
     // Cleanup removed widgets
-    const currentPositions = new Set(widgets.map((w, i) => w.from?.toString() || `widget-${i}`));
+    const currentIds = new Set(visualizations.map((w, i) => getWidgetId(w, i)));
     registeredWidgets.current.forEach(id => {
-      if (!currentPositions.has(id)) {
+      if (!currentIds.has(id)) {
         console.log('[useWidgetUpdates] Removing widget:', id);
         visualizationManager.unregisterWidget(id);
         registeredWidgets.current.delete(id);
       }
     });
+
+    // Cleanup function to cancel pending animation frame
+    return () => {
+      if (pendingRegistration.current !== null) {
+        cancelAnimationFrame(pendingRegistration.current);
+        pendingRegistration.current = null;
+      }
+    };
   }, [getView, widgets]);
 };
 
 /**
  * Find the canvas element created by CodeMirror for a visualization widget.
- * Searches for canvas elements in the editor and matches by position.
+ * Matches canvas by data-widget-position attribute set during creation.
  */
-function findCanvasForWidget(view: EditorView, _widget: WidgetConfig): HTMLCanvasElement | null {
-  // Get all canvas elements in the editor
-  const canvases = view.dom.querySelectorAll('canvas');
-
-  // For now, use a simple heuristic: find the canvas that was most recently added
-  // This works because we call this right after updateWidgets creates the canvas
-  if (canvases.length > 0) {
-    const canvas = canvases[canvases.length - 1] as HTMLCanvasElement;
-    console.log('[findCanvasForWidget] Found canvas:', canvas.width, 'x', canvas.height);
-    return canvas;
+function findCanvasForWidget(view: EditorView, widget: WidgetConfig): HTMLCanvasElement | null {
+  // Strategy 1: Match by data attribute (most reliable)
+  if (widget.from !== undefined) {
+    const widgetPosition = widget.from.toString();
+    const canvas = view.dom.querySelector(`canvas[data-widget-position="${widgetPosition}"]`);
+    if (canvas) {
+      console.log('[findCanvasForWidget] Found canvas by position:', widgetPosition);
+      return canvas as HTMLCanvasElement;
+    }
   }
 
+  // Strategy 2: Try to match by document position
+  // Find the canvas closest to the widget's position in the document
+  const canvases = view.dom.querySelectorAll('canvas');
+  if (widget.from !== undefined && canvases.length > 0) {
+    const linePos = view.state.doc.lineAt(widget.from);
+
+    for (const canvas of canvases) {
+      const canvasElement = canvas as HTMLCanvasElement;
+      try {
+        const canvasLinePos = view.posAtDOM(canvasElement.parentElement || canvasElement);
+
+        // If the canvas is within the same line or nearby (within 100 chars)
+        if (Math.abs(canvasLinePos - linePos.from) < 100) {
+          console.log('[findCanvasForWidget] Found canvas by proximity:', widget.from);
+          return canvasElement;
+        }
+      } catch (e) {
+        // posAtDOM can fail if element is not in view, skip this canvas
+        continue;
+      }
+    }
+  }
+
+  // Fallback: Return first unmatched canvas if only one exists
+  if (canvases.length === 1) {
+    console.log('[findCanvasForWidget] Using fallback - single canvas');
+    return canvases[0] as HTMLCanvasElement;
+  }
+
+  console.warn('[findCanvasForWidget] Could not find canvas for widget:', widget);
   return null;
 }

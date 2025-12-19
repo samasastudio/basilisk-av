@@ -94,10 +94,11 @@ export const initializeStrudel = async (): Promise<StrudelRepl> => {
   const repl = await initStrudel({
     prebake: () => window.samples?.('github:tidalcycles/dirt-samples'),
     onUpdateState: (state: StrudelState) => {
-      // Update widget store when widgets change (including empty array to clear widgets)
-      if (state.widgets) {
-        widgetStore.setWidgets(state.widgets);
-      }
+      // Always update widget store, including empty arrays for cleanup
+      widgetStore.setWidgets(state.widgets || []);
+
+      // Update visualization manager playback state
+      visualizationManager.setPlaybackState(state.started);
     }
   });
 

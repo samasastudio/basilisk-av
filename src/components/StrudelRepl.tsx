@@ -52,37 +52,74 @@ Object.assign(window, Strudel, StrudelWeb, StrudelDraw, { samples, initHydra, H,
 // Helper to create and register canvas widgets
 function getCanvasWidget(id: string, options: any = {}) {
     const { width = 500, height = 60, pixelRatio = window.devicePixelRatio } = options;
-    let canvas = document.getElementById(id) as HTMLCanvasElement || document.createElement('canvas');
+
+    // Try to get existing canvas, but verify it's still in the document
+    let canvas = document.getElementById(id) as HTMLCanvasElement;
+
+    if (canvas && !document.body.contains(canvas)) {
+        // Canvas exists but is detached - remove old ID reference
+        canvas.removeAttribute('id');
+        canvas = null;
+    }
+
+    if (!canvas) {
+        canvas = document.createElement('canvas');
+        canvas.id = id;
+    }
+
     canvas.width = width * pixelRatio;
     canvas.height = height * pixelRatio;
     canvas.style.width = width + 'px';
     canvas.style.height = height + 'px';
+
+    // Store widget position as data attribute for canvas detection
+    if (options.from !== undefined) {
+        canvas.dataset.widgetPosition = options.from.toString();
+    }
+
     setWidget(id, canvas);  // Register canvas with CodeMirror's widget system
     return canvas;
 }
 
-// Note: Widget type registration with transpiler happens in strudelEngine.ts before REPL initialization
-// Here we manually add the inline widget methods directly to window.Pattern.prototype
-// This is needed because @strudel/codemirror's registerWidget uses its own Pattern instance
-console.log('Registering inline widget methods on window.Pattern.prototype');
-const WindowPattern = (window as any).Pattern;
-if (WindowPattern) {
+/**
+ * Register Pattern.prototype methods for inline visualizations.
+ * Returns true if successful, false if Pattern not yet available.
+ * Note: Widget type registration with transpiler happens in strudelEngine.ts before REPL initialization.
+ * This function adds the inline widget methods directly to window.Pattern.prototype because
+ * @strudel/codemirror's registerWidget uses its own Pattern instance.
+ */
+function registerPatternMethods(): boolean {
+    const WindowPattern = (window as any).Pattern;
+
+    if (!WindowPattern) {
+        console.warn('[registerPatternMethods] window.Pattern not yet available');
+        return false;
+    }
+
+    // Only register if not already registered
+    if (WindowPattern.prototype._scope) {
+        console.log('[registerPatternMethods] Methods already registered');
+        return true;
+    }
+
     // Directly assign methods to window.Pattern.prototype
     WindowPattern.prototype._scope = function(this: any, id?: string, options: any = {}) {
         id = id || 'scope';
-        options = { width: 500, height: 60, pos: 0.5, scale: 1, ...options };
+        options = { width: 500, height: 60, pos: 0.5, scale: 1, from: this.from, ...options };
         const ctx = getCanvasWidget(id, options).getContext('2d');
         return this.tag(id).scope({ ...options, ctx, id });
     };
 
     WindowPattern.prototype._pianoroll = function(this: any, id?: string, options: any = {}) {
         id = id || 'pianoroll';
+        options = { from: this.from, ...options };
         const ctx = getCanvasWidget(id, options).getContext('2d');
         return this.tag(id).pianoroll({ fold: 1, ...options, ctx, id });
     };
 
     WindowPattern.prototype._punchcard = function(this: any, id?: string, options: any = {}) {
         id = id || 'punchcard';
+        options = { from: this.from, ...options };
         const ctx = getCanvasWidget(id, options).getContext('2d');
         return this.tag(id).punchcard({ fold: 1, ...options, ctx, id });
     };
@@ -90,13 +127,13 @@ if (WindowPattern) {
     WindowPattern.prototype._spiral = function(this: any, id?: string, options: any = {}) {
         id = id || 'spiral';
         let _size = options.size || 275;
-        options = { width: _size, height: _size, ...options, size: _size / 5 };
+        options = { width: _size, height: _size, from: this.from, ...options, size: _size / 5 };
         const ctx = getCanvasWidget(id, options).getContext('2d');
         return this.tag(id).spiral({ ...options, ctx, id });
     };
-    console.log('Inline widget methods registered successfully');
-} else {
-    console.error('window.Pattern not found - cannot register widget methods');
+
+    console.log('[registerPatternMethods] Pattern.prototype methods registered successfully');
+    return true;
 }
 
 const defaultCode = `// Initialize Hydra
@@ -239,6 +276,30 @@ export const StrudelRepl = ({ className, engineReady, onHalt, onExecute, onSave,
         window.addEventListener('keydown', handleKeyDown);
         return () => window.removeEventListener('keydown', handleKeyDown);
     }, [soundBrowser.isOpen, soundBrowser.stopPreview]);
+
+    // Register Pattern.prototype methods when component mounts
+    useEffect(() => {
+        // Try to register immediately
+        if (!registerPatternMethods()) {
+            // If Pattern not available, retry every 100ms for up to 2 seconds
+            let attempts = 0;
+            const maxAttempts = 20;
+
+            const retryInterval = setInterval(() => {
+                attempts++;
+
+                if (registerPatternMethods() || attempts >= maxAttempts) {
+                    clearInterval(retryInterval);
+
+                    if (attempts >= maxAttempts) {
+                        console.error('[StrudelRepl] Failed to register Pattern.prototype methods - window.Pattern never became available');
+                    }
+                }
+            }, 100);
+
+            return () => clearInterval(retryInterval);
+        }
+    }, []); // Run once on mount
 
     // Getter for editor view - stable callback for useWidgetUpdates
     const getEditorView = useCallback(() => editorRef.current?.view, []);
