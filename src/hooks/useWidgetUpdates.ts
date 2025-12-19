@@ -29,14 +29,25 @@ export const useWidgetUpdates = (getView: () => EditorView | undefined): void =>
   const registeredWidgets = useRef<Set<string>>(new Set());
   // Track pending animation frame for cleanup
   const pendingRegistration = useRef<number | null>(null);
+  // Counter for generating unique IDs when position is unavailable
+  const widgetIdCounter = useRef<number>(0);
+  // Map to store stable IDs for widgets without position data
+  const widgetIdMap = useRef<WeakMap<WidgetConfig, string>>(new WeakMap());
 
   // Generate stable widget ID based on type and position
   const getWidgetId = (widget: WidgetConfig, index: number): string => {
     if (widget.from !== undefined && widget.to !== undefined) {
       return `${widget.type}-${widget.from}-${widget.to}`;
     }
-    // Fallback with timestamp for uniqueness when position unavailable
-    return `${widget.type}-${index}-${widget.from || 'unknown'}`;
+
+    // Fallback: Use WeakMap to ensure stable IDs across renders
+    // This prevents ID collisions when position is unavailable
+    let id = widgetIdMap.current.get(widget);
+    if (!id) {
+      id = `${widget.type}-${index}-${widgetIdCounter.current++}`;
+      widgetIdMap.current.set(widget, id);
+    }
+    return id;
   };
 
   // Apply widget updates to editor when widgets change
