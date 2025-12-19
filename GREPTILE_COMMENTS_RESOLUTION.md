@@ -1,6 +1,12 @@
 # Greptile Code Review Comments - Resolution Status
 
-All 9 issues identified by greptile-apps bot have been addressed in commit `40f9885`.
+## PR #37 - All 9 Issues Resolved
+
+All 9 issues identified by greptile-apps bot in PR #37 have been addressed in commit `40f9885`.
+
+## PR #38 - Widget ID Collision Fixed
+
+1 issue identified by greptile-apps bot in PR #38 has been addressed in commit `15ef268`.
 
 ---
 
@@ -340,3 +346,93 @@ All 9 greptile code review issues have been resolved:
 **Latest Commit:** `40f9885` - "fix: resolve PR #37 code review issues - race conditions, edge cases, and performance"
 
 All fixes are tested and ready for review.
+
+---
+
+## PR #38 Issue Resolution
+
+## ✅ Issue 10: Widget ID Fallback Doesn't Use Timestamp
+**File:** `src/hooks/useWidgetUpdates.ts:34-50`
+**Greptile Comment:** "Fallback widget ID generation doesn't implement promised timestamp uniqueness - multiple widgets can get identical IDs across re-evaluations if indices shift"
+
+**Problem:**
+```typescript
+// BEFORE (problematic):
+// Fallback with timestamp for uniqueness when position unavailable
+return `${widget.type}-${index}-${widget.from || 'unknown'}`;
+```
+
+The comment promised timestamp-based uniqueness but the implementation didn't actually use a timestamp. This caused:
+- Widget ID collisions when indices shift across re-evaluations
+- Unstable IDs when widgets are added/removed dynamically
+- Potential registration/cleanup failures
+
+**Resolution:**
+```typescript
+// AFTER (fixed):
+// Track which widgets we've registered to avoid duplicates
+const registeredWidgets = useRef<Set<string>>(new Set());
+// Track pending animation frame for cleanup
+const pendingRegistration = useRef<number | null>(null);
+// Counter for generating unique IDs when position is unavailable
+const widgetIdCounter = useRef<number>(0);
+// Map to store stable IDs for widgets without position data
+const widgetIdMap = useRef<WeakMap<WidgetConfig, string>>(new WeakMap());
+
+// Generate stable widget ID based on type and position
+const getWidgetId = (widget: WidgetConfig, index: number): string => {
+  if (widget.from !== undefined && widget.to !== undefined) {
+    return `${widget.type}-${widget.from}-${widget.to}`;
+  }
+
+  // Fallback: Use WeakMap to ensure stable IDs across renders
+  // This prevents ID collisions when position is unavailable
+  let id = widgetIdMap.current.get(widget);
+  if (!id) {
+    id = `${widget.type}-${index}-${widgetIdCounter.current++}`;
+    widgetIdMap.current.set(widget, id);
+  }
+  return id;
+};
+```
+
+**Why WeakMap Instead of Timestamp?**
+
+Initially considered using `Date.now()` as suggested by the comment, but this would cause problems:
+- ❌ New timestamp on every render = new ID every time
+- ❌ Constant widget unregister/register cycles
+- ❌ Lost animation state and performance issues
+
+WeakMap solution provides:
+- ✅ Stable IDs: Same widget object gets same ID across renders
+- ✅ Uniqueness: Counter ensures no collisions
+- ✅ Memory efficiency: WeakMap allows garbage collection
+- ✅ No unnecessary re-registrations
+
+**Impact:**
+- Widget IDs are now truly unique and stable
+- No ID collisions even when indices shift
+- Proper cleanup when widgets are removed
+- Better performance (no unnecessary re-registrations)
+
+**Commit:** `15ef268` - "fix: widget ID collision in fallback case using WeakMap"
+
+---
+
+## Summary - All Issues Resolved
+
+| PR | Issue | File | Status | Commit |
+|----|-------|------|--------|--------|
+| #37 | Widget store empty arrays | strudelEngine.ts | ✅ Fixed | 40f9885 |
+| #37 | Empty widget cleanup | useWidgetUpdates.ts | ✅ Fixed | 40f9885 |
+| #37 | Function reference stability | useWidgetUpdates.ts | ✅ Already stable | N/A |
+| #37 | Canvas detection heuristic | useWidgetUpdates.ts | ✅ Fixed | 40f9885 |
+| #37 | setTimeout race condition | useWidgetUpdates.ts | ✅ Fixed | 40f9885 |
+| #37 | Widget ID collisions (primary) | useWidgetUpdates.ts | ✅ Fixed | 40f9885 |
+| #37 | Animation loop efficiency | visualizationManager.ts | ✅ Fixed | 40f9885 |
+| #37 | Canvas reuse detached DOM | StrudelRepl.tsx | ✅ Fixed | 40f9885 |
+| #37 | Pattern.prototype timing | StrudelRepl.tsx | ✅ Fixed | 40f9885 |
+| #38 | Widget ID fallback uniqueness | useWidgetUpdates.ts | ✅ Fixed | 15ef268 |
+
+**Branch:** `claude/fetch-pr-comments-N0vlZ`
+**Status:** All greptile comments addressed and pushed ✅
