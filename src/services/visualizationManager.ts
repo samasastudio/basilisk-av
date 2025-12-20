@@ -1,3 +1,7 @@
+/* eslint-disable no-console, no-param-reassign, @typescript-eslint/prefer-optional-chain, @typescript-eslint/no-explicit-any */
+// Console logging is essential for visualization debugging
+// param-reassign needed for canvas context modifications
+// any types required for Strudel pattern API
 // @ts-expect-error - @strudel/draw has no type definitions
 import { __pianoroll } from '@strudel/draw';
 
@@ -23,6 +27,7 @@ export interface VisualizationWidget {
 class VisualizationManager {
   private widgets = new Map<string, VisualizationWidget>();
   private isRunning = false;
+  private isPlaying = false;
   private animationFrameId: number | null = null;
   private audioAnalyser: AnalyserNode | null = null;
   private getCurrentPattern: (() => any) | null = null;
@@ -35,8 +40,8 @@ class VisualizationManager {
     console.log('[VizManager] Registering widget:', widget.id, widget.type);
     this.widgets.set(widget.id, widget);
 
-    // Start animation loop if not already running
-    if (!this.isRunning) {
+    // Start animation loop if playing and not already running
+    if (this.isPlaying && !this.isRunning) {
       this.start();
     }
   }
@@ -79,6 +84,24 @@ class VisualizationManager {
   }
 
   /**
+   * Set playback state to control animation loop
+   */
+  setPlaybackState(playing: boolean): void {
+    this.isPlaying = playing;
+    console.log('[VizManager] Playback state:', playing ? 'playing' : 'stopped');
+
+    // Start animation if playing and have widgets
+    if (playing && this.widgets.size > 0 && !this.isRunning) {
+      this.start();
+    }
+
+    // Stop animation if not playing
+    if (!playing && this.isRunning) {
+      this.stop();
+    }
+  }
+
+  /**
    * Start the animation loop
    */
   private start(): void {
@@ -105,17 +128,23 @@ class VisualizationManager {
 
   /**
    * Main animation loop - renders all active widgets
+   * Only runs when playback is active
    */
   private animate = (): void => {
-    if (!this.isRunning) return;
+    if (!this.isRunning || !this.isPlaying) return;
 
     // Render all widgets
     this.widgets.forEach((widget) => {
       this.renderWidget(widget);
     });
 
-    // Continue loop
-    this.animationFrameId = requestAnimationFrame(this.animate);
+    // Continue loop only if still playing
+    if (this.isPlaying) {
+      this.animationFrameId = requestAnimationFrame(this.animate);
+    } else {
+      this.isRunning = false;
+      this.animationFrameId = null;
+    }
   };
 
   /**
@@ -281,16 +310,14 @@ class VisualizationManager {
       return;
     }
 
-    const time = this.getCurrentTime();
-
-    // For spiral, we typically want a longer lookbehind
-    const lookBehind = 4;
-    const lookAhead = 0;
-
     try {
-      const haps = pattern.queryArc(time - lookBehind, time + lookAhead);
+      // TODO: Implement spiral drawing using queryArc data
+      // const time = this.getCurrentTime();
+      // const lookBehind = 4;
+      // const lookAhead = 0;
+      // const haps = pattern.queryArc(time - lookBehind, time + lookAhead);
 
-      // TODO: Implement spiral drawing - for now, draw a placeholder
+      // For now, draw a placeholder
       ctx.fillStyle = '#75baff';
       ctx.font = '14px monospace';
       ctx.fillText('Spiral visualization (TODO)', 10, widget.canvas.height / 2);

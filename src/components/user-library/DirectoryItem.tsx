@@ -29,7 +29,7 @@ export const DirectoryItem = ({
   onToggleExpand,
   onPreview,
   onInsert
-}: DirectoryItemProps): JSX.Element => {
+}: DirectoryItemProps): React.ReactElement => {
   const isDirectory = item.type === 'directory';
   const paddingLeft = `${(depth * INDENT_PER_LEVEL) + BASE_PADDING}px`;
 

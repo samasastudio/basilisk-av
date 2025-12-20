@@ -28,7 +28,7 @@ export const SoundSearch = ({
   onChange,
   placeholder = 'Search samples...',
   className = ''
-}: SoundSearchProps): JSX.Element => (
+}: SoundSearchProps): React.ReactElement => (
     <div className={`relative ${className}`}>
       <input
         type="text"

@@ -14,7 +14,7 @@ export const Button = ({
   size = 'md',
   disabled = false,
   className = ''
-}: ButtonProps): JSX.Element => {
+}: ButtonProps): React.ReactElement => {
   const baseStyles = "font-sans font-medium rounded transition-colors duration-200 border";
 
   const variants = {

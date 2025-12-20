@@ -56,7 +56,7 @@ export const AppHeader = ({
   hydraLinked,
   hydraStatus,
   onStartEngine
-}: Props): JSX.Element => {
+}: Props): React.ReactElement => {
   const isReady = engineStatus === 'ready';
   const canStart = canStartEngine(engineStatus);
 

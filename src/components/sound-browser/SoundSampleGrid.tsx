@@ -71,7 +71,7 @@ export const SoundSampleGrid = ({
   canPreview = true,
   onInsertSample,
   className = ''
-}: SoundSampleGridProps): JSX.Element => (
+}: SoundSampleGridProps): React.ReactElement => (
     <div className={`grid grid-cols-2 sm:grid-cols-3 md:grid-cols-4 lg:grid-cols-5 gap-1.5 ${className}`}>
       {samples.map((_, index) => {
         // Show Strudel pattern string format: "category:index"

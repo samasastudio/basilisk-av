@@ -28,7 +28,7 @@ export const SourceSelector = ({
   source,
   onSelectSource,
   isFileSystemSupported
-}: SourceSelectorProps): JSX.Element => {
+}: SourceSelectorProps): React.ReactElement => {
   const baseButtonClass = 'flex items-center gap-1.5 px-3 py-1.5 text-xs font-medium rounded transition-colors';
   const activeClass = 'bg-basilisk-purple-500/30 text-basilisk-purple-300 border border-basilisk-purple-500/50';
   const inactiveClass = 'text-basilisk-gray-400 hover:text-basilisk-gray-200 hover:bg-basilisk-gray-700/50';

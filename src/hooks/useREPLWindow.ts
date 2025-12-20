@@ -2,7 +2,8 @@ import { useMemo } from 'react';
 
 import { usePersistedState } from './usePersistedState';
 
-import type { DraggableData, DraggableEvent, Position, ResizableDelta, ResizeDirection } from 'react-rnd';
+import type { ResizeDirection } from 're-resizable';
+import type { DraggableData, RndDragEvent, Position, ResizableDelta } from 'react-rnd';
 
 
 // Default REPL window constraints
@@ -59,7 +60,7 @@ export const useREPLWindow = (isSoundBrowserOpen: boolean = false): {
   position: Position;
   size: { width: number; height: number };
   bounds: WindowBounds;
-  handleDragStop: (_e: DraggableEvent, d: DraggableData) => void;
+  handleDragStop: (_e: RndDragEvent, d: DraggableData) => void;
   handleResizeStop: (
     _e: MouseEvent | TouchEvent,
     _direction: ResizeDirection,
@@ -103,7 +104,7 @@ export const useREPLWindow = (isSoundBrowserOpen: boolean = false): {
   /**
    * Handle drag stop event from react-rnd
    */
-  const handleDragStop = (_e: DraggableEvent, d: DraggableData): void => {
+  const handleDragStop = (_e: RndDragEvent, d: DraggableData): void => {
     setPosition({ x: d.x, y: d.y });
   };
 
