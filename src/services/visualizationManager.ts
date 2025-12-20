@@ -9,8 +9,25 @@ import { __pianoroll } from '@strudel/draw';
 const DEFAULT_VIZ_CYCLES = 4;
 /** Default playhead position (0 = left, 1 = right) */
 const DEFAULT_VIZ_PLAYHEAD = 0.5;
-/** Default font size for placeholder text */
-const DEFAULT_PLACEHOLDER_FONT_SIZE = 10;
+
+/** Default spiral margin (spacing between arms) */
+const DEFAULT_SPIRAL_MARGIN = 15;
+/** Default spiral inset (rotations before spiral starts) */
+const DEFAULT_SPIRAL_INSET = 3;
+/** Default spiral stretch (cycles per 360 degrees) */
+const DEFAULT_SPIRAL_STRETCH = 1;
+/** Spiral rendering increment for smooth curves (1/60 for ~60 segments per rotation) */
+const SPIRAL_ANGLE_INCREMENT = 1 / 60; // eslint-disable-line @typescript-eslint/no-magic-numbers
+/** Number of cycles to look back for spiral events */
+const SPIRAL_LOOK_BEHIND = 4;
+/** Default spiral playhead length in rotations */
+const DEFAULT_SPIRAL_PLAYHEAD_LENGTH = 0.02;
+/** Degrees offset for polar coordinate conversion (start from top) */
+const POLAR_ANGLE_OFFSET = 90;
+/** Degrees in a full rotation */
+const DEGREES_PER_ROTATION = 360;
+/** Radians per degree */
+const RADIANS_PER_DEGREE = Math.PI / 180; // eslint-disable-line @typescript-eslint/no-magic-numbers
 
 /**
  * Visualization widget configuration
@@ -303,7 +320,117 @@ class VisualizationManager {
   }
 
   /**
+   * Convert polar coordinates to cartesian (x, y)
+   * Angle is in degrees, with 0 pointing up
+   */
+  private fromPolar(angle: number, radius: number, cx: number, cy: number): [number, number] {
+    const radians = (angle - POLAR_ANGLE_OFFSET) * RADIANS_PER_DEGREE;
+    return [cx + Math.cos(radians) * radius, cy + Math.sin(radians) * radius];
+  }
+
+  /**
+   * Get x, y coordinates on a spiral at a given angle
+   * The spiral grows outward as angle increases
+   */
+  private xyOnSpiral(
+    angle: number,
+    margin: number,
+    cx: number,
+    cy: number,
+    rotate: number = 0
+  ): [number, number] {
+    return this.fromPolar((angle + rotate) * DEGREES_PER_ROTATION, margin * angle, cx, cy);
+  }
+
+  /**
+   * Draw a segment of the spiral from one angle to another
+   */
+  private spiralSegment(
+    ctx: CanvasRenderingContext2D,
+    options: {
+      from: number;
+      to: number;
+      margin: number;
+      cx: number;
+      cy: number;
+      rotate: number;
+      thickness: number;
+      color: string;
+      stretch: number;
+      opacity?: number;
+    }
+  ): void {
+    const { margin, cx, cy, thickness, color, stretch, opacity = 1 } = options;
+    let { from, to, rotate } = options;
+
+    // Apply stretch factor
+    from *= stretch;
+    to *= stretch;
+    rotate *= stretch;
+
+    ctx.lineWidth = thickness;
+    ctx.lineCap = 'round';
+    ctx.strokeStyle = color;
+    ctx.globalAlpha = opacity;
+
+    ctx.beginPath();
+    const [sx, sy] = this.xyOnSpiral(from, margin, cx, cy, rotate);
+    ctx.moveTo(sx, sy);
+
+    let angle = from;
+    while (angle <= to) {
+      const [x, y] = this.xyOnSpiral(angle, margin, cx, cy, rotate);
+      ctx.lineTo(x, y);
+      angle += SPIRAL_ANGLE_INCREMENT;
+    }
+    ctx.stroke();
+    ctx.globalAlpha = 1;
+  }
+
+  /**
+   * Parse spiral configuration from widget options with defaults
+   */
+  private getSpiralConfig(
+    options: Record<string, unknown>,
+    canvasWidth: number,
+    canvasHeight: number
+  ): {
+    stretch: number;
+    inset: number;
+    margin: number;
+    thickness: number;
+    activeColor: string;
+    inactiveColor: string;
+    playheadColor: string;
+    playheadLength: number;
+    steady: number;
+    fade: boolean;
+    padding: number;
+    cx: number;
+    cy: number;
+  } {
+    const stretch = (options.stretch as number) || DEFAULT_SPIRAL_STRETCH;
+    const margin = (options.margin as number) || DEFAULT_SPIRAL_MARGIN;
+    return {
+      stretch,
+      inset: (options.inset as number) || DEFAULT_SPIRAL_INSET,
+      margin,
+      thickness: (options.thickness as number) || margin / 2,
+      activeColor: (options.activeColor as string) || '#75baff',
+      inactiveColor: (options.inactiveColor as string) || '#3a5d80',
+      playheadColor: (options.playheadColor as string) || '#ffffff',
+      playheadLength: (options.playheadLength as number) || DEFAULT_SPIRAL_PLAYHEAD_LENGTH,
+      steady: (options.steady as number) || 1,
+      fade: options.fade !== false,
+      padding: (options.padding as number) || 0,
+      cx: canvasWidth / 2,
+      cy: canvasHeight / 2,
+    };
+  }
+
+  /**
    * Render spiral visualization
+   * Events appear as arc segments along a rotating spiral
    */
   private renderSpiral(widget: VisualizationWidget, ctx: CanvasRenderingContext2D): void {
     if (!this.getCurrentPattern || !this.getCurrentTime) {
@@ -317,17 +444,63 @@ class VisualizationManager {
       return;
     }
 
-    try {
-      // TODO: Implement spiral drawing using queryArc data
-      // const time = this.getCurrentTime();
-      // const lookBehind = 4;
-      // const lookAhead = 0;
-      // const haps = pattern.queryArc(time - lookBehind, time + lookAhead);
+    const time = this.getCurrentTime();
+    const config = this.getSpiralConfig(
+      widget.options || {},
+      widget.canvas.width,
+      widget.canvas.height
+    );
 
-      // For now, draw a placeholder
-      ctx.fillStyle = '#75baff';
-      ctx.font = `${DEFAULT_PLACEHOLDER_FONT_SIZE}px monospace`;
-      ctx.fillText('Spiral visualization (TODO)', DEFAULT_PLACEHOLDER_FONT_SIZE, widget.canvas.height / 2);
+    // Rotation based on current time
+    const rotate = config.steady * time;
+
+    try {
+      // Query pattern for events in visible time window
+      const haps = pattern.queryArc(time - SPIRAL_LOOK_BEHIND, time);
+
+      console.log('[VizManager] Drawing spiral - haps:', haps.length);
+
+      // Base settings for spiral segments
+      const baseSettings = {
+        margin: config.margin / config.stretch,
+        cx: config.cx,
+        cy: config.cy,
+        stretch: config.stretch,
+        thickness: config.thickness,
+      };
+
+      // Draw each event as an arc segment on the spiral
+      haps.forEach((hap: any) => {
+        const isActive = hap.whole.begin <= time && hap.endClipped > time;
+        const from = hap.whole.begin - time + config.inset;
+        const to = hap.endClipped - time + config.inset - config.padding;
+
+        // Get color from hap value or use default
+        const hapColor = hap.value?.color ?? config.activeColor;
+        const color = isActive ? hapColor : config.inactiveColor;
+
+        // Calculate opacity for fade effect (events further in past fade out)
+        const opacity = config.fade ? 1 - Math.abs((hap.whole.begin - time) / SPIRAL_LOOK_BEHIND) : 1;
+
+        this.spiralSegment(ctx, {
+          ...baseSettings,
+          from,
+          to,
+          rotate,
+          color,
+          opacity,
+        });
+      });
+
+      // Draw playhead marker
+      this.spiralSegment(ctx, {
+        ...baseSettings,
+        from: config.inset - config.playheadLength,
+        to: config.inset,
+        rotate,
+        color: config.playheadColor,
+        opacity: 1,
+      });
     } catch (error) {
       console.error('[VizManager] Error rendering spiral:', error);
     }
