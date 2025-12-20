@@ -125,7 +125,7 @@ export const useWidgetUpdates = (getView: () => EditorView | undefined): void =>
           // Register with visualization manager
           visualizationManager.registerWidget({
             id: widgetId,
-            type: widget.type as '_scope' | '_pianoroll' | '_punchcard' | '_spiral',
+            type: widget.type as '_scope' | '_pianoroll' | '_punchcard' | '_spiral' | '_spectrum',
             canvas,
             options: {
               cycles: 4,

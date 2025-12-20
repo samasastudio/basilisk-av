@@ -29,12 +29,21 @@ const DEGREES_PER_ROTATION = 360;
 /** Radians per degree */
 const RADIANS_PER_DEGREE = Math.PI / 180; // eslint-disable-line @typescript-eslint/no-magic-numbers
 
+/** Default minimum dB for spectrum visualization */
+const DEFAULT_SPECTRUM_MIN_DB = -100;
+/** Default maximum dB for spectrum visualization */
+const DEFAULT_SPECTRUM_MAX_DB = -30;
+/** Default scroll speed for spectrum visualization */
+const DEFAULT_SPECTRUM_SPEED = 1;
+/** Default line thickness for spectrum visualization */
+const DEFAULT_SPECTRUM_THICKNESS = 3;
+
 /**
  * Visualization widget configuration
  */
 export interface VisualizationWidget {
   id: string;
-  type: '_scope' | '_pianoroll' | '_punchcard' | '_spiral';
+  type: '_scope' | '_pianoroll' | '_punchcard' | '_spiral' | '_spectrum';
   canvas: HTMLCanvasElement;
   options: Record<string, unknown>;
 }
@@ -56,6 +65,8 @@ class VisualizationManager {
   private audioAnalyser: AnalyserNode | null = null;
   private getCurrentPattern: (() => any) | null = null;
   private getCurrentTime: (() => number) | null = null;
+  /** Frame history for scrolling spectrum visualization */
+  private spectrumFrames = new Map<string, ImageData>();
 
   /**
    * Register a visualization widget to receive pattern updates
@@ -193,6 +204,8 @@ class VisualizationManager {
       this.renderPunchcard(widget, ctx);
     } else if (widget.type === '_spiral') {
       this.renderSpiral(widget, ctx);
+    } else if (widget.type === '_spectrum') {
+      this.renderSpectrum(widget, ctx);
     }
   }
 
@@ -504,6 +517,70 @@ class VisualizationManager {
     } catch (error) {
       console.error('[VizManager] Error rendering spiral:', error);
     }
+  }
+
+  /**
+   * Render spectrum analyzer visualization (scrolling spectrogram)
+   * Uses getFloatFrequencyData for frequency magnitude data
+   * Scrolls left like Strudel's spectrum visualization
+   */
+  private renderSpectrum(widget: VisualizationWidget, ctx: CanvasRenderingContext2D): void {
+    if (!this.audioAnalyser) {
+      console.warn('[VizManager] No audio analyser for spectrum');
+      return;
+    }
+
+    // Get frequency data from analyser (FFT)
+    const bufferLength = this.audioAnalyser.frequencyBinCount;
+    const dataArray = new Float32Array(bufferLength);
+    this.audioAnalyser.getFloatFrequencyData(dataArray);
+
+    const width = widget.canvas.width;
+    const height = widget.canvas.height;
+
+    // Configuration from options or defaults
+    const options = widget.options || {};
+    const minDb = (options.min as number) || DEFAULT_SPECTRUM_MIN_DB;
+    const maxDb = (options.max as number) || DEFAULT_SPECTRUM_MAX_DB;
+    const speed = (options.speed as number) || DEFAULT_SPECTRUM_SPEED;
+    const thickness = (options.thickness as number) || DEFAULT_SPECTRUM_THICKNESS;
+    const color = (options.color as string) || '#75baff';
+
+    ctx.lineWidth = thickness;
+    ctx.fillStyle = color;
+
+    // Get or create frame history for this widget
+    let imageData = this.spectrumFrames.get(widget.id);
+    if (!imageData) {
+      // Initialize with transparent image data
+      imageData = ctx.getImageData(0, 0, width, height);
+      this.spectrumFrames.set(widget.id, imageData);
+    }
+
+    // Scroll existing content left
+    ctx.putImageData(imageData, -speed, 0);
+
+    // Draw new frequency column on the right edge
+    const x = width - speed;
+    for (let i = 0; i < bufferLength; i++) {
+      // Get frequency bin value (in dB)
+      const db = dataArray[i];
+
+      // Normalize dB value to 0-1 range and use as alpha
+      const normalized = Math.max(0, Math.min(1, (db - minDb) / (maxDb - minDb)));
+      ctx.globalAlpha = normalized;
+
+      // Use logarithmic scale for frequency (sounds more natural)
+      const logPos = (Math.log(i + 1) / Math.log(bufferLength)) * height;
+      const y = height - logPos;
+
+      ctx.fillRect(x, y, speed, 2);
+    }
+
+    ctx.globalAlpha = 1;
+
+    // Store current frame for next iteration
+    this.spectrumFrames.set(widget.id, ctx.getImageData(0, 0, width, height));
   }
 
   /**

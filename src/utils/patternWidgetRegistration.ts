@@ -97,6 +97,15 @@ export const registerPatternMethods = (): boolean => {
         return this.tag(id).spiral({ ...options, ctx, id });
     };
 
+    WindowPattern.prototype._spectrum = function(this: any, id?: string, options: any = {}) {
+        id = id || 'spectrum';
+        options = { width: DEFAULT_CANVAS_WIDTH, height: DEFAULT_CANVAS_HEIGHT, from: this.from, ...options };
+        const ctx = getCanvasWidget(id, options).getContext('2d');
+        if (!ctx) throw new Error(`Failed to get 2d context for canvas: ${id}`);
+        // Delegate to Strudel's spectrum() which handles scrolling spectrogram
+        return this.tag(id).spectrum({ ...options, ctx, id });
+    };
+
     console.log('[registerPatternMethods] Pattern.prototype methods registered successfully');
     return true;
 };
