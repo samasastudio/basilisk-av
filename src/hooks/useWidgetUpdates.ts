@@ -9,6 +9,9 @@ import { visualizationManager } from '../services/visualizationManager';
 import type { WidgetConfig } from '../services/strudelEngine';
 import type { EditorView } from '@codemirror/view';
 
+/** Maximum character distance to consider a canvas as matching a widget */
+const CANVAS_PROXIMITY_THRESHOLD = 100;
+
 /**
  * Hook to subscribe to widget updates and apply them to a CodeMirror editor.
  * Uses useSyncExternalStore for React-idiomatic external store subscription.
@@ -186,8 +189,8 @@ function findCanvasForWidget(view: EditorView, widget: WidgetConfig): HTMLCanvas
       try {
         const canvasLinePos = view.posAtDOM(canvasElement.parentElement || canvasElement);
 
-        // If the canvas is within the same line or nearby (within 100 chars)
-        if (Math.abs(canvasLinePos - linePos.from) < 100) {
+        // If the canvas is within the same line or nearby
+        if (Math.abs(canvasLinePos - linePos.from) < CANVAS_PROXIMITY_THRESHOLD) {
           // eslint-disable-next-line no-console
           console.log('[findCanvasForWidget] Found canvas by proximity:', widget.from);
           return canvasElement;

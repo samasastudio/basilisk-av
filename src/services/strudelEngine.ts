@@ -6,6 +6,9 @@ import { initStrudel, registerWidgetType } from '@strudel/web';
 import { getBridgeInstance } from './audioBridge';
 import { visualizationManager } from './visualizationManager';
 
+/** Retry interval in milliseconds for audio analyser connection */
+const AUDIO_ANALYSER_RETRY_INTERVAL_MS = 100;
+
 /**
  * Widget configuration from Strudel transpiler
  */
@@ -161,7 +164,7 @@ export const connectAudioAnalyser = (): void => {
       } else {
         console.error('[connectAudioAnalyser] Failed to connect audio analyser - scope/spectrum will not work');
       }
-    }, 100);
+    }, AUDIO_ANALYSER_RETRY_INTERVAL_MS);
   }
 };
 

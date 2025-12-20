@@ -1,7 +1,5 @@
-/* eslint-disable func-style, no-param-reassign, no-console, @typescript-eslint/no-explicit-any, @typescript-eslint/prefer-nullish-coalescing */
-// Strudel integration requires function declarations and parameter mutations
 import { javascript } from '@codemirror/lang-javascript';
-import { sliderPlugin, sliderWithID, widgetPlugin, setWidget } from '@strudel/codemirror';
+import { sliderPlugin, sliderWithID, widgetPlugin } from '@strudel/codemirror';
 import * as Strudel from '@strudel/core';
 // @ts-expect-error - @strudel/draw has no type definitions
 import * as StrudelDraw from '@strudel/draw';
@@ -15,6 +13,7 @@ import { useState, useEffect, useRef, useCallback } from 'react';
 import { basiliskSyntaxTheme, transparentEditorTheme } from '../config/editorTheme';
 import { useWidgetUpdates } from '../hooks/useWidgetUpdates';
 import * as StrudelEngine from '../services/strudelEngine';
+import { registerPatternMethods } from '../utils/patternWidgetRegistration';
 
 import { SoundBrowserTray } from './sound-browser';
 import { Button } from './ui/Button';
@@ -45,98 +44,16 @@ const CODE_MIRROR_SETUP = {
     syntaxHighlighting: true
 } as const;
 
+/** Retry interval in milliseconds for Pattern registration */
+const PATTERN_RETRY_INTERVAL_MS = 100;
+/** Maximum retry attempts for Pattern registration */
+const PATTERN_MAX_RETRY_ATTEMPTS = 20;
+
 // Expose Strudel functions globally for the REPL
 // sliderWithID is required by the transpiler when slider() is used in patterns
 // StrudelWeb includes all webaudio methods
 // StrudelDraw includes visualization methods (punchcard, pianoroll, scope, spiral, etc.)
 Object.assign(window, Strudel, StrudelWeb, StrudelDraw, { samples, initHydra, H, sliderWithID });
-
-// Helper to create and register canvas widgets
-function getCanvasWidget(id: string, options: any = {}) {
-    const { width = 500, height = 60, pixelRatio = window.devicePixelRatio } = options;
-
-    // Try to get existing canvas, but verify it's still in the document
-    let canvas = document.getElementById(id) as HTMLCanvasElement;
-
-    if (canvas && !document.body.contains(canvas)) {
-        // Canvas exists but is detached - remove old ID reference
-        canvas.removeAttribute('id');
-        canvas = null;
-    }
-
-    if (!canvas) {
-        canvas = document.createElement('canvas');
-        canvas.id = id;
-    }
-
-    canvas.width = width * pixelRatio;
-    canvas.height = height * pixelRatio;
-    canvas.style.width = width + 'px';
-    canvas.style.height = height + 'px';
-
-    // Store widget position as data attribute for canvas detection
-    if (options.from !== undefined) {
-        canvas.dataset.widgetPosition = options.from.toString();
-    }
-
-    setWidget(id, canvas);  // Register canvas with CodeMirror's widget system
-    return canvas;
-}
-
-/**
- * Register Pattern.prototype methods for inline visualizations.
- * Returns true if successful, false if Pattern not yet available.
- * Note: Widget type registration with transpiler happens in strudelEngine.ts before REPL initialization.
- * This function adds the inline widget methods directly to window.Pattern.prototype because
- * @strudel/codemirror's registerWidget uses its own Pattern instance.
- */
-function registerPatternMethods(): boolean {
-    const WindowPattern = (window as any).Pattern;
-
-    if (!WindowPattern) {
-        console.warn('[registerPatternMethods] window.Pattern not yet available');
-        return false;
-    }
-
-    // Only register if not already registered
-    if (WindowPattern.prototype._scope) {
-        console.log('[registerPatternMethods] Methods already registered');
-        return true;
-    }
-
-    // Directly assign methods to window.Pattern.prototype
-    WindowPattern.prototype._scope = function(this: any, id?: string, options: any = {}) {
-        id = id || 'scope';
-        options = { width: 500, height: 60, pos: 0.5, scale: 1, from: this.from, ...options };
-        const ctx = getCanvasWidget(id, options).getContext('2d');
-        return this.tag(id).scope({ ...options, ctx, id });
-    };
-
-    WindowPattern.prototype._pianoroll = function(this: any, id?: string, options: any = {}) {
-        id = id || 'pianoroll';
-        options = { from: this.from, ...options };
-        const ctx = getCanvasWidget(id, options).getContext('2d');
-        return this.tag(id).pianoroll({ fold: 1, ...options, ctx, id });
-    };
-
-    WindowPattern.prototype._punchcard = function(this: any, id?: string, options: any = {}) {
-        id = id || 'punchcard';
-        options = { from: this.from, ...options };
-        const ctx = getCanvasWidget(id, options).getContext('2d');
-        return this.tag(id).punchcard({ fold: 1, ...options, ctx, id });
-    };
-
-    WindowPattern.prototype._spiral = function(this: any, id?: string, options: any = {}) {
-        id = id || 'spiral';
-        const _size = options.size || 275;
-        options = { width: _size, height: _size, from: this.from, ...options, size: _size / 5 };
-        const ctx = getCanvasWidget(id, options).getContext('2d');
-        return this.tag(id).spiral({ ...options, ctx, id });
-    };
-
-    console.log('[registerPatternMethods] Pattern.prototype methods registered successfully');
-    return true;
-}
 
 const defaultCode = `// Initialize Hydra
 await initHydra({
@@ -277,27 +194,26 @@ export const StrudelRepl = ({ className, engineReady, onHalt, onExecute, onSave,
 
         window.addEventListener('keydown', handleKeyDown);
         return () => window.removeEventListener('keydown', handleKeyDown);
-    }, [soundBrowser.isOpen, soundBrowser.stopPreview]);
+    }, [soundBrowser]);
 
     // Register Pattern.prototype methods when component mounts
     useEffect(() => {
         // Try to register immediately
         if (!registerPatternMethods()) {
-            // If Pattern not available, retry every 100ms for up to 2 seconds
+            // If Pattern not available, retry periodically
             let attempts = 0;
-            const maxAttempts = 20;
 
             const retryInterval = setInterval(() => {
                 attempts++;
 
-                if (registerPatternMethods() || attempts >= maxAttempts) {
+                if (registerPatternMethods() || attempts >= PATTERN_MAX_RETRY_ATTEMPTS) {
                     clearInterval(retryInterval);
 
-                    if (attempts >= maxAttempts) {
+                    if (attempts >= PATTERN_MAX_RETRY_ATTEMPTS) {
                         console.error('[StrudelRepl] Failed to register Pattern.prototype methods - window.Pattern never became available');
                     }
                 }
-            }, 100);
+            }, PATTERN_RETRY_INTERVAL_MS);
 
             return () => clearInterval(retryInterval);
         }
@@ -309,7 +225,7 @@ export const StrudelRepl = ({ className, engineReady, onHalt, onExecute, onSave,
     // Subscribe to widget updates using useSyncExternalStore pattern
     useWidgetUpdates(getEditorView);
 
-    const runCode = async (): Promise<void> => {
+    const runCode = (): void => {
         if (!engineReady) {
             console.warn('Engine not ready. Please start the engine first.');
             return;
@@ -322,7 +238,7 @@ export const StrudelRepl = ({ className, engineReady, onHalt, onExecute, onSave,
         }
 
         try {
-            await repl.evaluate(code);
+            repl.evaluate(code);
             if (onExecute) {
                 onExecute();
             }
@@ -358,7 +274,6 @@ export const StrudelRepl = ({ className, engineReady, onHalt, onExecute, onSave,
                         disabled={!engineReady}
                         variant={soundBrowser.isOpen ? 'primary' : 'secondary'}
                         size="sm"
-                        title="Sound Browser - Browse and preview Strudel samples"
                     >
                         <Music size={14} />
                     </Button>
@@ -366,7 +281,6 @@ export const StrudelRepl = ({ className, engineReady, onHalt, onExecute, onSave,
                         onClick={panelState.toggleUserLibrary}
                         variant={panelState.isUserLibraryOpen ? 'primary' : 'secondary'}
                         size="sm"
-                        title="User Library - Browse and use your own samples"
                     >
                         <AudioWaveform size={14} />
                     </Button>

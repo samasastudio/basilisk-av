@@ -22,3 +22,14 @@ dist-ssr
 *.njsproj
 *.sln
 *.sw?
+
+# Claude Code session files
+claude-progress.txt
+features.json
+init.sh
+
+# Playwright MCP temp files
+.playwright-mcp/
+
+# Research notes
+Strudel_Inline_Visualization_*.md

@@ -5,6 +5,13 @@
 // @ts-expect-error - @strudel/draw has no type definitions
 import { __pianoroll } from '@strudel/draw';
 
+/** Default number of cycles to display in visualizations */
+const DEFAULT_VIZ_CYCLES = 4;
+/** Default playhead position (0 = left, 1 = right) */
+const DEFAULT_VIZ_PLAYHEAD = 0.5;
+/** Default font size for placeholder text */
+const DEFAULT_PLACEHOLDER_FONT_SIZE = 10;
+
 /**
  * Visualization widget configuration
  */
@@ -229,8 +236,8 @@ class VisualizationManager {
 
     const time = this.getCurrentTime();
     const options = widget.options || {};
-    const cycles = (options.cycles as number) || 4;
-    const playhead = (options.playhead as number) || 0.5;
+    const cycles = (options.cycles as number) || DEFAULT_VIZ_CYCLES;
+    const playhead = (options.playhead as number) || DEFAULT_VIZ_PLAYHEAD;
 
     // Calculate time window to display
     const lookBehind = cycles * playhead;
@@ -271,8 +278,8 @@ class VisualizationManager {
 
     const time = this.getCurrentTime();
     const options = widget.options || {};
-    const cycles = (options.cycles as number) || 4;
-    const playhead = (options.playhead as number) || 0.5;
+    const cycles = (options.cycles as number) || DEFAULT_VIZ_CYCLES;
+    const playhead = (options.playhead as number) || DEFAULT_VIZ_PLAYHEAD;
 
     const lookBehind = cycles * playhead;
     const lookAhead = cycles * (1 - playhead);
@@ -319,8 +326,8 @@ class VisualizationManager {
 
       // For now, draw a placeholder
       ctx.fillStyle = '#75baff';
-      ctx.font = '14px monospace';
-      ctx.fillText('Spiral visualization (TODO)', 10, widget.canvas.height / 2);
+      ctx.font = `${DEFAULT_PLACEHOLDER_FONT_SIZE}px monospace`;
+      ctx.fillText('Spiral visualization (TODO)', DEFAULT_PLACEHOLDER_FONT_SIZE, widget.canvas.height / 2);
     } catch (error) {
       console.error('[VizManager] Error rendering spiral:', error);
     }

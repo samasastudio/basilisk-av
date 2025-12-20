@@ -18,7 +18,7 @@ declare module '@strudel/codemirror' {
   export function sliderPlugin(config: any): any;
   export function sliderWithID(config: any): any;
   export function widgetPlugin(config: any): any;
-  export function setWidget(config: any): any;
+  export function setWidget(id: string, element: HTMLElement): void;
   export function updateSliderWidgets(view: EditorView, widgets: any[]): void;
   export function updateWidgets(view: EditorView, widgets: any[]): void;
   export * from '@strudel/codemirror';

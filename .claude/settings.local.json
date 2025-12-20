@@ -24,7 +24,8 @@
       "mcp__playwright__browser_evaluate",
       "mcp__playwright__browser_type",
       "Bash(npx playwright test:*)",
-      "WebFetch(domain:strudel.cc)"
+      "WebFetch(domain:strudel.cc)",
+      "Bash(git checkout:*)"
     ],
     "deny": [],
     "ask": []
