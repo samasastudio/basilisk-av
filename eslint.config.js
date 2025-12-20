@@ -9,7 +9,7 @@ import tseslint from 'typescript-eslint'
 import { defineConfig, globalIgnores } from 'eslint/config'
 
 export default defineConfig([
-  globalIgnores(['dist', 'EXAMPLE_SCRIPT_ONE.ts']),
+  globalIgnores(['dist', 'EXAMPLE_SCRIPT_ONE.ts', 'hydra-scripts/**']),
   {
     files: ['**/*.{ts,tsx}'],
     extends: [

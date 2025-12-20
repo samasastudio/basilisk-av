@@ -28,10 +28,7 @@ Clean up outdated/temporary files and organize for Claude Code CLI + VS Code ext
 |------|--------|
 | `REFACTOR_PLAN.md` | Phase 4 complete |
 | `GREPTILE_COMMENTS_RESOLUTION.md` | PR-specific, resolved |
-| `INLINE_VIZ_MANUAL_TEST.md` | Temp test doc |
-| `INLINE_VIZ_REMAINING.md` | Temp tracking doc |
 | `PR37_FIX_PLAN.md` | PR-specific, resolved |
-| `STRUDEL_INLINE_VIZ_SOLUTION.md` | Superseded by architecture doc |
 | `VERIFICATION_PROMPT.md` | Temp prompt doc |
 | `hydra_strudel_architecture_*.png` | Timestamped temp file |
 | `package.playwright.json` | Merge into package.json |
@@ -55,12 +52,6 @@ Clean up outdated/temporary files and organize for Claude Code CLI + VS Code ext
 | `claude-progress.txt` | Session handoff |
 | `features.json` | Feature tracking (obsolete with BACKLOG.md) |
 | `init.sh` | Dev session script |
-
-### 📝 REPLACE (New Versions)
-| File | Action |
-|------|--------|
-| `roadmap.md` | Replace with slim version (~80 lines) |
-| — | Add `BACKLOG.md` (feature inventory) |
 
 ---
 
@@ -155,10 +146,7 @@ git mv skills .claude/
 # 5. Delete obsolete files
 git rm REFACTOR_PLAN.md
 git rm GREPTILE_COMMENTS_RESOLUTION.md
-git rm INLINE_VIZ_MANUAL_TEST.md
-git rm INLINE_VIZ_REMAINING.md
 git rm PR37_FIX_PLAN.md
-git rm STRUDEL_INLINE_VIZ_SOLUTION.md
 git rm VERIFICATION_PROMPT.md
 git rm "hydra_strudel_architecture_*.png"
 git rm package.playwright.json
