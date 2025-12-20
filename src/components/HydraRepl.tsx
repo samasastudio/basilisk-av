@@ -29,7 +29,7 @@ type Props = {
     linkStatus?: string;
 };
 
-export const HydraRepl = ({ className, onExecute, initialCode = DEFAULT_CODE, onLoadPreset, linkStatus }: Props): JSX.Element => {
+export const HydraRepl = ({ className, onExecute, initialCode = DEFAULT_CODE, onLoadPreset, linkStatus }: Props): React.ReactElement => {
     const [code, setCode] = useState(initialCode);
     const [preset, setPreset] = useState<PresetName>('none');
 

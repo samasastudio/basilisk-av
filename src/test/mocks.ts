@@ -5,7 +5,8 @@
  * interactions. Update these factories if the react-rnd library types change.
  */
 
-import type { DraggableData, DraggableEvent, Position, ResizableDelta, ResizeDirection } from 'react-rnd';
+import type { ResizeDirection } from 're-resizable';
+import type { DraggableData, RndDragEvent, Position, ResizableDelta } from 'react-rnd';
 
 /**
  * Creates a mock DraggableData object with sensible defaults.
@@ -23,10 +24,10 @@ export const createDragData = (overrides: Partial<DraggableData> = {}): Draggabl
 });
 
 /**
- * Creates a mock DraggableEvent (empty object cast to type).
+ * Creates a mock RndDragEvent (empty object cast to type).
  * The event parameter is typically unused in drag handlers.
  */
-export const createDragEvent = (): DraggableEvent => ({} as DraggableEvent);
+export const createDragEvent = (): RndDragEvent => ({} as RndDragEvent);
 
 /**
  * Creates a mock MouseEvent for resize handlers.

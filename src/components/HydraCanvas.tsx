@@ -13,7 +13,7 @@ type Props = {
  * Full-screen Hydra canvas container with optional startup text and dev HUD.
  * Renders as the background layer (z-0) for the entire application.
  */
-export const HydraCanvas = ({ showStartupText }: Props): JSX.Element => {
+export const HydraCanvas = ({ showStartupText }: Props): React.ReactElement => {
   const { hudValue } = useHydraHUD();
 
   return (

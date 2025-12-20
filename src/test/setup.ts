@@ -78,5 +78,48 @@ global.AudioContext = vi.fn().mockImplementation(() => ({
   resume: vi.fn(),
   suspend: vi.fn(),
   state: 'running',
-  // @ts-expect-error - Mock implementation doesn't match full AudioContext interface
 }));
+
+// Suppress expected console messages in tests to reduce noise
+// eslint-disable-next-line no-console
+const originalConsoleLog = console.log;
+const originalConsoleWarn = console.warn;
+const originalConsoleError = console.error;
+
+// List of expected log patterns to suppress
+const suppressedPatterns = [
+  /🌀 @strudel\/core loaded 🌀/,
+  /@strudel\/core was loaded more than once/,
+  /\[registerPatternMethods\]/,
+  /\[connectVisualizationManager\]/,
+  /\[connectAudioAnalyser\]/,
+  /\[initializeStrudel\]/,
+  /\[VizManager\]/,
+  /No AudioContext provided to bridge/,
+];
+
+const shouldSuppress = (message: string): boolean => suppressedPatterns.some(pattern => pattern.test(message));
+
+// eslint-disable-next-line @typescript-eslint/no-explicit-any, no-console
+console.log = vi.fn((...args: any[]) => {
+  const message = args.join(' ');
+  if (!shouldSuppress(message)) {
+    originalConsoleLog(...args);
+  }
+});
+
+// eslint-disable-next-line @typescript-eslint/no-explicit-any
+console.warn = vi.fn((...args: any[]) => {
+  const message = args.join(' ');
+  if (!shouldSuppress(message)) {
+    originalConsoleWarn(...args);
+  }
+});
+
+// eslint-disable-next-line @typescript-eslint/no-explicit-any
+console.error = vi.fn((...args: any[]) => {
+  const message = args.join(' ');
+  if (!shouldSuppress(message)) {
+    originalConsoleError(...args);
+  }
+});

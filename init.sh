@@ -96,7 +96,7 @@ if [ "$START_SERVER" = true ]; then
   npm run dev &
   DEV_PID=$!
   sleep 3
-  echo "Server running at http://localhost:5173"
+  echo "Server running at http://localhost:5174"
   echo "Dev server PID: $DEV_PID"
   echo "Kill server with: kill $DEV_PID"
 else

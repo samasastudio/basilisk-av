@@ -29,7 +29,7 @@ export const SampleSearch = ({
   onChange,
   placeholder = 'Search samples...',
   className = ''
-}: SampleSearchProps): JSX.Element => (
+}: SampleSearchProps): React.ReactElement => (
   <div className={`relative ${className}`}>
     <input
       type="text"

@@ -21,7 +21,7 @@ const GroupTabButton = ({
   group: string;
   isSelected: boolean;
   onClick: () => void;
-}): JSX.Element => {
+}): React.ReactElement => {
   const groupInfo = getGroupByName(group);
   const IconComponent = groupInfo?.icon;
 
@@ -139,7 +139,7 @@ export const SoundBrowserTray = ({
   canPreview = true,
   onInsertSample,
   className = ''
-}: SoundBrowserTrayProps): JSX.Element => {
+}: SoundBrowserTrayProps): React.ReactElement => {
   // Get selected category object
   const selectedCategoryObj = categories.find((cat) => cat.name === selectedCategory);
 

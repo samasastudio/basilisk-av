@@ -4,7 +4,7 @@ interface ToggleProps {
   onChange: (checked: boolean) => void;
 }
 
-export const Toggle = ({ label, checked, onChange }: ToggleProps): JSX.Element => (
+export const Toggle = ({ label, checked, onChange }: ToggleProps): React.ReactElement => (
     <label className="flex items-center gap-3 cursor-pointer">
       <div className="relative">
         <input

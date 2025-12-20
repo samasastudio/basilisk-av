@@ -17,7 +17,7 @@ export const CDNUrlInput = ({
   isLoading,
   error,
   currentUrl
-}: CDNUrlInputProps): JSX.Element => {
+}: CDNUrlInputProps): React.ReactElement => {
   const [url, setUrl] = useState(currentUrl ?? '');
 
   const handleSubmit = (e: React.FormEvent): void => {

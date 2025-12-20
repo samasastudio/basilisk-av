@@ -10,6 +10,7 @@ import { useStrudelEngine } from '../useStrudelEngine';
 // Mock dependencies
 vi.mock('@strudel/web', () => ({
   initStrudel: vi.fn(),
+  registerWidgetType: vi.fn(),
 }));
 
 vi.mock('../../utils/patchSuperdough', () => ({
@@ -81,6 +82,7 @@ describe('useStrudelEngine', () => {
 
     expect(initStrudel).toHaveBeenCalledWith({
       prebake: expect.any(Function),
+      onUpdateState: expect.any(Function),
     });
 
     // Verify prebake function calls window.samples

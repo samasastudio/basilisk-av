@@ -4,7 +4,7 @@ interface CardProps {
   className?: string;
 }
 
-export const Card = ({ children, title, className = '' }: CardProps): JSX.Element => (
+export const Card = ({ children, title, className = '' }: CardProps): React.ReactElement => (
     <div className={`
       bg-basilisk-gray-900/85
       backdrop-blur
