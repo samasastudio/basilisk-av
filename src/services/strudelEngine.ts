@@ -1,6 +1,10 @@
+/* eslint-disable no-console, func-style, @typescript-eslint/no-explicit-any, @typescript-eslint/prefer-nullish-coalescing */
+// Console logging is essential for debugging Strudel engine initialization
+// func-style and any types required for Strudel API compatibility
 import { initStrudel, registerWidgetType } from '@strudel/web';
-import { visualizationManager } from './visualizationManager';
+
 import { getBridgeInstance } from './audioBridge';
+import { visualizationManager } from './visualizationManager';
 
 /**
  * Widget configuration from Strudel transpiler

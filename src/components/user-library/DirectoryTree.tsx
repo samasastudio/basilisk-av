@@ -24,7 +24,7 @@ export const DirectoryTree = ({
   onToggleExpand,
   onPreview,
   onInsert
-}: DirectoryTreeProps): JSX.Element => (
+}: DirectoryTreeProps): React.ReactElement => (
   <>
     {items.map((item) => (
       <div key={item.id}>

@@ -21,7 +21,7 @@ const createTestQueryClient = (): QueryClient =>
 
 // Wrapper component that provides QueryClient context
 const createWrapper = (queryClient: QueryClient) => {
-  const Wrapper = ({ children }: { children: ReactNode }): JSX.Element => (
+  const Wrapper = ({ children }: { children: ReactNode }): React.ReactElement => (
     <QueryClientProvider client={queryClient}>{children}</QueryClientProvider>
   );
   return Wrapper;

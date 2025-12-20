@@ -1,3 +1,7 @@
+/* eslint-disable no-console, no-param-reassign, @typescript-eslint/prefer-optional-chain, @typescript-eslint/no-explicit-any */
+// Console logging is essential for visualization debugging
+// param-reassign needed for canvas context modifications
+// any types required for Strudel pattern API
 // @ts-expect-error - @strudel/draw has no type definitions
 import { __pianoroll } from '@strudel/draw';
 
@@ -306,16 +310,14 @@ class VisualizationManager {
       return;
     }
 
-    const time = this.getCurrentTime();
-
-    // For spiral, we typically want a longer lookbehind
-    const lookBehind = 4;
-    const lookAhead = 0;
-
     try {
-      const haps = pattern.queryArc(time - lookBehind, time + lookAhead);
+      // TODO: Implement spiral drawing using queryArc data
+      // const time = this.getCurrentTime();
+      // const lookBehind = 4;
+      // const lookAhead = 0;
+      // const haps = pattern.queryArc(time - lookBehind, time + lookAhead);
 
-      // TODO: Implement spiral drawing - for now, draw a placeholder
+      // For now, draw a placeholder
       ctx.fillStyle = '#75baff';
       ctx.font = '14px monospace';
       ctx.fillText('Spiral visualization (TODO)', 10, widget.canvas.height / 2);

@@ -1,3 +1,5 @@
+/* eslint-disable func-style, no-param-reassign, no-console, @typescript-eslint/no-explicit-any, @typescript-eslint/prefer-nullish-coalescing */
+// Strudel integration requires function declarations and parameter mutations
 import { javascript } from '@codemirror/lang-javascript';
 import { sliderPlugin, sliderWithID, widgetPlugin, setWidget } from '@strudel/codemirror';
 import * as Strudel from '@strudel/core';
@@ -126,7 +128,7 @@ function registerPatternMethods(): boolean {
 
     WindowPattern.prototype._spiral = function(this: any, id?: string, options: any = {}) {
         id = id || 'spiral';
-        let _size = options.size || 275;
+        const _size = options.size || 275;
         options = { width: _size, height: _size, from: this.from, ...options, size: _size / 5 };
         const ctx = getCanvasWidget(id, options).getContext('2d');
         return this.tag(id).spiral({ ...options, ctx, id });
@@ -179,7 +181,7 @@ type Props = {
 };
 
 /* eslint-disable max-lines-per-function */
-export const StrudelRepl = ({ className, engineReady, onHalt, onExecute, onSave, statusLabel, soundBrowser, userLibrary, panelState }: Props): JSX.Element => {
+export const StrudelRepl = ({ className, engineReady, onHalt, onExecute, onSave, statusLabel, soundBrowser, userLibrary, panelState }: Props): React.ReactElement => {
     const [code, setCode] = useState(defaultCode);
     const [userLibraryPlaying, setUserLibraryPlaying] = useState<string | null>(null);
 

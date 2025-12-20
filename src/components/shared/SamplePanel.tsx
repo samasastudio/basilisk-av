@@ -25,7 +25,7 @@ export interface SamplePanelProps {
 export const SamplePanel = ({
   children,
   className = ''
-}: SamplePanelProps): JSX.Element => (
+}: SamplePanelProps): React.ReactElement => (
   <div
     className={`
       h-full flex flex-col gap-1 px-2 py-1.5

@@ -10,6 +10,7 @@ import { useStrudelEngine } from '../useStrudelEngine';
 // Mock dependencies
 vi.mock('@strudel/web', () => ({
   initStrudel: vi.fn(),
+  registerWidgetType: vi.fn(),
 }));
 
 vi.mock('../../utils/patchSuperdough', () => ({

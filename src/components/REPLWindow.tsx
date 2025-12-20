@@ -30,7 +30,7 @@ export const REPLWindow = ({
   onHalt,
   onExecute,
   onSave
-}: Props): JSX.Element => {
+}: Props): React.ReactElement => {
   // Panel exclusivity state (manages which panel is open)
   const panelState = usePanelExclusivity();
 

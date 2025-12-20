@@ -14,7 +14,7 @@ export const LinkDirectoryPrompt = ({
   onLinkDirectory,
   isLoading,
   error
-}: LinkDirectoryPromptProps): JSX.Element => (
+}: LinkDirectoryPromptProps): React.ReactElement => (
   <div className="flex flex-col items-center justify-center gap-4 p-6 text-center">
     <div className="p-4 rounded-full bg-basilisk-gray-700/50">
       <FolderOpen size={32} className="text-basilisk-purple-400" />

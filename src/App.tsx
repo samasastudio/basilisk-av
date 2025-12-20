@@ -13,7 +13,7 @@ import { focusREPL } from './utils/focusREPL';
 
 import type { KeyboardShortcut } from './hooks/useGlobalKeyboardShortcuts';
 
-export const App = (): JSX.Element => {
+export const App = (): React.ReactElement => {
   const [hasExecutedCode, setHasExecutedCode] = useState(false);
 
   // Create a client for TanStack Query inside the App component for proper isolation

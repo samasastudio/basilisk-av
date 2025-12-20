@@ -34,7 +34,7 @@ export const SoundCategoryChips = ({
   onSelectCategory,
   searchQuery = '',
   className = ''
-}: SoundCategoryChipsProps): JSX.Element => {
+}: SoundCategoryChipsProps): React.ReactElement => {
   const handleChipClick = (categoryName: string): void => {
     // Toggle: if already selected, deselect
     if (selectedCategory === categoryName) {

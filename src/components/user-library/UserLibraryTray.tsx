@@ -27,7 +27,7 @@ const getHostname = (url: string): string | null => {
 const iconBtnClass = 'p-1 text-basilisk-gray-400 hover:text-basilisk-gray-200 transition-colors';
 
 /** Header action buttons when source is linked */
-const SourceActions = ({ library }: { library: UseUserLibraryReturn }): JSX.Element => (
+const SourceActions = ({ library }: { library: UseUserLibraryReturn }): React.ReactElement => (
   <>
     <button type="button" onClick={library.expandAll} className={iconBtnClass} title="Expand all">
       <ChevronDown size={14} />
@@ -46,7 +46,7 @@ const SourceActions = ({ library }: { library: UseUserLibraryReturn }): JSX.Elem
 const LibraryContent = ({ library, hasSource, currentlyPlaying, onPreview, onInsert }: {
   library: UseUserLibraryReturn; hasSource: boolean; currentlyPlaying: string | null;
   onPreview: (item: SampleItem) => void; onInsert: (item: SampleItem) => void;
-}): JSX.Element => {
+}): React.ReactElement => {
   if (library.source === 'local' && !hasSource) {
     return <LinkDirectoryPrompt onLinkDirectory={library.linkLocalDirectory} isLoading={library.isLoading} error={library.error} />;
   }
@@ -69,7 +69,7 @@ interface UserLibraryTrayProps {
   onInsert: (item: SampleItem) => void;
 }
 
-export const UserLibraryTray = ({ library, currentlyPlaying, onPreview, onInsert }: UserLibraryTrayProps): JSX.Element | null => {
+export const UserLibraryTray = ({ library, currentlyPlaying, onPreview, onInsert }: UserLibraryTrayProps): React.ReactElement | null => {
   if (!library.isOpen) return null;
 
   const hasSource = library.source !== null && library.items.length > 0;
