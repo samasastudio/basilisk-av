@@ -92,9 +92,10 @@ export const registerPatternMethods = (): boolean => {
         id = id || 'spiral';
         const _size = options.size || DEFAULT_SPIRAL_SIZE;
         options = { width: _size, height: _size, from: this.from, ...options, size: _size / SPIRAL_SIZE_DIVISOR };
-        const ctx = getCanvasWidget(id, options).getContext('2d');
-        if (!ctx) throw new Error(`Failed to get 2d context for canvas: ${id}`);
-        return this.tag(id).spiral({ ...options, ctx, id });
+        // Just create canvas and tag pattern - visualization manager handles rendering
+        // (Strudel's spiral() uses onPaint which doesn't work for inline widgets)
+        getCanvasWidget(id, options);
+        return this.tag(id);
     };
 
     WindowPattern.prototype._spectrum = function(this: any, id?: string, options: any = {}) {

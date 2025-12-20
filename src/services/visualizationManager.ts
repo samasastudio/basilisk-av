@@ -16,7 +16,7 @@ const DEFAULT_SPIRAL_MARGIN = 15;
 const DEFAULT_SPIRAL_INSET = 3;
 /** Default spiral stretch (cycles per 360 degrees) */
 const DEFAULT_SPIRAL_STRETCH = 1;
-/** Spiral rendering increment for smooth curves (1/60 for ~60 segments per rotation) */
+/** Spiral rendering increment for smooth curves */
 const SPIRAL_ANGLE_INCREMENT = 1 / 60; // eslint-disable-line @typescript-eslint/no-magic-numbers
 /** Number of cycles to look back for spiral events */
 const SPIRAL_LOOK_BEHIND = 4;
@@ -28,15 +28,6 @@ const POLAR_ANGLE_OFFSET = 90;
 const DEGREES_PER_ROTATION = 360;
 /** Radians per degree */
 const RADIANS_PER_DEGREE = Math.PI / 180; // eslint-disable-line @typescript-eslint/no-magic-numbers
-
-/** Default minimum dB for spectrum visualization */
-const DEFAULT_SPECTRUM_MIN_DB = -100;
-/** Default maximum dB for spectrum visualization */
-const DEFAULT_SPECTRUM_MAX_DB = -30;
-/** Default scroll speed for spectrum visualization */
-const DEFAULT_SPECTRUM_SPEED = 1;
-/** Default line thickness for spectrum visualization */
-const DEFAULT_SPECTRUM_THICKNESS = 3;
 
 /**
  * Visualization widget configuration
@@ -65,8 +56,6 @@ class VisualizationManager {
   private audioAnalyser: AnalyserNode | null = null;
   private getCurrentPattern: (() => any) | null = null;
   private getCurrentTime: (() => number) | null = null;
-  /** Frame history for scrolling spectrum visualization */
-  private spectrumFrames = new Map<string, ImageData>();
 
   /**
    * Register a visualization widget to receive pattern updates
@@ -184,15 +173,22 @@ class VisualizationManager {
 
   /**
    * Render a single widget
+   * Note: _spectrum is handled by Strudel's analyze().draw() via Pattern.prototype.spectrum
+   * but _spiral uses onPaint which doesn't work for inline widgets, so we render it ourselves.
    */
   private renderWidget(widget: VisualizationWidget): void {
+    // Skip spectrum - Strudel's analyze().draw() handles it
+    if (widget.type === '_spectrum') {
+      return;
+    }
+
     const ctx = widget.canvas.getContext('2d');
     if (!ctx) {
       console.warn('[VizManager] No canvas context for widget:', widget.id);
       return;
     }
 
-    // Clear canvas
+    // Clear canvas for widgets we render ourselves
     ctx.clearRect(0, 0, widget.canvas.width, widget.canvas.height);
 
     // Render based on widget type
@@ -204,8 +200,6 @@ class VisualizationManager {
       this.renderPunchcard(widget, ctx);
     } else if (widget.type === '_spiral') {
       this.renderSpiral(widget, ctx);
-    } else if (widget.type === '_spectrum') {
-      this.renderSpectrum(widget, ctx);
     }
   }
 
@@ -471,8 +465,6 @@ class VisualizationManager {
       // Query pattern for events in visible time window
       const haps = pattern.queryArc(time - SPIRAL_LOOK_BEHIND, time);
 
-      console.log('[VizManager] Drawing spiral - haps:', haps.length);
-
       // Base settings for spiral segments
       const baseSettings = {
         margin: config.margin / config.stretch,
@@ -517,70 +509,6 @@ class VisualizationManager {
     } catch (error) {
       console.error('[VizManager] Error rendering spiral:', error);
     }
-  }
-
-  /**
-   * Render spectrum analyzer visualization (scrolling spectrogram)
-   * Uses getFloatFrequencyData for frequency magnitude data
-   * Scrolls left like Strudel's spectrum visualization
-   */
-  private renderSpectrum(widget: VisualizationWidget, ctx: CanvasRenderingContext2D): void {
-    if (!this.audioAnalyser) {
-      console.warn('[VizManager] No audio analyser for spectrum');
-      return;
-    }
-
-    // Get frequency data from analyser (FFT)
-    const bufferLength = this.audioAnalyser.frequencyBinCount;
-    const dataArray = new Float32Array(bufferLength);
-    this.audioAnalyser.getFloatFrequencyData(dataArray);
-
-    const width = widget.canvas.width;
-    const height = widget.canvas.height;
-
-    // Configuration from options or defaults
-    const options = widget.options || {};
-    const minDb = (options.min as number) || DEFAULT_SPECTRUM_MIN_DB;
-    const maxDb = (options.max as number) || DEFAULT_SPECTRUM_MAX_DB;
-    const speed = (options.speed as number) || DEFAULT_SPECTRUM_SPEED;
-    const thickness = (options.thickness as number) || DEFAULT_SPECTRUM_THICKNESS;
-    const color = (options.color as string) || '#75baff';
-
-    ctx.lineWidth = thickness;
-    ctx.fillStyle = color;
-
-    // Get or create frame history for this widget
-    let imageData = this.spectrumFrames.get(widget.id);
-    if (!imageData) {
-      // Initialize with transparent image data
-      imageData = ctx.getImageData(0, 0, width, height);
-      this.spectrumFrames.set(widget.id, imageData);
-    }
-
-    // Scroll existing content left
-    ctx.putImageData(imageData, -speed, 0);
-
-    // Draw new frequency column on the right edge
-    const x = width - speed;
-    for (let i = 0; i < bufferLength; i++) {
-      // Get frequency bin value (in dB)
-      const db = dataArray[i];
-
-      // Normalize dB value to 0-1 range and use as alpha
-      const normalized = Math.max(0, Math.min(1, (db - minDb) / (maxDb - minDb)));
-      ctx.globalAlpha = normalized;
-
-      // Use logarithmic scale for frequency (sounds more natural)
-      const logPos = (Math.log(i + 1) / Math.log(bufferLength)) * height;
-      const y = height - logPos;
-
-      ctx.fillRect(x, y, speed, 2);
-    }
-
-    ctx.globalAlpha = 1;
-
-    // Store current frame for next iteration
-    this.spectrumFrames.set(widget.id, ctx.getImageData(0, 0, width, height));
   }
 
   /**
