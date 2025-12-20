@@ -1,369 +1,88 @@
-# Basilisk Roadmap
+# Basilisk AV — Roadmap
 
-## Project Timeline
+## What's Built
 
-**Project Start**: November 23, 2025
-**Current Status**: Phase 6 in progress (UX Polish & Production Mode)
+**Project started**: November 23, 2025
 
----
+### Core Platform ✅
+- Vite + React + TypeScript
+- Dark minimalist UI with glassmorphism
+- Strudel REPL with CodeMirror
+- Full-screen Hydra canvas
 
-## ✅ Phase 1: Foundation & Core Integration (COMPLETED)
-**Status**: Shipped
-**Completed**: November 23-26, 2025
+### Audio-Visual Bridge ✅
+- Shared AudioContext via Web Audio API
+- FFT analysis exposed as `a.fft[0-3]`
+- Zero-latency audio → visual routing
+- No microphone required
 
-- ✅ Vite + React + TypeScript setup
-- ✅ Dark minimalist UI with glassmorphism effects
-- ✅ Embedded StrudelRepl with CodeMirror
-- ✅ Full-screen Hydra canvas background
-- ✅ Basic layout with header and floating REPL panel
+### Window Management ✅
+- Draggable/resizable REPL panel
+- Position persistence (localStorage)
+- Glassmorphic design system
 
----
+### Sample Browsers ✅
+- Sound Browser (Strudel built-in samples)
+- User Library (personal sample directories)
+- Shared SamplePanel component
+- Search, preview, insert workflow
+- Panel exclusivity
 
-## ✅ Phase 2: Audio-Visual Bridging (COMPLETED)
-**Status**: Shipped
-**Completed**: November 26-28, 2025
+### Code Quality ✅
+- 150+ tests passing
+- ESLint configured (42 rules)
+- TypeScript strict mode
+- Hooks and services extracted
 
-- ✅ Shared AudioContext via Web Audio API monkey-patching
-- ✅ FFT analysis via AnalyserNode
-- ✅ Exposed audio parameters to Hydra (`a.fft[0-3]`)
-- ✅ Real-time audio-reactive visuals with zero latency
-- ✅ Automatic bridge initialization (no user configuration needed)
-- ✅ Dev mode HUD showing real-time FFT values
-
-**Technical Achievement**: Successfully intercepted Strudel's internal AudioWorklet connections to route audio through our analyser without modifying Strudel's code. See [ARCHITECTURE.md](ARCHITECTURE.md) for full implementation details.
-
----
-
-## ✅ Phase 3: Window Management & UX (COMPLETED)
-**Status**: Shipped
-**Completed**: December 2-4, 2025 (PR #15)
-
-### Completed
-- ✅ Draggable REPL panel (using react-rnd)
-- ✅ Resizable REPL with min/max bounds
-- ✅ Minimal UI chrome with status indicators
-- ✅ Glassmorphic design system (backdrop blur, transparency)
-- ✅ Active line highlighting in editor
-- ✅ Startup text that disappears after first execution
-- ✅ Persistent window position and size (localStorage via `usePersistedState`)
-- ✅ Decomposed App.tsx into focused UI components (AppHeader, HydraCanvas, REPLWindow)
-- ✅ 66% reduction in App.tsx complexity (165 lines → ~60 lines)
-
-### Future Enhancements
-- ⏳ Minimize/maximize REPL window
-- ⏳ Snap-to-edges for REPL positioning
-- ⏳ Multi-monitor support for pop-out window
-
-*Note: Full-screen Hydra mode and keyboard shortcuts moved to Phase 6*
+### Documentation ✅
+- [ARCHITECTURE.md](docs/ARCHITECTURE.md) — Technical deep-dive
+- [API.md](docs/API.md) — Public API reference
+- [CONTRIBUTING.md](docs/CONTRIBUTING.md) — Dev onboarding
 
 ---
 
-## ✅ Phase 4: Testing & Refactoring (COMPLETED)
-**Status**: Shipped
-**Completed**: December 2-5, 2025 (PR #15, #16)
+## What's Next
 
-### Testing Infrastructure
-- ✅ Vitest + React Testing Library setup
-- ✅ Test configuration (vitest.config.ts)
-- ✅ Test setup file with mocks (test/setup.ts, test/mocks.ts)
-- ✅ Baseline tests for current behavior (App.baseline.test.tsx)
-- ✅ Unit tests for audio bridge (36 tests)
-- ✅ Component tests for UI (21+ tests across components)
-- ✅ **150 total tests passing** with 0 ESLint errors
+See **[BACKLOG.md](BACKLOG.md)** for the full feature inventory.
 
-### Custom Hooks Extracted
-- ✅ `useStrudelEngine()` - Engine initialization and control (17 tests)
-- ✅ `useHydraHUD()` - Dev mode FFT visualization (6 tests)
-- ✅ `useREPLWindow()` - Window position and resize management (11 tests)
-- ✅ `usePersistedState()` - Generic localStorage persistence hook (8 tests)
-
-### Service Modules Extracted
-- ✅ `src/services/strudelEngine.ts` - Pure engine functions (16 tests)
-- ✅ `src/services/audioBridge.ts` - Bridge abstraction layer (36 tests, including 11 for `initHydraBridge`)
-
-### UI Components Extracted
-- ✅ `AppHeader.tsx` - Header with status indicators (21 tests)
-- ✅ `HydraCanvas.tsx` - Canvas with startup text and HUD (6 tests)
-- ✅ `REPLWindow.tsx` - Rnd wrapper with window management (8 tests)
-- ✅ `HydraRepl.tsx` - Code editor with presets
-
-### Code Quality Improvements
-- ✅ Removed unused state (`audioContext`, `strudelReplRef`)
-- ✅ Implemented EngineStatus state machine (`idle` | `initializing` | `ready` | `error`)
-- ✅ Added localStorage persistence for window position and size
-- ✅ State machine helper functions (`canStartEngine`, `isEngineReady`, `isEngineInitializing`)
-- ✅ DRY principle enforcement across components
-- ✅ Comprehensive ESLint configuration (42 rules enforced)
-
-**Achievement**: Reduced App.tsx from 165 lines → 60 lines while achieving **150 passing tests** (exceeded 80% coverage goal)
+**Currently interested in:**
+- Strudel inline visuals (pianoroll, punchcard, spiral, etc.)
+- MIDI I/O (controller input, Ableton integration)
+- Multi-window (Hydra canvas on external display)
+- Environment auto-load (samples dir, startup script)
+- Dark mode & fullscreen REPL
 
 ---
 
-## ✅ Phase 5: Documentation (COMPLETED)
-**Status**: Shipped
-**Completed**: November 28 - December 3, 2025
+## Architecture
 
-### Documentation Files
-- ✅ [ARCHITECTURE.md](ARCHITECTURE.md) - Comprehensive technical documentation (588 lines)
-- ✅ [README.md](README.md) - User-facing overview and quick start
-- ✅ [REFACTOR_PLAN.md](REFACTOR_PLAN.md) - Testing and refactoring strategy
-- ✅ [API.md](API.md) - Public API reference (`window.a`, `window.repl`)
-- ✅ [CONTRIBUTING.md](CONTRIBUTING.md) - Developer onboarding guide
-- ✅ roadmap.md - This file
-- ✅ Archived outdated documentation (archive/ folder)
+```
+src/
+├── components/     # React UI
+├── hooks/          # Custom hooks
+├── services/       # Business logic
+└── utils/          # Helpers
+```
 
-### Future Additions
-- ⏳ Example patterns library (searchable, categorized)
-- ⏳ Video tutorials / GIFs for README
+Key files:
+- `patchSuperdough.ts` — Audio routing interceptor
+- `strudelHydraBridge.ts` — FFT bridge to Hydra
+- `useStrudelEngine.ts` — Engine lifecycle
 
 ---
 
-## 🚀 Phase 6: UX Polish & Production Mode (IN PROGRESS)
-**Status**: In progress
-**Started**: December 12, 2025
-**Features**: 29 total (24 passing)
-
-### Development Infrastructure
-- ✅ Playwright MCP integration for automated verification
-- ✅ Claude Code CLI commands (`/project:verify`, `/project:verify-all`)
-- ✅ Consolidated features.json with dependency tracking
-- ✅ Updated agentic development workflow
-
-### Shared Components
-- ⏳ `SamplePanel` - Base component for Sound Browser and User Library
-  - Collapsible directory tree
-  - Search functionality
-  - Item click/double-click callbacks
-  - Consistent glassmorphism styling
-
-### Sound Browser (Strudel Samples)
-- ✅ Sound menu showing all loaded Strudel samples (with click-away detection)
-- ✅ Searchable/filterable sound list (with match highlighting)
-- ✅ Preview sounds on click (with engine-ready check)
-- ✅ Sound Browser toggle button with tooltip
-- ✅ Insert sample name into editor on double-click
-
-### User Library (User Samples) — NEW
-- ⏳ User Library button with waveform icon
-- ⏳ Panel displaying user's linked sample directories
-- ⏳ Panel exclusivity (only one panel open at a time)
-- ⏳ Link master directory via File System Access API
-- ⏳ Preview user samples on click
-- ⏳ Insert sample path on double-click
-- ⏳ Search across user samples
-
-See [docs/USER_LIBRARY_SPEC.md](docs/USER_LIBRARY_SPEC.md) for full specification.
-
-### REPL Theming
-- ⏳ Dark mode toggle for REPL editor
-- ⏳ Syntax highlighting color schemes
-
-### Keyboard Shortcuts
-- ⏳ Start engine shortcut
-- ⏳ Emergency halt/stop audio (Escape or Ctrl+.)
-- ⏳ Hide/show REPL toggle
-- ⏳ Keyboard shortcut help overlay
-
-### Interactive Controls (NEW)
-- ✅ Upgrade Strudel packages to v1.2.x
-- ✅ Inline slider widget for real-time parameter control
-- ⏳ Inline oscilloscope (._scope())
-- ⏳ Inline piano roll (._pianoroll())
-
-### Production HUD
-- ⏳ Compact FFT analyzer per `a.fft` band (4 mini visualizers)
-- ⏳ CPU/processing power percentage display
-- ⏳ FPS counter
-- ⏳ Toggle HUD visibility
-- ⏳ Minimal, non-intrusive design
-
-### Verification Workflow
-
-Features are verified using Playwright MCP via Claude Code CLI:
+## Running Locally
 
 ```bash
-# Verify single feature
-claude
-> /project:verify p6-sound-list
-
-# Verify all incomplete features
-> /project:verify-all
-```
-
-See [PLAYWRIGHT_MCP.md](PLAYWRIGHT_MCP.md) for setup instructions.
-
----
-
-## 📚 Phase 7: Content & Features (FUTURE)
-**Status**: Not started
-
-### Code Library & Presets
-- ⏳ Pre-loaded demo scripts (accessible via UI)
-- ⏳ Pattern library browser (searchable examples)
-- ⏳ Visual preset gallery
-- ⏳ Import/export code snippets
-
-### Workspace Management
-- ⏳ Save/load workspace state (code + window position)
-- ⏳ Multiple workspace tabs
-- ⏳ Session history (undo/redo for executed code)
-- ⏳ Auto-save drafts to localStorage
-
-### Export & Recording
-- ⏳ Export canvas to video (MediaRecorder API)
-- ⏳ Export audio to WAV
-- ⏳ Screenshot Hydra canvas
-- ⏳ Share workspace via URL (encode in query params)
-
----
-
-## 🎵 Phase 8: Advanced Audio Features (FUTURE)
-**Status**: Not started
-
-- ⏳ MIDI controller support (Web MIDI API)
-- ⏳ Beat detection (onset detection)
-- ⏳ Audio input routing (microphone)
-- ⏳ Multiple audio sources (mix Strudel + mic)
-- ⏳ Waveform visualization (alongside FFT)
-
----
-
-## ✨ Phase 9: Visual Enhancements (FUTURE)
-**Status**: Not started
-
-- ⏳ Multiple Hydra outputs (o0, o1, o2, o3)
-- ⏳ Visual preset manager
-- ⏳ Shader hot-reloading
-- ⏳ Visual effect library browser
-
----
-
-## ⚡ Phase 10: Performance & Polish (FUTURE)
-**Status**: Not started
-
-### Performance Optimization
-- ⏳ Lazy load Strudel samples
-- ⏳ Code splitting for Hydra
-- ⏳ Optimize FFT update rate (adaptive based on FPS)
-- ⏳ Worker threads for heavy computations
-- ⏳ Canvas resolution scaling for low-end devices
-
-### Accessibility
-- ⏳ Keyboard navigation for all controls
-- ⏳ Screen reader support
-- ⏳ High contrast mode
-- ⏳ Reduced motion mode (disable animations)
-
-### Error Handling
-- ⏳ Better error messages for Strudel syntax errors
-- ⏳ Visual error indicators in editor
-- ⏳ Fallback UI for broken Hydra code
-- ⏳ Recovery from AudioContext suspension
-
----
-
-## 🌐 Phase 11: Community & Ecosystem (FUTURE)
-**Status**: Not started
-
-- ⏳ Real-time collaborative editing (WebRTC)
-- ⏳ Share session via link
-- ⏳ Spectator mode (view-only)
-- ⏳ Example gallery website
-- ⏳ User-contributed pattern library
-- ⏳ Tutorial series
-- ⏳ Discord community
-- ⏳ Monthly coding jams / competitions
-
----
-
-## Timeline Summary
-
-| Phase | Status | Dates |
-|-------|--------|-------|
-| Phase 1: Foundation | ✅ Complete | Nov 23-26, 2025 |
-| Phase 2: Audio-Visual Bridge | ✅ Complete | Nov 26-28, 2025 |
-| Phase 3: Window Management | ✅ Complete | Dec 2-4, 2025 |
-| Phase 4: Testing & Refactoring | ✅ Complete | Dec 2-5, 2025 |
-| Phase 5: Documentation | ✅ Complete | Nov 28 - Dec 3, 2025 |
-| Phase 6: UX Polish & Production Mode | 🚀 In Progress | Dec 12, 2025 - TBD |
-| Phase 7: Content & Features | 💡 Future | TBD |
-| Phase 8: Advanced Audio | 💡 Future | TBD |
-| Phase 9: Visual Enhancements | 💡 Future | TBD |
-| Phase 10: Performance & Polish | 💡 Future | TBD |
-| Phase 11: Community | 💡 Future | TBD |
-
-**Total Development Time (Phases 1-5)**: ~2 weeks (Nov 23 - Dec 5, 2025)
-
----
-
-## Metrics
-
-| Metric | Value |
-|--------|-------|
-| Total Tests | 225 |
-| ESLint Errors | 0 |
-| TypeScript Coverage | 100% |
-| App.tsx Reduction | 66% (165 → 60 lines) |
-| Custom Hooks | 4 |
-| Service Modules | 2 |
-| UI Components | 5 major + 4 primitives |
-| Documentation Files | 7 |
-| Phase 6 Features Passing | 24 / 29 (83%) |
-
----
-
-## Phase 6 Feature Breakdown
-
-| Category | Features | Priority |
-|----------|----------|----------|
-| Shared Components | 1 | High |
-| Sound Browser | 5 | High |
-| User Library | 8 | High/Medium |
-| REPL Theming | 2 | Medium/Low |
-| Keyboard Shortcuts | 4 | High/Medium |
-| Interactive Controls | 4 | High/Medium |
-| Production HUD | 5 | Medium/Low |
-
-### Dependency Graph
-
-```
-Independent (start here):
-  p6-sample-panel-base ← Unlocks both browser tracks
-  p6-shortcut-halt ← Safety critical
-  p6-strudel-upgrade ← Unlocks interactive controls
-  p6-hud-fft-bands
-  p6-hud-fps
-
-Sound Browser Track:
-  p6-sound-list → p6-sound-search
-                → p6-sound-preview
-                → p6-sound-toggle-button
-                → p6-sound-insert
-
-User Library Track:
-  p6-sample-panel-base → p6-user-library-button
-                       → p6-user-library-panel → p6-panel-exclusivity
-                                               → p6-user-library-link
-                                               → p6-user-library-preview
-                                               → p6-user-library-insert
-                                               → p6-user-library-search
-
-Interactive Controls Track:
-  p6-strudel-upgrade → p6-slider-widget ✅
-                     → p6-inline-scope
-                     → p6-inline-pianoroll
+npm install
+npm run dev        # http://localhost:5173
+npm test           # Run tests
+npm run build      # Production build
 ```
 
 ---
 
-## Contributing
+## Links
 
-Interested in contributing? See [CONTRIBUTING.md](CONTRIBUTING.md) for guidelines.
-
-For technical details on how everything works, read [ARCHITECTURE.md](ARCHITECTURE.md).
-
-For Phase 6 development workflow, see:
-- [PLAYWRIGHT_MCP.md](PLAYWRIGHT_MCP.md) - Automated verification setup
-- [docs/USER_LIBRARY_SPEC.md](docs/USER_LIBRARY_SPEC.md) - User Library specification
-- `features.json` - Feature definitions with verification steps
-- `claude-progress.txt` - Session handoff and progress tracking
+- [Strudel](https://strudel.cc) — Audio pattern language
+- [Hydra](https://hydra.ojack.xyz) — Visual synthesis

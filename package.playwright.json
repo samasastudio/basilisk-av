@@ -1,9 +1,0 @@
-{
-  "scripts": {
-    "verify": "echo 'Use Claude Code: /project:verify <feature-id>' && exit 0",
-    "verify:headed": "echo 'Run: claude mcp add playwright -- --headed' && exit 0"
-  },
-  "devDependencies": {
-    "@playwright/test": "^1.49.0"
-  }
-}
