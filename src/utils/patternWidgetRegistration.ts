@@ -15,7 +15,7 @@ export const getCanvasWidget = (id: string, options: any = {}): HTMLCanvasElemen
     const { width = DEFAULT_CANVAS_WIDTH, height = DEFAULT_CANVAS_HEIGHT, pixelRatio = window.devicePixelRatio } = options;
 
     // Try to get existing canvas, but verify it's still in the document
-    let canvas = document.getElementById(id) as HTMLCanvasElement;
+    let canvas = document.getElementById(id) as HTMLCanvasElement | null;
 
     if (canvas && !document.body.contains(canvas)) {
         // Canvas exists but is detached - remove old ID reference
@@ -68,6 +68,7 @@ export const registerPatternMethods = (): boolean => {
         id = id || 'scope';
         options = { width: DEFAULT_CANVAS_WIDTH, height: DEFAULT_CANVAS_HEIGHT, pos: 0.5, scale: 1, from: this.from, ...options };
         const ctx = getCanvasWidget(id, options).getContext('2d');
+        if (!ctx) throw new Error(`Failed to get 2d context for canvas: ${id}`);
         return this.tag(id).scope({ ...options, ctx, id });
     };
 
@@ -75,6 +76,7 @@ export const registerPatternMethods = (): boolean => {
         id = id || 'pianoroll';
         options = { from: this.from, ...options };
         const ctx = getCanvasWidget(id, options).getContext('2d');
+        if (!ctx) throw new Error(`Failed to get 2d context for canvas: ${id}`);
         return this.tag(id).pianoroll({ fold: 1, ...options, ctx, id });
     };
 
@@ -82,6 +84,7 @@ export const registerPatternMethods = (): boolean => {
         id = id || 'punchcard';
         options = { from: this.from, ...options };
         const ctx = getCanvasWidget(id, options).getContext('2d');
+        if (!ctx) throw new Error(`Failed to get 2d context for canvas: ${id}`);
         return this.tag(id).punchcard({ fold: 1, ...options, ctx, id });
     };
 
@@ -90,6 +93,7 @@ export const registerPatternMethods = (): boolean => {
         const _size = options.size || DEFAULT_SPIRAL_SIZE;
         options = { width: _size, height: _size, from: this.from, ...options, size: _size / SPIRAL_SIZE_DIVISOR };
         const ctx = getCanvasWidget(id, options).getContext('2d');
+        if (!ctx) throw new Error(`Failed to get 2d context for canvas: ${id}`);
         return this.tag(id).spiral({ ...options, ctx, id });
     };
 

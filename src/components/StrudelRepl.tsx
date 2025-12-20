@@ -225,7 +225,7 @@ export const StrudelRepl = ({ className, engineReady, onHalt, onExecute, onSave,
     // Subscribe to widget updates using useSyncExternalStore pattern
     useWidgetUpdates(getEditorView);
 
-    const runCode = async (): Promise<void> => {
+    const runCode = (): void => {
         if (!engineReady) {
             console.warn('Engine not ready. Please start the engine first.');
             return;
@@ -238,7 +238,7 @@ export const StrudelRepl = ({ className, engineReady, onHalt, onExecute, onSave,
         }
 
         try {
-            await repl.evaluate(code);
+            repl.evaluate(code);
             if (onExecute) {
                 onExecute();
             }
@@ -274,7 +274,6 @@ export const StrudelRepl = ({ className, engineReady, onHalt, onExecute, onSave,
                         disabled={!engineReady}
                         variant={soundBrowser.isOpen ? 'primary' : 'secondary'}
                         size="sm"
-                        title="Sound Browser - Browse and preview Strudel samples"
                     >
                         <Music size={14} />
                     </Button>
@@ -282,7 +281,6 @@ export const StrudelRepl = ({ className, engineReady, onHalt, onExecute, onSave,
                         onClick={panelState.toggleUserLibrary}
                         variant={panelState.isUserLibraryOpen ? 'primary' : 'secondary'}
                         size="sm"
-                        title="User Library - Browse and use your own samples"
                     >
                         <AudioWaveform size={14} />
                     </Button>
