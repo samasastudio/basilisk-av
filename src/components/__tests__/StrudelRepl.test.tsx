@@ -1,7 +1,12 @@
 import { render, screen, fireEvent } from '@testing-library/react';
 import { describe, it, expect, vi } from 'vitest';
 
+import { ThemeProvider } from '../../contexts/ThemeContext';
 import { StrudelRepl } from '../StrudelRepl';
+
+// Helper to render with ThemeProvider
+const renderWithTheme = (ui: React.ReactElement) =>
+  render(<ThemeProvider>{ui}</ThemeProvider>);
 
 // Mock CodeMirror component
 vi.mock('@uiw/react-codemirror', () => ({
@@ -153,13 +158,13 @@ describe('StrudelRepl', () => {
   };
 
   it('renders the editor', () => {
-    render(<StrudelRepl {...defaultProps} />);
+    renderWithTheme(<StrudelRepl {...defaultProps} />);
     expect(screen.getByTestId('codemirror-editor')).toBeInTheDocument();
   });
 
   it('calls onSave when Ctrl+S is pressed', () => {
     const onSave = vi.fn();
-    render(<StrudelRepl {...defaultProps} onSave={onSave} />);
+    renderWithTheme(<StrudelRepl {...defaultProps} onSave={onSave} />);
 
     const editor = screen.getByTestId('codemirror-editor');
     fireEvent.keyDown(editor, { key: 's', ctrlKey: true });
@@ -170,7 +175,7 @@ describe('StrudelRepl', () => {
 
   it('calls onSave when Cmd+S is pressed (Mac)', () => {
     const onSave = vi.fn();
-    render(<StrudelRepl {...defaultProps} onSave={onSave} />);
+    renderWithTheme(<StrudelRepl {...defaultProps} onSave={onSave} />);
 
     const editor = screen.getByTestId('codemirror-editor');
     fireEvent.keyDown(editor, { key: 's', metaKey: true });
@@ -181,7 +186,7 @@ describe('StrudelRepl', () => {
 
   it('does not call onSave when S is pressed without modifier', () => {
     const onSave = vi.fn();
-    render(<StrudelRepl {...defaultProps} onSave={onSave} />);
+    renderWithTheme(<StrudelRepl {...defaultProps} onSave={onSave} />);
 
     const editor = screen.getByTestId('codemirror-editor');
     fireEvent.keyDown(editor, { key: 's' });
@@ -190,7 +195,7 @@ describe('StrudelRepl', () => {
   });
 
   it('does not call onSave if onSave prop is not provided', () => {
-    render(
+    renderWithTheme(
       <StrudelRepl
         engineReady={true}
         statusLabel="ready"
@@ -210,7 +215,7 @@ describe('StrudelRepl', () => {
 
   it('passes current code to onSave', () => {
     const onSave = vi.fn();
-    render(<StrudelRepl {...defaultProps} onSave={onSave} />);
+    renderWithTheme(<StrudelRepl {...defaultProps} onSave={onSave} />);
 
     const editor = screen.getByTestId('codemirror-editor') as HTMLTextAreaElement;
 
@@ -223,17 +228,17 @@ describe('StrudelRepl', () => {
   });
 
   it('renders Execute button', () => {
-    render(<StrudelRepl {...defaultProps} />);
+    renderWithTheme(<StrudelRepl {...defaultProps} />);
     expect(screen.getByText(/Execute/i)).toBeInTheDocument();
   });
 
   it('renders Halt button', () => {
-    render(<StrudelRepl {...defaultProps} />);
+    renderWithTheme(<StrudelRepl {...defaultProps} />);
     expect(screen.getByText(/Halt/i)).toBeInTheDocument();
   });
 
   it('renders Sounds browser toggle button', () => {
-    render(<StrudelRepl {...defaultProps} />);
+    renderWithTheme(<StrudelRepl {...defaultProps} />);
     // The Music icon button (3rd button after Execute and Halt)
     const buttons = screen.getAllByRole('button');
     // Should have Execute, Halt, and Sounds buttons
@@ -243,7 +248,7 @@ describe('StrudelRepl', () => {
   });
 
   it('Sounds button is disabled when engine is not ready', () => {
-    render(<StrudelRepl {...defaultProps} engineReady={false} />);
+    renderWithTheme(<StrudelRepl {...defaultProps} engineReady={false} />);
     const buttons = screen.getAllByRole('button');
     const soundsButton = buttons.find(btn => btn.textContent?.includes('Music Icon'));
     expect(soundsButton).toBeDefined();
@@ -251,17 +256,17 @@ describe('StrudelRepl', () => {
   });
 
   it('displays status label', () => {
-    render(<StrudelRepl {...defaultProps} statusLabel="testing" />);
+    renderWithTheme(<StrudelRepl {...defaultProps} statusLabel="testing" />);
     expect(screen.getByText('testing')).toBeInTheDocument();
   });
 
   it('shows ready indicator when engine is ready', () => {
-    render(<StrudelRepl {...defaultProps} engineReady={true} />);
+    renderWithTheme(<StrudelRepl {...defaultProps} engineReady={true} />);
     expect(screen.getByText('●')).toBeInTheDocument();
   });
 
   it('shows not-ready indicator when engine is not ready', () => {
-    render(<StrudelRepl {...defaultProps} engineReady={false} />);
+    renderWithTheme(<StrudelRepl {...defaultProps} engineReady={false} />);
     expect(screen.getByText('○')).toBeInTheDocument();
   });
 });

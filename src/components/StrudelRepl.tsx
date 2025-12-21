@@ -8,12 +8,13 @@ import * as StrudelWeb from '@strudel/web';
 import { samples } from '@strudel/webaudio';
 import CodeMirror from '@uiw/react-codemirror';
 import { AudioWaveform, Music } from 'lucide-react';
-import { useState, useEffect, useRef, useCallback } from 'react';
+import { useState, useEffect, useRef, useCallback, useMemo } from 'react';
 
 import { basiliskSyntaxTheme, transparentEditorTheme } from '../config/editorTheme';
 import { useTheme } from '../contexts/ThemeContext';
 import { useWidgetUpdates } from '../hooks/useWidgetUpdates';
 import * as StrudelEngine from '../services/strudelEngine';
+import { basiliskDark } from '../themes/codemirrorDark';
 import { registerPatternMethods } from '../utils/patternWidgetRegistration';
 
 import { SoundBrowserTray } from './sound-browser';
@@ -261,6 +262,18 @@ export const StrudelRepl = ({ className, engineReady, onHalt, onExecute, onSave,
     // Light = original REPL (no glassmorphism), Dark = transparent/muted glassmorphism
     const isLightTheme = theme === 'light';
 
+    // Theme-aware CodeMirror extensions
+    // Light mode: original syntax theme, Dark mode: muted colors for Hydra visibility
+    const editorExtensions = useMemo(() => {
+        const baseExtensions = [javascript(), transparentEditorTheme];
+        const themeExtensions = isLightTheme
+            ? [basiliskSyntaxTheme]
+            : basiliskDark;
+        // Note: sliderPlugin and widgetPlugin have type issues but work at runtime
+        // eslint-disable-next-line @typescript-eslint/no-explicit-any
+        return [...baseExtensions, ...themeExtensions, sliderPlugin as any, widgetPlugin as any];
+    }, [isLightTheme]);
+
     // Container: light has no special styling, dark gets glassmorphism
     const containerClass = isLightTheme
         ? `flex flex-col h-full w-full ${className ?? ''}`
@@ -317,7 +330,7 @@ export const StrudelRepl = ({ className, engineReady, onHalt, onExecute, onSave,
                     ref={editorRef}
                     value={code}
                     height="100%"
-                    extensions={[javascript(), transparentEditorTheme, basiliskSyntaxTheme, sliderPlugin, widgetPlugin]}
+                    extensions={editorExtensions}
                     onChange={(val) => setCode(val)}
                     className="h-full font-mono"
                     basicSetup={CODE_MIRROR_SETUP}

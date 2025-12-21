@@ -113,8 +113,21 @@ export const AppHeader = ({
   const isLight = theme === 'light';
   const themeTooltip = isLight ? 'Switch to dark mode' : 'Switch to light mode';
 
+  // Theme-aware header styling
+  // Light mode: original solid styling, Dark mode: glassmorphism transparency
+  const headerClass = isLight
+    ? 'fixed top-0 left-0 right-0 h-12 z-20 bg-basilisk-gray-900/85 backdrop-blur border-b border-basilisk-gray-700 flex items-center justify-between px-4'
+    : 'fixed top-0 left-0 right-0 h-12 z-20 backdrop-blur-md border-b flex items-center justify-between px-4';
+
+  const headerStyle: React.CSSProperties | undefined = isLight
+    ? undefined
+    : {
+        backgroundColor: 'rgba(0, 0, 0, 0.4)',
+        borderColor: 'rgba(255, 255, 255, 0.1)',
+      };
+
   return (
-    <header className="fixed top-0 left-0 right-0 h-12 z-20 bg-basilisk-gray-900/85 backdrop-blur border-b border-basilisk-gray-700 flex items-center justify-between px-4">
+    <header className={headerClass} style={headerStyle}>
       <div className="flex items-center gap-4">
         <span className="font-sans font-semibold tracking-wider text-basilisk-white text-sm">
           BASILISK

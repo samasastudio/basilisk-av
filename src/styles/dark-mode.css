@@ -1,0 +1,118 @@
+/**
+ * Dark Mode CSS Fallbacks
+ *
+ * Overrides for Strudel REPL components that don't accept theme props.
+ * These styles are applied when the .dark class is present on <html>.
+ */
+
+/* Strudel editor components - transparent backgrounds in dark mode */
+.dark .strudel-editor,
+.dark .strudel-repl {
+  background-color: transparent !important;
+}
+
+/* CodeMirror gutter transparency */
+.dark .cm-gutters {
+  background-color: transparent !important;
+  border-right-color: rgba(255, 255, 255, 0.1) !important;
+}
+
+.dark .cm-gutter,
+.dark .cm-lineNumbers {
+  background-color: transparent !important;
+}
+
+.dark .cm-gutterElement {
+  color: #6a737d !important;
+}
+
+/* Active line gutter in dark mode */
+.dark .cm-activeLineGutter {
+  background-color: rgba(255, 255, 255, 0.1) !important;
+}
+
+/* Selection and cursor in dark mode */
+.dark .cm-selectionBackground,
+.dark .cm-focused .cm-selectionBackground {
+  background-color: rgba(255, 255, 255, 0.15) !important;
+}
+
+.dark .cm-cursor {
+  border-left-color: #ffffff !important;
+}
+
+/* Active line background */
+.dark .cm-activeLine {
+  background-color: rgba(255, 255, 255, 0.05) !important;
+}
+
+/* Strudel widget backgrounds */
+.dark .strudel-widget,
+.dark [data-strudel-widget] {
+  background-color: rgba(0, 0, 0, 0.6) !important;
+  border-color: rgba(255, 255, 255, 0.1) !important;
+}
+
+/* Strudel slider styling */
+.dark .strudel-slider {
+  background-color: rgba(255, 255, 255, 0.1) !important;
+}
+
+.dark .strudel-slider-thumb {
+  background-color: rgba(255, 255, 255, 0.8) !important;
+}
+
+/* Strudel visualization canvases */
+.dark .strudel-canvas,
+.dark [data-strudel-viz] {
+  border-color: rgba(255, 255, 255, 0.05) !important;
+}
+
+/* Error/warning messages in dark mode */
+.dark .strudel-error,
+.dark .cm-lint-error {
+  background-color: rgba(255, 83, 112, 0.15) !important;
+  border-color: rgba(255, 83, 112, 0.3) !important;
+}
+
+/* Autocomplete dropdown in dark mode */
+.dark .cm-tooltip-autocomplete {
+  background-color: rgba(0, 0, 0, 0.9) !important;
+  border-color: rgba(255, 255, 255, 0.1) !important;
+}
+
+.dark .cm-tooltip-autocomplete li {
+  color: #e0e0e0 !important;
+}
+
+.dark .cm-tooltip-autocomplete li[aria-selected="true"] {
+  background-color: rgba(255, 255, 255, 0.15) !important;
+}
+
+/* Tooltip styling */
+.dark .cm-tooltip {
+  background-color: rgba(0, 0, 0, 0.9) !important;
+  border-color: rgba(255, 255, 255, 0.1) !important;
+  color: #e0e0e0 !important;
+}
+
+/* Panel backgrounds (e.g., search panel) */
+.dark .cm-panel {
+  background-color: rgba(0, 0, 0, 0.85) !important;
+  border-color: rgba(255, 255, 255, 0.1) !important;
+}
+
+.dark .cm-panel input {
+  background-color: rgba(255, 255, 255, 0.1) !important;
+  border-color: rgba(255, 255, 255, 0.2) !important;
+  color: #e0e0e0 !important;
+}
+
+.dark .cm-panel button {
+  background-color: rgba(255, 255, 255, 0.1) !important;
+  color: #e0e0e0 !important;
+}
+
+.dark .cm-panel button:hover {
+  background-color: rgba(255, 255, 255, 0.2) !important;
+}

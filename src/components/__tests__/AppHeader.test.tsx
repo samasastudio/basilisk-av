@@ -148,23 +148,26 @@ describe('AppHeader', () => {
   // Theme toggle button tests
   it('renders theme toggle button', () => {
     renderWithTheme(<AppHeader {...defaultProps} />);
-    expect(screen.getByRole('button', { name: /Switch to light mode/i })).toBeInTheDocument();
+    // Default is light mode, so button says "Switch to dark mode"
+    expect(screen.getByRole('button', { name: /Switch to dark mode/i })).toBeInTheDocument();
   });
 
-  it('shows sun icon in dark mode (default)', () => {
+  it('shows sun icon in light mode (default)', () => {
     renderWithTheme(<AppHeader {...defaultProps} />);
-    const themeButton = screen.getByRole('button', { name: /Switch to light mode/i });
+    // Light mode shows sun icon (click to go dark)
+    const themeButton = screen.getByRole('button', { name: /Switch to dark mode/i });
     // Sun icon has a circle element
     expect(themeButton.querySelector('circle')).toBeInTheDocument();
   });
 
   it('toggles theme when button clicked', async () => {
     renderWithTheme(<AppHeader {...defaultProps} />);
-    const themeButton = screen.getByRole('button', { name: /Switch to light mode/i });
+    // Start in light mode
+    const themeButton = screen.getByRole('button', { name: /Switch to dark mode/i });
 
     await userEvent.click(themeButton);
 
-    // After click, should show moon icon and "Switch to dark mode" tooltip
-    expect(screen.getByRole('button', { name: /Switch to dark mode/i })).toBeInTheDocument();
+    // After click, should be in dark mode showing "Switch to light mode"
+    expect(screen.getByRole('button', { name: /Switch to light mode/i })).toBeInTheDocument();
   });
 });

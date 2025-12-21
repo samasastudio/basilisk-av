@@ -1,3 +1,4 @@
+import { useTheme } from '../contexts/ThemeContext';
 import { useHydraHUD } from '../hooks/useHydraHUD';
 
 // HUD display constants
@@ -15,6 +16,23 @@ type Props = {
  */
 export const HydraCanvas = ({ showStartupText }: Props): React.ReactElement => {
   const { hudValue } = useHydraHUD();
+  const { theme } = useTheme();
+
+  const isLight = theme === 'light';
+
+  // Theme-aware HUD styling
+  // Light mode: original solid styling, Dark mode: higher opacity for readability
+  const hudClass = isLight
+    ? 'absolute bottom-4 right-4 z-10 rounded bg-basilisk-gray-900/85 backdrop-blur border border-basilisk-gray-700 px-3 py-2 text-xs text-basilisk-white pointer-events-none'
+    : 'absolute bottom-4 right-4 z-10 rounded backdrop-blur-md border px-3 py-2 text-xs pointer-events-none';
+
+  const hudStyle: React.CSSProperties | undefined = isLight
+    ? undefined
+    : {
+        backgroundColor: 'rgba(0, 0, 0, 0.9)',
+        borderColor: 'rgba(255, 255, 255, 0.1)',
+        color: '#a0a0a0',
+      };
 
   return (
     <div className="fixed inset-0 z-0 bg-basilisk-black" id="hydra-container">
@@ -26,7 +44,7 @@ export const HydraCanvas = ({ showStartupText }: Props): React.ReactElement => {
 
       {/* Dev HUD - Only visible in development mode */}
       {import.meta.env.DEV && (
-        <div className="absolute bottom-4 right-4 z-10 rounded bg-basilisk-gray-900/85 backdrop-blur border border-basilisk-gray-700 px-3 py-2 text-xs text-basilisk-white pointer-events-none">
+        <div className={hudClass} style={hudStyle}>
           <div className="flex items-center justify-between font-sans gap-3">
             <span className="opacity-70">a.fft[0]</span>
             <span className="font-mono">{hudValue.toFixed(HUD_DECIMAL_PLACES)}</span>
