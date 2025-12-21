@@ -24,14 +24,13 @@ export const HydraCanvas = ({ showStartupText }: Props): React.ReactElement => {
   // Light mode: original solid styling, Dark mode: higher opacity for readability
   const hudClass = isLight
     ? 'absolute bottom-4 right-4 z-10 rounded bg-basilisk-gray-900/85 backdrop-blur border border-basilisk-gray-700 px-3 py-2 text-xs text-basilisk-white pointer-events-none'
-    : 'absolute bottom-4 right-4 z-10 rounded backdrop-blur-md border px-3 py-2 text-xs pointer-events-none';
+    : 'absolute bottom-4 right-4 z-10 rounded backdrop-blur-md border px-3 py-2 text-xs text-basilisk-white pointer-events-none';
 
   const hudStyle: React.CSSProperties | undefined = isLight
     ? undefined
     : {
         backgroundColor: 'rgba(0, 0, 0, 0.4)',
         borderColor: 'rgba(255, 255, 255, 0.1)',
-        color: '#a0a0a0',
       };
 
   return (
