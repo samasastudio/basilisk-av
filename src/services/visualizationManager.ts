@@ -13,13 +13,13 @@ const DEFAULT_VIZ_PLAYHEAD = 0.5;
 /** Default spiral size (diameter) */
 const DEFAULT_SPIRAL_SIZE = 80;
 /** Default spiral inset (rotations before spiral starts) */
-const DEFAULT_SPIRAL_INSET = 3;
+const DEFAULT_SPIRAL_INSET = 2.8;
 /** Default spiral stretch (cycles per 360 degrees) */
 const DEFAULT_SPIRAL_STRETCH = 1;
 /** Spiral rendering increment for smooth curves */
 const SPIRAL_ANGLE_INCREMENT = 1 / 60; // eslint-disable-line @typescript-eslint/no-magic-numbers
 /** Number of cycles to look back for spiral events */
-const SPIRAL_LOOK_BEHIND = 4;
+const SPIRAL_LOOK_BEHIND = 2;
 /** Default spiral playhead length in rotations */
 const DEFAULT_SPIRAL_PLAYHEAD_LENGTH = 0.02;
 /** Degrees offset for polar coordinate conversion (start from top) */
@@ -423,6 +423,7 @@ class VisualizationManager {
   ): {
     stretch: number;
     inset: number;
+    lookBehind: number;
     margin: number;
     thickness: number;
     cap: CanvasLineCap;
@@ -451,6 +452,7 @@ class VisualizationManager {
     return {
       stretch,
       inset: (options.inset as number) || DEFAULT_SPIRAL_INSET,
+      lookBehind: (options.lookBehind as number) || SPIRAL_LOOK_BEHIND,
       margin: size / stretch, // Strudel: margin = size / stretch (passed to spiralSegment)
       thickness,
       cap,
@@ -494,12 +496,12 @@ class VisualizationManager {
 
     // Rotation based on current time (matches Strudel: rotate = steady * time)
     const rotate = config.steady * time;
-    const drawTime: [number, number] = [-SPIRAL_LOOK_BEHIND, 0];
+    const drawTime: [number, number] = [-config.lookBehind, 0];
     const [min] = drawTime;
 
     try {
       // Query pattern for events in visible time window
-      const haps = pattern.queryArc(time - SPIRAL_LOOK_BEHIND, time);
+      const haps = pattern.queryArc(time - config.lookBehind, time);
 
       // Base settings for spiral segments (matches Strudel's settings object)
       const baseSettings = {
@@ -538,11 +540,11 @@ class VisualizationManager {
       });
 
       // Draw playhead marker (matches Strudel's playhead object)
-      // Playhead uses 'round' cap for a rounded marker appearance
+      // Playhead uses 'butt' cap for a square marker appearance
       this.spiralSegment(ctx, {
         ...baseSettings,
         thickness: config.playheadThickness,
-        cap: 'round',
+        cap: 'butt',
         from: config.inset - config.playheadLength,
         to: config.inset,
         rotate,
