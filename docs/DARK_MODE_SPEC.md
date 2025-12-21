@@ -34,10 +34,10 @@ Key principles:
 
 | Component | Light Mode (default) | Dark Mode |
 |-----------|---------------------|-----------|
-| REPL | Original Tailwind (`bg-basilisk-gray-800/50`) | `rgba(0,0,0,0.75)` |
+| REPL | Original Tailwind (`bg-basilisk-gray-800/50`) | `rgba(0,0,0,0.4)` |
 | REPL Header | `bg-basilisk-gray-800/50 border-basilisk-gray-700` | `bg-black/40 border-white/10` |
 | Header | Current styling (no change) | `rgba(0,0,0,0.4)` |
-| HUD | Current styling | `rgba(0,0,0,0.9)` |
+| HUD | Current styling | `rgba(0,0,0,0.4)` |
 
 ### Border Colors
 

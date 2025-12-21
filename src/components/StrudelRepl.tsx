@@ -282,7 +282,7 @@ export const StrudelRepl = ({ className, engineReady, onHalt, onExecute, onSave,
     const containerStyle: React.CSSProperties | undefined = isLightTheme
         ? undefined
         : {
-            backgroundColor: 'rgba(0, 0, 0, 0.75)',
+            backgroundColor: 'rgba(0, 0, 0, 0.4)',
             borderColor: 'rgba(255, 255, 255, 0.1)',
           };
 

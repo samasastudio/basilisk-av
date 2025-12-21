@@ -397,7 +397,7 @@
       ],
       "verificationCriteria": [
         {
-          "description": "Dark mode REPL has rgba(0,0,0,0.75) background with glassmorphism",
+          "description": "Dark mode REPL has rgba(0,0,0,0.4) background with glassmorphism",
           "type": "manual-test",
           "verified": true
         },
@@ -536,7 +536,7 @@
           "verified": true
         },
         {
-          "description": "Dark mode HUD uses rgba(0,0,0,0.9) background",
+          "description": "Dark mode HUD uses rgba(0,0,0,0.4) background",
           "type": "manual-test",
           "verified": true
         },

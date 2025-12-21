@@ -29,7 +29,7 @@ export const HydraCanvas = ({ showStartupText }: Props): React.ReactElement => {
   const hudStyle: React.CSSProperties | undefined = isLight
     ? undefined
     : {
-        backgroundColor: 'rgba(0, 0, 0, 0.9)',
+        backgroundColor: 'rgba(0, 0, 0, 0.4)',
         borderColor: 'rgba(255, 255, 255, 0.1)',
         color: '#a0a0a0',
       };
