@@ -1,10 +1,11 @@
 import { QueryClient, QueryClientProvider } from '@tanstack/react-query';
-import { useState, useMemo } from 'react';
+import React, { useState, useMemo } from 'react';
 
 import './utils/patchSuperdough'; // MUST be imported BEFORE @strudel/web
 import { AppHeader } from './components/AppHeader';
 import { HydraCanvas } from './components/HydraCanvas';
 import { REPLWindow } from './components/REPLWindow';
+import { ThemeProvider } from './contexts/ThemeContext';
 import { useGlobalKeyboardShortcuts } from './hooks/useGlobalKeyboardShortcuts';
 import { useREPLVisibility } from './hooks/useREPLVisibility';
 import { useStrudelEngine } from './hooks/useStrudelEngine';
@@ -89,26 +90,28 @@ export const App = (): React.ReactElement => {
   };
 
   return (
-    <QueryClientProvider client={queryClient}>
-      <div className="w-screen h-screen bg-basilisk-black text-basilisk-white overflow-hidden relative">
-        <HydraCanvas showStartupText={!hasExecutedCode} />
+    <ThemeProvider>
+      <QueryClientProvider client={queryClient}>
+        <div className="w-screen h-screen bg-basilisk-black text-basilisk-white overflow-hidden relative">
+          <HydraCanvas showStartupText={!hasExecutedCode} />
 
-        <AppHeader
-          engineStatus={engineStatus}
-          hydraLinked={hydraLinked}
-          hydraStatus={hydraStatus}
-          onStartEngine={startEngine}
-        />
-
-        {replVisible && (
-          <REPLWindow
-            engineReady={engineInitialized}
-            onHalt={hushAudio}
-            onExecute={() => setHasExecutedCode(true)}
-            onSave={handleSaveScript}
+          <AppHeader
+            engineStatus={engineStatus}
+            hydraLinked={hydraLinked}
+            hydraStatus={hydraStatus}
+            onStartEngine={startEngine}
           />
-        )}
-      </div>
-    </QueryClientProvider>
+
+          {replVisible && (
+            <REPLWindow
+              engineReady={engineInitialized}
+              onHalt={hushAudio}
+              onExecute={() => setHasExecutedCode(true)}
+              onSave={handleSaveScript}
+            />
+          )}
+        </div>
+      </QueryClientProvider>
+    </ThemeProvider>
   );
 };
