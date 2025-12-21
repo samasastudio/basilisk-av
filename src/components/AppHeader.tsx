@@ -1,8 +1,57 @@
+import { useTheme } from '../contexts/ThemeContext';
 import { canStartEngine } from '../types/engine';
 
 import { Button } from './ui/Button';
 
 import type { EngineStatus } from '../types/engine';
+
+/**
+ * Sun icon for dark mode (click to switch to light)
+ */
+const SunIcon = (): React.ReactElement => (
+  <svg
+    xmlns="http://www.w3.org/2000/svg"
+    width="16"
+    height="16"
+    viewBox="0 0 24 24"
+    fill="none"
+    stroke="currentColor"
+    strokeWidth="2"
+    strokeLinecap="round"
+    strokeLinejoin="round"
+    aria-hidden="true"
+  >
+    <circle cx="12" cy="12" r="5" />
+    <line x1="12" y1="1" x2="12" y2="3" />
+    <line x1="12" y1="21" x2="12" y2="23" />
+    <line x1="4.22" y1="4.22" x2="5.64" y2="5.64" />
+    <line x1="18.36" y1="18.36" x2="19.78" y2="19.78" />
+    <line x1="1" y1="12" x2="3" y2="12" />
+    <line x1="21" y1="12" x2="23" y2="12" />
+    <line x1="4.22" y1="19.78" x2="5.64" y2="18.36" />
+    <line x1="18.36" y1="5.64" x2="19.78" y2="4.22" />
+  </svg>
+);
+
+/**
+ * Moon icon for light mode (click to switch to dark)
+ */
+const MoonIcon = (): React.ReactElement => (
+  <svg
+    xmlns="http://www.w3.org/2000/svg"
+    width="16"
+    height="16"
+    viewBox="0 0 24 24"
+    fill="none"
+    stroke="currentColor"
+    strokeWidth="2"
+    strokeLinecap="round"
+    strokeLinejoin="round"
+    aria-hidden="true"
+  >
+    <path d="M21 12.79A9 9 0 1 1 11.21 3 7 7 0 0 0 21 12.79z" />
+  </svg>
+);
 
 
 type Props = {
@@ -59,6 +108,10 @@ export const AppHeader = ({
 }: Props): React.ReactElement => {
   const isReady = engineStatus === 'ready';
   const canStart = canStartEngine(engineStatus);
+  const { theme, toggleTheme } = useTheme();
+
+  const isDark = theme === 'dark';
+  const themeTooltip = isDark ? 'Switch to light mode' : 'Switch to dark mode';
 
   return (
     <header className="fixed top-0 left-0 right-0 h-12 z-20 bg-basilisk-gray-900/85 backdrop-blur border-b border-basilisk-gray-700 flex items-center justify-between px-4">
@@ -81,6 +134,16 @@ export const AppHeader = ({
           <span>{hydraLinked ? '●' : '○'}</span>
           <span>Hydra: {hydraStatus}</span>
         </div>
+
+        {/* Theme Toggle Button */}
+        <button
+          onClick={toggleTheme}
+          title={themeTooltip}
+          aria-label={themeTooltip}
+          className="p-1.5 rounded hover:bg-basilisk-gray-700/50 transition-colors text-basilisk-gray-300 hover:text-basilisk-white"
+        >
+          {isDark ? <SunIcon /> : <MoonIcon />}
+        </button>
 
         {/* Start Audio Button */}
         <Button

@@ -3,7 +3,7 @@
 Last Updated: 2025-12-21
 Current Phase: 6 (Dark Mode Implementation)
 Total Features: 13
-Passing: 7
+Passing: 8
 
 ---
 
@@ -17,6 +17,15 @@ COMPLETED:
   ✓ Default theme is dark
   Files: src/contexts/ThemeContext.tsx (new), src/App.tsx (modified)
 
+- [p6-theme-toggle-button]: PASS (5/5 criteria)
+  ✓ Toggle button visible in AppHeader
+  ✓ Button shows sun icon in dark mode
+  ✓ Button shows moon icon in light mode
+  ✓ Click toggles between themes
+  ✓ Tooltip indicates current action ("Switch to light/dark mode")
+  Files: src/components/AppHeader.tsx, src/components/__tests__/AppHeader.test.tsx
+  Tests: 24 tests passing (3 new theme toggle tests added)
+
 IN PROGRESS:
 - None (clean state)
 
@@ -24,15 +33,14 @@ BLOCKERS:
 - None
 
 NEXT PRIORITY:
-- p6-theme-toggle-button: Sun/Moon toggle button in AppHeader
+- p6-repl-dark-background: REPL semi-transparent black background
 
 REMAINING DARK MODE FEATURES:
-2. p6-theme-toggle-button → User control
-3. p6-repl-dark-background → Core visual change
-4. p6-codemirror-dark-theme → Syntax highlighting
-5. p6-header-dark-adaptation → UI consistency
-6. p6-hud-dark-styling → Production mode (requires p6-hud-fft-bands)
-7. p6-dark-mode-css-fallbacks → Polish
+1. p6-repl-dark-background → Core visual change
+2. p6-codemirror-dark-theme → Syntax highlighting
+3. p6-header-dark-adaptation → UI consistency
+4. p6-hud-dark-styling → Production mode (requires p6-hud-fft-bands)
+5. p6-dark-mode-css-fallbacks → Polish
 
 NOTES:
 - Dark mode inspired by hydra.ojack.xyz

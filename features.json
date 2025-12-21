@@ -343,40 +343,42 @@
     {
       "id": "p6-theme-toggle-button",
       "name": "Theme Toggle Button",
-      "status": "pending",
+      "status": "complete",
       "phase": 6,
       "category": "dark-mode",
       "description": "Sun/Moon toggle button in header to switch themes",
       "priority": "high",
       "dependencies": ["p6-theme-context"],
+      "completedDate": "2025-12-21",
       "files": [
-        "src/components/AppHeader.tsx"
+        "src/components/AppHeader.tsx",
+        "src/components/__tests__/AppHeader.test.tsx"
       ],
       "verificationCriteria": [
         {
           "description": "Toggle button visible in AppHeader",
           "type": "manual-test",
-          "verified": false
+          "verified": true
         },
         {
           "description": "Button shows sun icon in dark mode",
           "type": "manual-test",
-          "verified": false
+          "verified": true
         },
         {
           "description": "Button shows moon icon in light mode",
           "type": "manual-test",
-          "verified": false
+          "verified": true
         },
         {
           "description": "Click toggles between themes",
           "type": "manual-test",
-          "verified": false
+          "verified": true
         },
         {
           "description": "Tooltip indicates current action",
           "type": "manual-test",
-          "verified": false
+          "verified": true
         }
       ]
     },
@@ -578,8 +580,8 @@
   ],
   "summary": {
     "total": 13,
-    "complete": 7,
-    "pending": 6,
+    "complete": 8,
+    "pending": 5,
     "blocked": 0
   },
   "pendingWork": [],
