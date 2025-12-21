@@ -23,11 +23,6 @@ dist-ssr
 *.sln
 *.sw?
 
-# Claude Code session files
-claude-progress.txt
-features.json
-init.sh
-
 # Playwright MCP temp files
 .playwright-mcp/
 

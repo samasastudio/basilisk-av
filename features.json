@@ -1,0 +1,329 @@
+{
+  "$schema": "./features.schema.json",
+  "version": "1.0.0",
+  "description": "Basilisk AV Feature Tracking - Inline Strudel Visualizations",
+  "lastUpdated": "2025-12-21",
+  "features": [
+    {
+      "id": "p6-inline-viz-infrastructure",
+      "name": "Inline Visualization Infrastructure",
+      "status": "complete",
+      "description": "Core infrastructure for inline visualization widgets",
+      "completedDate": "2025-12-18",
+      "files": [
+        "src/services/visualizationManager.ts",
+        "src/hooks/useWidgetUpdates.ts",
+        "src/services/strudelEngine.ts",
+        "src/components/StrudelRepl.tsx"
+      ],
+      "verificationCriteria": [
+        {
+          "description": "VisualizationManager singleton exists and is exported",
+          "type": "code-exists",
+          "verified": true
+        },
+        {
+          "description": "Widget registration via registerWidget() method",
+          "type": "code-exists",
+          "verified": true
+        },
+        {
+          "description": "Animation loop queries pattern via getCurrentPattern()",
+          "type": "code-exists",
+          "verified": true
+        },
+        {
+          "description": "Time synchronization via getCurrentTime()",
+          "type": "code-exists",
+          "verified": true
+        },
+        {
+          "description": "Audio analyser connected for audio-reactive visualizations",
+          "type": "code-exists",
+          "verified": true
+        },
+        {
+          "description": "Console logs show '[VizManager] Registering widget:' on widget creation",
+          "type": "manual-test",
+          "verified": true
+        }
+      ]
+    },
+    {
+      "id": "p6-inline-scope",
+      "name": "Inline Scope Visualization (._scope())",
+      "status": "complete",
+      "description": "Oscilloscope waveform visualization using Web Audio API analyser",
+      "completedDate": "2025-12-18",
+      "files": [
+        "src/services/visualizationManager.ts"
+      ],
+      "testCommand": "s(\"bd sd hh sd\")._scope()",
+      "verificationCriteria": [
+        {
+          "description": "Canvas element appears inline below the code",
+          "type": "manual-test",
+          "verified": true
+        },
+        {
+          "description": "Oscilloscope waveform displays (NOT a black canvas)",
+          "type": "manual-test",
+          "verified": true
+        },
+        {
+          "description": "Waveform updates in real-time (~60fps via requestAnimationFrame)",
+          "type": "manual-test",
+          "verified": true
+        },
+        {
+          "description": "Waveform reflects audio output accurately",
+          "type": "manual-test",
+          "verified": true
+        },
+        {
+          "description": "Console shows: '[VizManager] Drawing scope to canvas'",
+          "type": "console-log",
+          "verified": true
+        },
+        {
+          "description": "Re-evaluating pattern updates the visualization",
+          "type": "manual-test",
+          "verified": true
+        }
+      ]
+    },
+    {
+      "id": "p6-inline-pianoroll",
+      "name": "Inline Pianoroll Visualization (._pianoroll())",
+      "status": "complete",
+      "description": "Horizontal piano roll showing note events over time",
+      "completedDate": "2025-12-18",
+      "files": [
+        "src/services/visualizationManager.ts"
+      ],
+      "testCommand": "note(\"c e g\")._pianoroll({ cycles: 2 })",
+      "verificationCriteria": [
+        {
+          "description": "Canvas element appears inline below the code",
+          "type": "manual-test",
+          "verified": true
+        },
+        {
+          "description": "Piano roll displays notes (NOT a black canvas)",
+          "type": "manual-test",
+          "verified": true
+        },
+        {
+          "description": "Notes appear at correct MIDI pitches (C, E, G as horizontal bars)",
+          "type": "manual-test",
+          "verified": true
+        },
+        {
+          "description": "Playhead (white vertical line) scrolls showing current position",
+          "type": "manual-test",
+          "verified": true
+        },
+        {
+          "description": "Notes are visible with active/inactive colors",
+          "type": "manual-test",
+          "verified": true
+        },
+        {
+          "description": "Console shows: '[VizManager] Drawing pianoroll - haps: [N]'",
+          "type": "console-log",
+          "verified": true
+        },
+        {
+          "description": "Works with both note() and n() patterns",
+          "type": "manual-test",
+          "verified": true
+        }
+      ]
+    },
+    {
+      "id": "p6-inline-punchcard",
+      "name": "Inline Punchcard Visualization (._punchcard())",
+      "status": "complete",
+      "description": "Vertical piano roll (punchcard style) showing note events",
+      "completedDate": "2025-12-18",
+      "files": [
+        "src/services/visualizationManager.ts"
+      ],
+      "testCommand": "note(\"c a f e\").euclid(5,8)._punchcard()",
+      "verificationCriteria": [
+        {
+          "description": "Canvas element appears inline below the code",
+          "type": "manual-test",
+          "verified": true
+        },
+        {
+          "description": "Punchcard displays (vertical pianoroll orientation)",
+          "type": "manual-test",
+          "verified": true
+        },
+        {
+          "description": "Events show as colored bars",
+          "type": "manual-test",
+          "verified": true
+        },
+        {
+          "description": "Console shows: '[VizManager] Drawing punchcard'",
+          "type": "console-log",
+          "verified": true
+        }
+      ]
+    },
+    {
+      "id": "p6-inline-spiral",
+      "name": "Inline Spiral Visualization (._spiral())",
+      "status": "complete",
+      "completedDate": "2025-12-20",
+      "description": "Spiral visualization showing pattern events as arcs on a spiral",
+      "priority": "medium",
+      "files": [
+        "src/services/visualizationManager.ts"
+      ],
+      "testCommand": "note(\"c e g b\")._spiral()",
+      "dependencies": [],
+      "implementationNotes": "Implemented spiral drawing using polar coordinate math (fromPolar, xyOnSpiral, spiralSegment). Adapted from @strudel/draw/spiral.mjs. Supports all configuration options: stretch, inset, margin, thickness, activeColor, inactiveColor, playheadColor, playheadLength, steady, fade, padding.",
+      "linesAdded": 130,
+      "verificationCriteria": [
+        {
+          "description": "Canvas element appears inline below the code",
+          "type": "manual-test",
+          "verified": true
+        },
+        {
+          "description": "Spiral visualization renders (NOT placeholder text)",
+          "type": "manual-test",
+          "verified": true,
+          "expectedBehavior": "Spiral arms emanate from center with pattern events as colored arcs"
+        },
+        {
+          "description": "Events appear as arc segments along spiral arms",
+          "type": "manual-test",
+          "verified": true
+        },
+        {
+          "description": "Spiral rotates with playback time",
+          "type": "manual-test",
+          "verified": true
+        },
+        {
+          "description": "Console shows: '[VizManager] Drawing spiral - haps: [N]'",
+          "type": "console-log",
+          "verified": true
+        },
+        {
+          "description": "Re-evaluating pattern updates the visualization",
+          "type": "manual-test",
+          "verified": true
+        }
+      ],
+      "acceptanceCriteria": [
+        "Spiral arms rotate continuously with current playback time",
+        "Pattern events (haps) appear as colored arcs along the spiral",
+        "Events in the past fade or change color vs future events",
+        "margin option controls spacing between spiral arms",
+        "No console errors during rendering"
+      ]
+    },
+    {
+      "id": "p6-inline-spectrum",
+      "name": "Inline Spectrum Visualization (._spectrum())",
+      "status": "complete",
+      "completedDate": "2025-12-20",
+      "description": "Frequency spectrum analyzer (FFT) visualization showing audio frequencies",
+      "priority": "medium",
+      "files": [
+        "src/services/visualizationManager.ts",
+        "src/services/strudelEngine.ts",
+        "src/hooks/useWidgetUpdates.ts",
+        "src/utils/patternWidgetRegistration.ts"
+      ],
+      "testCommand": "s(\"bd sd hh sd\")._spectrum()",
+      "dependencies": [
+        "Audio analyser must be connected (already done for _scope)"
+      ],
+      "implementationNotes": "Delegates to Strudel's analyze().draw() mechanism which handles scrolling spectrogram rendering. Visualization manager skips _spectrum widgets since Strudel handles them directly.",
+      "linesAdded": 50,
+      "verificationCriteria": [
+        {
+          "description": "_spectrum method exists on Pattern.prototype",
+          "type": "code-exists",
+          "verified": true
+        },
+        {
+          "description": "'_spectrum' type added to WidgetConfig in strudelEngine.ts",
+          "type": "code-exists",
+          "verified": true
+        },
+        {
+          "description": "'_spectrum' registered via registerWidgetType()",
+          "type": "code-exists",
+          "verified": true
+        },
+        {
+          "description": "renderSpectrum() method exists in visualizationManager.ts",
+          "type": "code-exists",
+          "verified": true
+        },
+        {
+          "description": "Canvas element appears inline below the code",
+          "type": "manual-test",
+          "verified": true
+        },
+        {
+          "description": "Spectrum analyzer displays scrolling spectrogram (via Strudel's analyze().draw())",
+          "type": "manual-test",
+          "verified": true,
+          "expectedBehavior": "Scrolling spectrogram showing frequency content over time"
+        },
+        {
+          "description": "Spectrogram updates in real-time with audio playback",
+          "type": "manual-test",
+          "verified": true
+        },
+        {
+          "description": "Low frequencies at bottom, high frequencies at top",
+          "type": "manual-test",
+          "verified": true
+        },
+        {
+          "description": "Rendered by Strudel's analyze().draw() (skipped in viz manager)",
+          "type": "code-exists",
+          "verified": true
+        }
+      ],
+      "acceptanceCriteria": [
+        "Frequency bars render correctly using FFT data",
+        "Bar heights normalized between minDb (-100) and maxDb (-30)",
+        "Updates at ~60fps matching animation frame rate",
+        "Works with any audio-producing pattern",
+        "No console errors during rendering"
+      ]
+    }
+  ],
+  "summary": {
+    "total": 6,
+    "complete": 6,
+    "pending": 0,
+    "blocked": 0
+  },
+  "pendingWork": [],
+  "testingInstructions": {
+    "prerequisites": [
+      "Start the dev server: npm run dev",
+      "Open http://localhost:5174 in browser",
+      "Click 'Start Audio' button",
+      "Open browser DevTools Console (F12) to view debug logs"
+    ],
+    "testPatterns": {
+      "_scope": "s(\"bd sd hh sd\")._scope()",
+      "_pianoroll": "note(\"c e g\")._pianoroll({ cycles: 2 })",
+      "_punchcard": "note(\"c a f e\").euclid(5,8)._punchcard()",
+      "_spiral": "note(\"c e g b\")._spiral()",
+      "_spectrum": "s(\"bd sd hh sd\")._spectrum()"
+    }
+  }
+}

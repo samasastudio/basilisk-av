@@ -39,6 +39,13 @@
 - [API.md](docs/API.md) — Public API reference
 - [CONTRIBUTING.md](docs/CONTRIBUTING.md) — Dev onboarding
 
+### Inline Strudel Visualizations ✅
+- `._scope()` — Oscilloscope waveform
+- `._pianoroll()` — Horizontal piano roll
+- `._punchcard()` — Vertical piano roll
+- `._spiral()` — Rotating spiral with arc segments
+- `._spectrum()` — Scrolling spectrogram
+
 ---
 
 ## What's Next
@@ -46,7 +53,6 @@
 See **[BACKLOG.md](BACKLOG.md)** for the full feature inventory.
 
 **Currently interested in:**
-- Strudel inline visuals (pianoroll, punchcard, spiral, etc.)
 - MIDI I/O (controller input, Ableton integration)
 - Multi-window (Hydra canvas on external display)
 - Environment auto-load (samples dir, startup script)

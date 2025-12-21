@@ -1,0 +1,78 @@
+=== Basilisk AV - Development Progress ===
+
+Last Updated: 2025-12-21
+Current Phase: 6 (Inline Strudel Visualizations) - COMPLETE
+Total Features: 6
+Passing: 6
+
+---
+
+=== Session: 2025-12-21 ===
+
+COMPLETED:
+- [p6-inline-spiral]: Fixed visual rendering defects
+  - Added ctx.save()/ctx.restore() for canvas state isolation
+  - Fixed rounded caps → flat caps (butt)
+  - Fixed color bleeding (cyan → theme colors via getTheme())
+  - Fixed floating blob artifact (corrupted playhead)
+  - Made lookBehind configurable as parameter
+  - Tuned defaults: inset=2.8, lookBehind=2.5
+  - Square playhead marker (cap: 'butt')
+
+IN PROGRESS:
+- None (Phase 6 complete!)
+
+BLOCKERS:
+- None
+
+NEXT PRIORITY:
+- Phase 6 complete! All inline visualization features implemented and polished.
+- Ready for next phase (MIDI I/O, Multi-window, etc.)
+
+GIT COMMITS THIS SESSION:
+- 180d0d5: feat: fine tuned look behind
+- 68ff6ee: feat: refine spiral visualization parameters and configuration options
+- 9dc2380: feat: work in progress to expand height/width
+- 2f41197: some improvements to animation in spiral
+
+---
+
+=== Session: 2025-12-20 ===
+
+COMPLETED:
+- [p6-inline-spiral]: Restored custom renderSpiral - Strudel's onPaint doesn't work for inline widgets
+- [p6-inline-spectrum]: Works via Strudel's analyze().draw() mechanism
+
+GIT COMMITS:
+- f8fb63b: fix: correct spiral and spectrum inline rendering approaches
+
+---
+
+ARCHITECTURE (final):
+| Widget | Rendering Method |
+|--------|------------------|
+| _scope | Visualization manager (renderScope) |
+| _pianoroll | Visualization manager (__pianoroll from @strudel/draw) |
+| _punchcard | Visualization manager (__pianoroll with vertical=1) |
+| _spiral | Visualization manager (renderSpiral - custom impl) |
+| _spectrum | Strudel's analyze().draw() (skip in viz manager) |
+
+SPIRAL OPTIONS:
+| Option | Default | Description |
+|--------|---------|-------------|
+| inset | 2.8 | Playhead position (rotations from center) |
+| lookBehind | 2.5 | Cycles of history to display |
+| steady | 1 | Rotation speed multiplier |
+| size | 275 | Spiral diameter in pixels |
+| thickness | size/10 | Segment line thickness |
+| fade | true | Fade segments as they spiral inward |
+| colorizeInactive | false | Apply hap colors to inactive segments |
+
+TEST COMMANDS:
+  note("c e g b")._spiral()
+  note("c e g b")._spiral({ inset: 2, lookBehind: 3 })
+  s("bd sd hh sd")._spectrum()
+  s("bd sd hh sd")._scope()
+  note("c e g")._pianoroll({ cycles: 2 })
+
+All tests pass, lint passes.
