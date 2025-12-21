@@ -19,7 +19,7 @@ const DEFAULT_SPIRAL_STRETCH = 1;
 /** Spiral rendering increment for smooth curves */
 const SPIRAL_ANGLE_INCREMENT = 1 / 60; // eslint-disable-line @typescript-eslint/no-magic-numbers
 /** Number of cycles to look back for spiral events */
-const SPIRAL_LOOK_BEHIND = 2;
+const SPIRAL_LOOK_BEHIND = 2.5;
 /** Default spiral playhead length in rotations */
 const DEFAULT_SPIRAL_PLAYHEAD_LENGTH = 0.02;
 /** Degrees offset for polar coordinate conversion (start from top) */
