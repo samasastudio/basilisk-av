@@ -38,6 +38,15 @@ export const getCanvasWidget = (id: string, options: any = {}): HTMLCanvasElemen
         canvas.dataset.widgetPosition = options.from.toString();
     }
 
+    // Store visualization options as JSON data attribute for the visualization manager
+    // This is necessary because Strudel's widget system only passes position info
+    const vizOptions = { ...options };
+    delete vizOptions.from;
+    delete vizOptions.width;
+    delete vizOptions.height;
+    delete vizOptions.pixelRatio;
+    canvas.dataset.vizOptions = JSON.stringify(vizOptions);
+
     setWidget(id, canvas);  // Register canvas with CodeMirror's widget system
     return canvas;
 };
