@@ -1,13 +1,45 @@
 === Basilisk AV - Development Progress ===
 
 Last Updated: 2025-12-21
-Current Phase: 6 (Inline Strudel Visualizations) - COMPLETE
-Total Features: 6
+Current Phase: 6 (Dark Mode Implementation)
+Total Features: 13
 Passing: 6
 
 ---
 
-=== Session: 2025-12-21 ===
+=== Session: 2025-12-21 (Dark Mode Setup) ===
+
+COMPLETED:
+- Added dark mode feature set to features.json (7 new features)
+
+IN PROGRESS:
+- None (clean state)
+
+BLOCKERS:
+- None
+
+NEXT PRIORITY:
+- p6-theme-context: Foundation for all dark mode features
+
+SUGGESTED IMPLEMENTATION ORDER:
+1. p6-theme-context → Foundation
+2. p6-theme-toggle-button → User control
+3. p6-repl-dark-background → Core visual change
+4. p6-codemirror-dark-theme → Syntax highlighting
+5. p6-header-dark-adaptation → UI consistency
+6. p6-hud-dark-styling → Production mode (requires p6-hud-fft-bands)
+7. p6-dark-mode-css-fallbacks → Polish
+
+NOTES:
+- Dark mode inspired by hydra.ojack.xyz
+- REPL uses 75% black opacity to let Hydra show through
+- HUD uses 90% black for production clarity
+- Muted syntax colors prevent competition with Hydra visuals
+- Default to dark mode per basilisk-style aesthetic
+
+---
+
+=== Session: 2025-12-21 (Inline Visualizations Complete) ===
 
 COMPLETED:
 - [p6-inline-spiral]: Fixed visual rendering defects

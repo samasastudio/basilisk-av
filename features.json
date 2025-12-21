@@ -302,12 +302,283 @@
         "Works with any audio-producing pattern",
         "No console errors during rendering"
       ]
+    },
+    {
+      "id": "p6-theme-context",
+      "name": "Theme Context Provider",
+      "status": "pending",
+      "phase": 6,
+      "category": "dark-mode",
+      "description": "React context for theme state management with localStorage persistence",
+      "priority": "high",
+      "dependencies": [],
+      "files": [
+        "src/contexts/ThemeContext.tsx",
+        "src/App.tsx"
+      ],
+      "verificationCriteria": [
+        {
+          "description": "ThemeProvider wraps App component",
+          "type": "code-exists",
+          "verified": false
+        },
+        {
+          "description": "useTheme hook returns theme and toggleTheme",
+          "type": "code-exists",
+          "verified": false
+        },
+        {
+          "description": "Theme persists after page reload",
+          "type": "manual-test",
+          "verified": false
+        },
+        {
+          "description": "Default theme is dark",
+          "type": "manual-test",
+          "verified": false
+        }
+      ]
+    },
+    {
+      "id": "p6-theme-toggle-button",
+      "name": "Theme Toggle Button",
+      "status": "pending",
+      "phase": 6,
+      "category": "dark-mode",
+      "description": "Sun/Moon toggle button in header to switch themes",
+      "priority": "high",
+      "dependencies": ["p6-theme-context"],
+      "files": [
+        "src/components/AppHeader.tsx"
+      ],
+      "verificationCriteria": [
+        {
+          "description": "Toggle button visible in AppHeader",
+          "type": "manual-test",
+          "verified": false
+        },
+        {
+          "description": "Button shows sun icon in dark mode",
+          "type": "manual-test",
+          "verified": false
+        },
+        {
+          "description": "Button shows moon icon in light mode",
+          "type": "manual-test",
+          "verified": false
+        },
+        {
+          "description": "Click toggles between themes",
+          "type": "manual-test",
+          "verified": false
+        },
+        {
+          "description": "Tooltip indicates current action",
+          "type": "manual-test",
+          "verified": false
+        }
+      ]
+    },
+    {
+      "id": "p6-repl-dark-background",
+      "name": "REPL Dark Background",
+      "status": "pending",
+      "phase": 6,
+      "category": "dark-mode",
+      "description": "REPL window uses semi-transparent black background in dark mode",
+      "priority": "high",
+      "dependencies": ["p6-theme-context"],
+      "files": [
+        "src/components/StrudelRepl.tsx"
+      ],
+      "verificationCriteria": [
+        {
+          "description": "Dark mode REPL has rgba(0,0,0,0.75) background",
+          "type": "manual-test",
+          "verified": false
+        },
+        {
+          "description": "Hydra visuals visible through REPL background",
+          "type": "manual-test",
+          "verified": false
+        },
+        {
+          "description": "Light mode REPL retains current styling",
+          "type": "manual-test",
+          "verified": false
+        },
+        {
+          "description": "Backdrop blur applied in both modes",
+          "type": "manual-test",
+          "verified": false
+        },
+        {
+          "description": "Border color adapts to theme",
+          "type": "manual-test",
+          "verified": false
+        }
+      ]
+    },
+    {
+      "id": "p6-codemirror-dark-theme",
+      "name": "CodeMirror Dark Theme",
+      "status": "pending",
+      "phase": 6,
+      "category": "dark-mode",
+      "description": "Custom CodeMirror theme with muted syntax colors for dark mode",
+      "priority": "high",
+      "dependencies": ["p6-theme-context"],
+      "files": [
+        "src/themes/codemirrorDark.ts"
+      ],
+      "verificationCriteria": [
+        {
+          "description": "Dark mode editor has light text on transparent background",
+          "type": "manual-test",
+          "verified": false
+        },
+        {
+          "description": "Keywords highlighted in muted purple (#c792ea)",
+          "type": "manual-test",
+          "verified": false
+        },
+        {
+          "description": "Strings highlighted in muted green (#c3e88d)",
+          "type": "manual-test",
+          "verified": false
+        },
+        {
+          "description": "Comments styled italic gray (#6a737d)",
+          "type": "manual-test",
+          "verified": false
+        },
+        {
+          "description": "Cursor visible as white",
+          "type": "manual-test",
+          "verified": false
+        },
+        {
+          "description": "Selection uses semi-transparent white",
+          "type": "manual-test",
+          "verified": false
+        },
+        {
+          "description": "Active line has subtle highlight",
+          "type": "manual-test",
+          "verified": false
+        }
+      ]
+    },
+    {
+      "id": "p6-header-dark-adaptation",
+      "name": "Header Dark Adaptation",
+      "status": "pending",
+      "phase": 6,
+      "category": "dark-mode",
+      "description": "AppHeader adapts glassmorphism styling to dark mode",
+      "priority": "medium",
+      "dependencies": ["p6-theme-context"],
+      "files": [
+        "src/components/AppHeader.tsx"
+      ],
+      "verificationCriteria": [
+        {
+          "description": "Header uses rgba(0,0,0,0.4) background in dark mode",
+          "type": "manual-test",
+          "verified": false
+        },
+        {
+          "description": "Header border uses rgba(255,255,255,0.1) in dark mode",
+          "type": "manual-test",
+          "verified": false
+        },
+        {
+          "description": "Button text/icons visible in both modes",
+          "type": "manual-test",
+          "verified": false
+        },
+        {
+          "description": "Backdrop blur maintained",
+          "type": "manual-test",
+          "verified": false
+        }
+      ]
+    },
+    {
+      "id": "p6-hud-dark-styling",
+      "name": "HUD Dark Styling",
+      "status": "pending",
+      "phase": 6,
+      "category": "dark-mode",
+      "description": "HUD uses solid black background in dark mode for production visibility",
+      "priority": "medium",
+      "dependencies": ["p6-theme-context", "p6-hud-fft-bands"],
+      "files": [
+        "src/components/Hud.tsx"
+      ],
+      "verificationCriteria": [
+        {
+          "description": "HUD uses rgba(0,0,0,0.9) in dark mode",
+          "type": "manual-test",
+          "verified": false
+        },
+        {
+          "description": "HUD text uses muted gray (#a0a0a0) in dark mode",
+          "type": "manual-test",
+          "verified": false
+        },
+        {
+          "description": "FFT visualizers remain visible",
+          "type": "manual-test",
+          "verified": false
+        },
+        {
+          "description": "Light mode HUD retains current styling",
+          "type": "manual-test",
+          "verified": false
+        }
+      ]
+    },
+    {
+      "id": "p6-dark-mode-css-fallbacks",
+      "name": "Dark Mode CSS Fallbacks",
+      "status": "pending",
+      "phase": 6,
+      "category": "dark-mode",
+      "description": "CSS overrides for Strudel REPL components that don't accept theme props",
+      "priority": "low",
+      "dependencies": ["p6-codemirror-dark-theme"],
+      "files": [
+        "src/styles/dark-mode.css"
+      ],
+      "verificationCriteria": [
+        {
+          "description": "CSS file with .dark class overrides exists",
+          "type": "code-exists",
+          "verified": false
+        },
+        {
+          "description": "Strudel REPL editor inherits dark styles",
+          "type": "manual-test",
+          "verified": false
+        },
+        {
+          "description": "No style conflicts or flickering",
+          "type": "manual-test",
+          "verified": false
+        },
+        {
+          "description": "Gutter background transparent in dark mode",
+          "type": "manual-test",
+          "verified": false
+        }
+      ]
     }
   ],
   "summary": {
-    "total": 6,
+    "total": 13,
     "complete": 6,
-    "pending": 0,
+    "pending": 7,
     "blocked": 0
   },
   "pendingWork": [],
