@@ -13,16 +13,18 @@ const ThemeContext = createContext<ThemeContextValue | null>(null);
 const THEME_STORAGE_KEY = 'basilisk-theme';
 
 /**
- * Get initial theme from localStorage or default to 'dark'
+ * Get initial theme from localStorage or default to 'light'
+ * Light = original solid dark REPL appearance
+ * Dark = muted/transparent glassmorphism appearance
  */
 const getInitialTheme = (): Theme => {
-  if (typeof window === 'undefined') return 'dark';
+  if (typeof window === 'undefined') return 'light';
 
   const stored = localStorage.getItem(THEME_STORAGE_KEY);
   if (stored === 'light' || stored === 'dark') {
     return stored;
   }
-  return 'dark'; // Default to dark per basilisk-style aesthetic
+  return 'light'; // Default to light (original solid dark REPL appearance)
 };
 
 interface ThemeProviderProps {

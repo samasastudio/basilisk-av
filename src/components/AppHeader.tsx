@@ -6,7 +6,7 @@ import { Button } from './ui/Button';
 import type { EngineStatus } from '../types/engine';
 
 /**
- * Sun icon for dark mode (click to switch to light)
+ * Sun icon shown in light mode (click to switch to dark/muted)
  */
 const SunIcon = (): React.ReactElement => (
   <svg
@@ -34,7 +34,7 @@ const SunIcon = (): React.ReactElement => (
 );
 
 /**
- * Moon icon for light mode (click to switch to dark)
+ * Moon icon shown in dark mode (click to switch to light/solid)
  */
 const MoonIcon = (): React.ReactElement => (
   <svg
@@ -110,8 +110,8 @@ export const AppHeader = ({
   const canStart = canStartEngine(engineStatus);
   const { theme, toggleTheme } = useTheme();
 
-  const isDark = theme === 'dark';
-  const themeTooltip = isDark ? 'Switch to light mode' : 'Switch to dark mode';
+  const isLight = theme === 'light';
+  const themeTooltip = isLight ? 'Switch to dark mode' : 'Switch to light mode';
 
   return (
     <header className="fixed top-0 left-0 right-0 h-12 z-20 bg-basilisk-gray-900/85 backdrop-blur border-b border-basilisk-gray-700 flex items-center justify-between px-4">
@@ -142,7 +142,7 @@ export const AppHeader = ({
           aria-label={themeTooltip}
           className="p-1.5 rounded hover:bg-basilisk-gray-700/50 transition-colors text-basilisk-gray-300 hover:text-basilisk-white"
         >
-          {isDark ? <SunIcon /> : <MoonIcon />}
+          {isLight ? <SunIcon /> : <MoonIcon />}
         </button>
 
         {/* Start Audio Button */}
