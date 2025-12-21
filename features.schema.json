@@ -1,0 +1,251 @@
+{
+  "$schema": "http://json-schema.org/draft-07/schema#",
+  "$id": "https://basilisk-av.local/features.schema.json",
+  "title": "Basilisk AV Feature Tracking Schema",
+  "description": "Schema for tracking feature implementation status and verification criteria",
+  "type": "object",
+  "required": ["version", "features", "summary"],
+  "properties": {
+    "$schema": {
+      "type": "string",
+      "description": "Reference to this schema file"
+    },
+    "version": {
+      "type": "string",
+      "pattern": "^\\d+\\.\\d+\\.\\d+$",
+      "description": "Semantic version of the features file format"
+    },
+    "description": {
+      "type": "string",
+      "description": "Human-readable description of this features file"
+    },
+    "lastUpdated": {
+      "type": "string",
+      "format": "date",
+      "description": "Date when features were last updated (YYYY-MM-DD)"
+    },
+    "features": {
+      "type": "array",
+      "description": "List of features being tracked",
+      "items": {
+        "$ref": "#/definitions/feature"
+      }
+    },
+    "summary": {
+      "$ref": "#/definitions/summary"
+    },
+    "pendingWork": {
+      "type": "array",
+      "description": "Summary of remaining work items",
+      "items": {
+        "$ref": "#/definitions/pendingWorkItem"
+      }
+    },
+    "testingInstructions": {
+      "$ref": "#/definitions/testingInstructions"
+    }
+  },
+  "definitions": {
+    "feature": {
+      "type": "object",
+      "required": ["id", "name", "status", "description", "verificationCriteria"],
+      "properties": {
+        "id": {
+          "type": "string",
+          "pattern": "^[a-z0-9-]+$",
+          "description": "Unique identifier for the feature (lowercase, hyphens allowed)"
+        },
+        "name": {
+          "type": "string",
+          "description": "Human-readable feature name"
+        },
+        "status": {
+          "type": "string",
+          "enum": ["pending", "in-progress", "complete", "blocked"],
+          "description": "Current implementation status"
+        },
+        "description": {
+          "type": "string",
+          "description": "Detailed description of what this feature does"
+        },
+        "priority": {
+          "type": "string",
+          "enum": ["low", "medium", "high", "critical"],
+          "description": "Implementation priority (for pending features)"
+        },
+        "completedDate": {
+          "type": "string",
+          "format": "date",
+          "description": "Date when feature was completed (YYYY-MM-DD)"
+        },
+        "files": {
+          "type": "array",
+          "items": {
+            "type": "string"
+          },
+          "description": "Source files involved in this feature"
+        },
+        "testCommand": {
+          "type": "string",
+          "description": "Code to execute to test this feature"
+        },
+        "dependencies": {
+          "type": "array",
+          "items": {
+            "type": "string"
+          },
+          "description": "Other features or prerequisites this depends on"
+        },
+        "implementationNotes": {
+          "type": "string",
+          "description": "Technical notes for implementing this feature"
+        },
+        "estimatedLines": {
+          "type": "integer",
+          "minimum": 0,
+          "description": "Estimated lines of code to implement"
+        },
+        "verificationCriteria": {
+          "type": "array",
+          "description": "Criteria that must be met for feature to be considered complete",
+          "items": {
+            "$ref": "#/definitions/verificationCriterion"
+          }
+        },
+        "acceptanceCriteria": {
+          "type": "array",
+          "items": {
+            "type": "string"
+          },
+          "description": "High-level acceptance criteria for the feature"
+        }
+      }
+    },
+    "verificationCriterion": {
+      "type": "object",
+      "required": ["description", "type", "verified"],
+      "properties": {
+        "description": {
+          "type": "string",
+          "description": "What needs to be verified"
+        },
+        "type": {
+          "type": "string",
+          "enum": ["code-exists", "manual-test", "console-log", "unit-test", "integration-test"],
+          "description": "Type of verification required"
+        },
+        "verified": {
+          "type": "boolean",
+          "description": "Whether this criterion has been verified"
+        },
+        "expectedBehavior": {
+          "type": "string",
+          "description": "Detailed description of expected behavior (for manual tests)"
+        },
+        "verifiedDate": {
+          "type": "string",
+          "format": "date",
+          "description": "Date when criterion was verified"
+        },
+        "verifiedBy": {
+          "type": "string",
+          "description": "Who verified this criterion"
+        }
+      }
+    },
+    "summary": {
+      "type": "object",
+      "required": ["total", "complete", "pending"],
+      "properties": {
+        "total": {
+          "type": "integer",
+          "minimum": 0,
+          "description": "Total number of features"
+        },
+        "complete": {
+          "type": "integer",
+          "minimum": 0,
+          "description": "Number of completed features"
+        },
+        "pending": {
+          "type": "integer",
+          "minimum": 0,
+          "description": "Number of pending features"
+        },
+        "inProgress": {
+          "type": "integer",
+          "minimum": 0,
+          "description": "Number of in-progress features"
+        },
+        "blocked": {
+          "type": "integer",
+          "minimum": 0,
+          "description": "Number of blocked features"
+        }
+      }
+    },
+    "pendingWorkItem": {
+      "type": "object",
+      "required": ["taskId", "feature", "title", "description"],
+      "properties": {
+        "taskId": {
+          "type": "string",
+          "pattern": "^TASK-\\d{3}$",
+          "description": "Unique task identifier for execution (e.g., TASK-001)"
+        },
+        "feature": {
+          "type": "string",
+          "description": "Feature ID this work item belongs to"
+        },
+        "title": {
+          "type": "string",
+          "description": "Short title for the task"
+        },
+        "description": {
+          "type": "string",
+          "description": "Description of the work to be done"
+        },
+        "estimatedLines": {
+          "type": "integer",
+          "minimum": 0,
+          "description": "Estimated lines of code"
+        },
+        "filesModified": {
+          "type": "integer",
+          "minimum": 0,
+          "description": "Number of files to be modified"
+        },
+        "newMethods": {
+          "type": "array",
+          "items": {
+            "type": "string"
+          },
+          "description": "New methods or functions to be added"
+        },
+        "executionCommand": {
+          "type": "string",
+          "description": "Command/prompt to execute this task"
+        }
+      }
+    },
+    "testingInstructions": {
+      "type": "object",
+      "properties": {
+        "prerequisites": {
+          "type": "array",
+          "items": {
+            "type": "string"
+          },
+          "description": "Steps required before testing"
+        },
+        "testPatterns": {
+          "type": "object",
+          "additionalProperties": {
+            "type": "string"
+          },
+          "description": "Map of feature names to test code patterns"
+        }
+      }
+    }
+  }
+}

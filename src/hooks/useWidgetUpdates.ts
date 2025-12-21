@@ -122,15 +122,27 @@ export const useWidgetUpdates = (getView: () => EditorView | undefined): void =>
           // eslint-disable-next-line no-console
           console.log('[useWidgetUpdates] Registering widget with manager:', widget.type, widgetId);
 
+          // Read visualization options from canvas data attribute
+          // These were stored by getCanvasWidget since Strudel's widget system only passes position info
+          let vizOptions: Record<string, unknown> = {};
+          if (canvas.dataset.vizOptions) {
+            try {
+              vizOptions = JSON.parse(canvas.dataset.vizOptions);
+            } catch {
+              console.warn('[useWidgetUpdates] Failed to parse vizOptions from canvas');
+            }
+          }
+
           // Register with visualization manager
           visualizationManager.registerWidget({
             id: widgetId,
-            type: widget.type as '_scope' | '_pianoroll' | '_punchcard' | '_spiral',
+            type: widget.type as '_scope' | '_pianoroll' | '_punchcard' | '_spiral' | '_spectrum',
             canvas,
             options: {
               cycles: 4,
               playhead: 0.5,
-              ...widget
+              ...widget,
+              ...vizOptions
             }
           });
 

@@ -13,7 +13,7 @@ const AUDIO_ANALYSER_RETRY_INTERVAL_MS = 100;
  * Widget configuration from Strudel transpiler
  */
 export interface WidgetConfig {
-  type: 'slider' | '_scope' | '_pianoroll' | '_punchcard' | '_spiral';
+  type: 'slider' | '_scope' | '_pianoroll' | '_punchcard' | '_spiral' | '_spectrum';
   from: number;
   to: number;
   value?: number;
@@ -96,6 +96,7 @@ export const initializeStrudel = async (): Promise<StrudelRepl> => {
   registerWidgetType('_pianoroll');
   registerWidgetType('_punchcard');
   registerWidgetType('_spiral');
+  registerWidgetType('_spectrum');
   console.log('[initializeStrudel] Widget types registered');
 
   const repl = await initStrudel({

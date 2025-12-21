@@ -38,6 +38,15 @@ export const getCanvasWidget = (id: string, options: any = {}): HTMLCanvasElemen
         canvas.dataset.widgetPosition = options.from.toString();
     }
 
+    // Store visualization options as JSON data attribute for the visualization manager
+    // This is necessary because Strudel's widget system only passes position info
+    const vizOptions = { ...options };
+    delete vizOptions.from;
+    delete vizOptions.width;
+    delete vizOptions.height;
+    delete vizOptions.pixelRatio;
+    canvas.dataset.vizOptions = JSON.stringify(vizOptions);
+
     setWidget(id, canvas);  // Register canvas with CodeMirror's widget system
     return canvas;
 };
@@ -92,9 +101,19 @@ export const registerPatternMethods = (): boolean => {
         id = id || 'spiral';
         const _size = options.size || DEFAULT_SPIRAL_SIZE;
         options = { width: _size, height: _size, from: this.from, ...options, size: _size / SPIRAL_SIZE_DIVISOR };
+        // Just create canvas and tag pattern - visualization manager handles rendering
+        // (Strudel's spiral() uses onPaint which doesn't work for inline widgets)
+        getCanvasWidget(id, options);
+        return this.tag(id);
+    };
+
+    WindowPattern.prototype._spectrum = function(this: any, id?: string, options: any = {}) {
+        id = id || 'spectrum';
+        options = { width: DEFAULT_CANVAS_WIDTH, height: DEFAULT_CANVAS_HEIGHT, from: this.from, ...options };
         const ctx = getCanvasWidget(id, options).getContext('2d');
         if (!ctx) throw new Error(`Failed to get 2d context for canvas: ${id}`);
-        return this.tag(id).spiral({ ...options, ctx, id });
+        // Delegate to Strudel's spectrum() which handles scrolling spectrogram
+        return this.tag(id).spectrum({ ...options, ctx, id });
     };
 
     console.log('[registerPatternMethods] Pattern.prototype methods registered successfully');

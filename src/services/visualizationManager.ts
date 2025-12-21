@@ -3,21 +3,38 @@
 // param-reassign needed for canvas context modifications
 // any types required for Strudel pattern API
 // @ts-expect-error - @strudel/draw has no type definitions
-import { __pianoroll } from '@strudel/draw';
+import { __pianoroll, getTheme } from '@strudel/draw';
 
 /** Default number of cycles to display in visualizations */
 const DEFAULT_VIZ_CYCLES = 4;
 /** Default playhead position (0 = left, 1 = right) */
 const DEFAULT_VIZ_PLAYHEAD = 0.5;
-/** Default font size for placeholder text */
-const DEFAULT_PLACEHOLDER_FONT_SIZE = 10;
+
+/** Default spiral size (diameter) */
+const DEFAULT_SPIRAL_SIZE = 80;
+/** Default spiral inset (rotations before spiral starts) */
+const DEFAULT_SPIRAL_INSET = 2.8;
+/** Default spiral stretch (cycles per 360 degrees) */
+const DEFAULT_SPIRAL_STRETCH = 1;
+/** Spiral rendering increment for smooth curves */
+const SPIRAL_ANGLE_INCREMENT = 1 / 60; // eslint-disable-line @typescript-eslint/no-magic-numbers
+/** Number of cycles to look back for spiral events */
+const SPIRAL_LOOK_BEHIND = 2.5;
+/** Default spiral playhead length in rotations */
+const DEFAULT_SPIRAL_PLAYHEAD_LENGTH = 0.02;
+/** Degrees offset for polar coordinate conversion (start from top) */
+const POLAR_ANGLE_OFFSET = 90;
+/** Degrees in a full rotation */
+const DEGREES_PER_ROTATION = 360;
+/** Radians per degree */
+const RADIANS_PER_DEGREE = Math.PI / 180; // eslint-disable-line @typescript-eslint/no-magic-numbers
 
 /**
  * Visualization widget configuration
  */
 export interface VisualizationWidget {
   id: string;
-  type: '_scope' | '_pianoroll' | '_punchcard' | '_spiral';
+  type: '_scope' | '_pianoroll' | '_punchcard' | '_spiral' | '_spectrum';
   canvas: HTMLCanvasElement;
   options: Record<string, unknown>;
 }
@@ -156,15 +173,22 @@ class VisualizationManager {
 
   /**
    * Render a single widget
+   * Note: _spectrum is handled by Strudel's analyze().draw() via Pattern.prototype.spectrum
+   * but _spiral uses onPaint which doesn't work for inline widgets, so we render it ourselves.
    */
   private renderWidget(widget: VisualizationWidget): void {
+    // Skip spectrum - Strudel's analyze().draw() handles it
+    if (widget.type === '_spectrum') {
+      return;
+    }
+
     const ctx = widget.canvas.getContext('2d');
     if (!ctx) {
       console.warn('[VizManager] No canvas context for widget:', widget.id);
       return;
     }
 
-    // Clear canvas
+    // Clear canvas for widgets we render ourselves
     ctx.clearRect(0, 0, widget.canvas.width, widget.canvas.height);
 
     // Render based on widget type
@@ -303,7 +327,153 @@ class VisualizationManager {
   }
 
   /**
+   * Convert polar coordinates to cartesian (x, y)
+   * Angle is in degrees, with 0 pointing up
+   */
+  private fromPolar(angle: number, radius: number, cx: number, cy: number): [number, number] {
+    const radians = (angle - POLAR_ANGLE_OFFSET) * RADIANS_PER_DEGREE;
+    return [cx + Math.cos(radians) * radius, cy + Math.sin(radians) * radius];
+  }
+
+  /**
+   * Get x, y coordinates on a spiral at a given angle
+   * The spiral grows outward as angle increases
+   */
+  private xyOnSpiral(
+    angle: number,
+    margin: number,
+    cx: number,
+    cy: number,
+    rotate: number = 0
+  ): [number, number] {
+    return this.fromPolar((angle + rotate) * DEGREES_PER_ROTATION, margin * angle, cx, cy);
+  }
+
+  /**
+   * Draw a segment of the spiral from one angle to another
+   * Matches Strudel's spiralSegment function from @strudel/draw/spiral.mjs
+   */
+  private spiralSegment(
+    ctx: CanvasRenderingContext2D,
+    options: {
+      from: number;
+      to: number;
+      margin: number;
+      cx: number;
+      cy: number;
+      rotate: number;
+      thickness: number;
+      color: string;
+      stretch: number;
+      cap: CanvasLineCap;
+      fromOpacity?: number;
+      toOpacity?: number;
+    }
+  ): void {
+    const {
+      margin,
+      cx,
+      cy,
+      thickness,
+      color,
+      stretch,
+      cap,
+      fromOpacity = 1,
+      toOpacity = 1
+    } = options;
+    let { from, to, rotate } = options;
+
+    // Apply stretch factor (matches Strudel: from *= stretch; to *= stretch; rotate *= stretch;)
+    from *= stretch;
+    to *= stretch;
+    rotate *= stretch;
+
+    ctx.save();
+
+    ctx.lineWidth = thickness;
+    ctx.lineCap = cap;
+    ctx.strokeStyle = color;
+    ctx.lineJoin = 'round';
+    ctx.globalAlpha = fromOpacity;
+
+    ctx.beginPath();
+    const [sx, sy] = this.xyOnSpiral(from, margin, cx, cy, rotate);
+    ctx.moveTo(sx, sy);
+
+    let angle = from;
+    while (angle <= to) {
+      const [x, y] = this.xyOnSpiral(angle, margin, cx, cy, rotate);
+      ctx.globalAlpha = fromOpacity + ((angle - from) / (to - from)) * (toOpacity - fromOpacity);
+      ctx.lineTo(x, y);
+      angle += SPIRAL_ANGLE_INCREMENT;
+    }
+
+    ctx.stroke();
+    ctx.restore();
+  }
+
+  /**
+   * Parse spiral configuration from widget options with defaults
+   * Matches Strudel's drawSpiral function from @strudel/draw/spiral.mjs
+   */
+  private getSpiralConfig(
+    options: Record<string, unknown>,
+    canvasWidth: number,
+    canvasHeight: number
+  ): {
+    stretch: number;
+    inset: number;
+    lookBehind: number;
+    margin: number;
+    thickness: number;
+    cap: CanvasLineCap;
+    activeColor: string;
+    inactiveColor: string;
+    colorizeInactive: boolean;
+    playheadColor: string;
+    playheadLength: number;
+    playheadThickness: number;
+    steady: number;
+    fade: boolean;
+    padding: number;
+    cx: number;
+    cy: number;
+  } {
+    const theme = getTheme();
+
+    const stretch = (options.stretch as number) || DEFAULT_SPIRAL_STRETCH;
+    // Use size parameter (like Strudel) - size controls spiral diameter
+    // The `size` option passed here has already been divided by SPIRAL_SIZE_DIVISOR in patternWidgetRegistration
+    const size = (options.size as number) || DEFAULT_SPIRAL_SIZE;
+    const thickness = (options.thickness as number) || size / 2;
+    // Strudel defaults to 'butt' cap style (not 'round')
+    const cap = (options.cap as CanvasLineCap) || 'butt';
+
+    return {
+      stretch,
+      inset: (options.inset as number) || DEFAULT_SPIRAL_INSET,
+      lookBehind: (options.lookBehind as number) || SPIRAL_LOOK_BEHIND,
+      margin: size / stretch, // Strudel: margin = size / stretch (passed to spiralSegment)
+      thickness,
+      cap,
+      activeColor: (options.activeColor as string) || theme.foreground || '#ffffff',
+      inactiveColor: (options.inactiveColor as string) || theme.gutterForeground || '#8a919966',
+      colorizeInactive: (options.colorizeInactive as boolean) ?? false,
+      playheadColor: (options.playheadColor as string) || '#ffffff',
+      playheadLength: (options.playheadLength as number) || DEFAULT_SPIRAL_PLAYHEAD_LENGTH,
+      playheadThickness: (options.playheadThickness as number) || thickness,
+      steady: (options.steady as number) ?? 1,
+      fade: (options.fade as boolean) ?? true,
+      padding: (options.padding as number) || 0,
+      cx: canvasWidth / 2,
+      cy: canvasHeight / 2,
+    };
+  }
+
+  /**
    * Render spiral visualization
+   * Events appear as arc segments along a rotating spiral
+   * Matches Strudel's drawSpiral function from @strudel/draw/spiral.mjs
    */
   private renderSpiral(widget: VisualizationWidget, ctx: CanvasRenderingContext2D): void {
     if (!this.getCurrentPattern || !this.getCurrentTime) {
@@ -317,17 +487,71 @@ class VisualizationManager {
       return;
     }
 
-    try {
-      // TODO: Implement spiral drawing using queryArc data
-      // const time = this.getCurrentTime();
-      // const lookBehind = 4;
-      // const lookAhead = 0;
-      // const haps = pattern.queryArc(time - lookBehind, time + lookAhead);
+    const time = this.getCurrentTime();
+    const config = this.getSpiralConfig(
+      widget.options || {},
+      widget.canvas.width,
+      widget.canvas.height
+    );
 
-      // For now, draw a placeholder
-      ctx.fillStyle = '#75baff';
-      ctx.font = `${DEFAULT_PLACEHOLDER_FONT_SIZE}px monospace`;
-      ctx.fillText('Spiral visualization (TODO)', DEFAULT_PLACEHOLDER_FONT_SIZE, widget.canvas.height / 2);
+    // Rotation based on current time (matches Strudel: rotate = steady * time)
+    const rotate = config.steady * time;
+    const drawTime: [number, number] = [-config.lookBehind, 0];
+    const [min] = drawTime;
+
+    try {
+      // Query pattern for events in visible time window
+      const haps = pattern.queryArc(time - config.lookBehind, time);
+
+      // Base settings for spiral segments (matches Strudel's settings object)
+      const baseSettings = {
+        margin: config.margin,
+        cx: config.cx,
+        cy: config.cy,
+        stretch: config.stretch,
+        thickness: config.thickness,
+        cap: config.cap,
+      };
+
+      // Draw each event as an arc segment on the spiral
+      haps.forEach((hap: any) => {
+        const isActive = hap.whole.begin <= time && hap.endClipped > time;
+        const from = hap.whole.begin - time + config.inset;
+        const to = hap.endClipped - time + config.inset - config.padding;
+
+        // Get color from hap value or use default
+        const hapColor = hap.value?.color ?? config.activeColor;
+        const color = (config.colorizeInactive || isActive) ? hapColor : config.inactiveColor;
+
+        // Calculate opacity for fade effect with Math.max to prevent negative values
+        const opacity = config.fade
+          ? Math.max(0, 1 - Math.abs((hap.whole.begin - time) / min))
+          : 1;
+
+        this.spiralSegment(ctx, {
+          ...baseSettings,
+          from,
+          to,
+          rotate,
+          color,
+          fromOpacity: opacity,
+          toOpacity: opacity,
+        });
+      });
+
+      // Draw playhead marker (matches Strudel's playhead object)
+      // Playhead uses 'butt' cap for a square marker appearance
+      this.spiralSegment(ctx, {
+        ...baseSettings,
+        thickness: config.playheadThickness,
+        cap: 'butt',
+        from: config.inset - config.playheadLength,
+        to: config.inset,
+        rotate,
+        color: config.playheadColor,
+        fromOpacity: 1,
+        toOpacity: 1,
+      });
     } catch (error) {
       console.error('[VizManager] Error rendering spiral:', error);
     }

@@ -25,7 +25,10 @@
       "mcp__playwright__browser_type",
       "Bash(npx playwright test:*)",
       "WebFetch(domain:strudel.cc)",
-      "Bash(git checkout:*)"
+      "Bash(git checkout:*)",
+      "Skill(agentic-development)",
+      "Skill(agentic-development:*)",
+      "Bash(grep:*)"
     ],
     "deny": [],
     "ask": []
