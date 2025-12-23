@@ -153,7 +153,7 @@ export const AppHeader = ({
           onClick={toggleTheme}
           title={themeTooltip}
           aria-label={themeTooltip}
-          className="p-1.5 rounded hover:bg-basilisk-gray-700/50 transition-colors text-basilisk-gray-300 hover:text-basilisk-white"
+          className="p-1.5 rounded hover:bg-basilisk-gray-700/50 focus:bg-basilisk-gray-700/50 focus:outline-none focus:ring-2 focus:ring-basilisk-white/30 transition-colors text-basilisk-gray-300 hover:text-basilisk-white"
         >
           {isLight ? <SunIcon /> : <MoonIcon />}
         </button>
