@@ -1,8 +1,57 @@
+import { useTheme } from '../contexts/ThemeContext';
 import { canStartEngine } from '../types/engine';
 
 import { Button } from './ui/Button';
 
 import type { EngineStatus } from '../types/engine';
+
+/**
+ * Sun icon shown in light mode (click to switch to dark/muted)
+ */
+const SunIcon = (): React.ReactElement => (
+  <svg
+    xmlns="http://www.w3.org/2000/svg"
+    width="16"
+    height="16"
+    viewBox="0 0 24 24"
+    fill="none"
+    stroke="currentColor"
+    strokeWidth="2"
+    strokeLinecap="round"
+    strokeLinejoin="round"
+    aria-hidden="true"
+  >
+    <circle cx="12" cy="12" r="5" />
+    <line x1="12" y1="1" x2="12" y2="3" />
+    <line x1="12" y1="21" x2="12" y2="23" />
+    <line x1="4.22" y1="4.22" x2="5.64" y2="5.64" />
+    <line x1="18.36" y1="18.36" x2="19.78" y2="19.78" />
+    <line x1="1" y1="12" x2="3" y2="12" />
+    <line x1="21" y1="12" x2="23" y2="12" />
+    <line x1="4.22" y1="19.78" x2="5.64" y2="18.36" />
+    <line x1="18.36" y1="5.64" x2="19.78" y2="4.22" />
+  </svg>
+);
+
+/**
+ * Moon icon shown in dark mode (click to switch to light/solid)
+ */
+const MoonIcon = (): React.ReactElement => (
+  <svg
+    xmlns="http://www.w3.org/2000/svg"
+    width="16"
+    height="16"
+    viewBox="0 0 24 24"
+    fill="none"
+    stroke="currentColor"
+    strokeWidth="2"
+    strokeLinecap="round"
+    strokeLinejoin="round"
+    aria-hidden="true"
+  >
+    <path d="M21 12.79A9 9 0 1 1 11.21 3 7 7 0 0 0 21 12.79z" />
+  </svg>
+);
 
 
 type Props = {
@@ -59,9 +108,26 @@ export const AppHeader = ({
 }: Props): React.ReactElement => {
   const isReady = engineStatus === 'ready';
   const canStart = canStartEngine(engineStatus);
+  const { theme, toggleTheme } = useTheme();
+
+  const isLight = theme === 'light';
+  const themeTooltip = isLight ? 'Switch to dark mode' : 'Switch to light mode';
+
+  // Theme-aware header styling
+  // Light mode: original solid styling, Dark mode: glassmorphism transparency
+  const headerClass = isLight
+    ? 'fixed top-0 left-0 right-0 h-12 z-20 bg-basilisk-gray-900/85 backdrop-blur border-b border-basilisk-gray-700 flex items-center justify-between px-4'
+    : 'fixed top-0 left-0 right-0 h-12 z-20 backdrop-blur-md border-b flex items-center justify-between px-4';
+
+  const headerStyle: React.CSSProperties | undefined = isLight
+    ? undefined
+    : {
+        backgroundColor: 'rgba(0, 0, 0, 0.4)',
+        borderColor: 'rgba(255, 255, 255, 0.1)',
+      };
 
   return (
-    <header className="fixed top-0 left-0 right-0 h-12 z-20 bg-basilisk-gray-900/85 backdrop-blur border-b border-basilisk-gray-700 flex items-center justify-between px-4">
+    <header className={headerClass} style={headerStyle}>
       <div className="flex items-center gap-4">
         <span className="font-sans font-semibold tracking-wider text-basilisk-white text-sm">
           BASILISK
@@ -81,6 +147,16 @@ export const AppHeader = ({
           <span>{hydraLinked ? '●' : '○'}</span>
           <span>Hydra: {hydraStatus}</span>
         </div>
+
+        {/* Theme Toggle Button */}
+        <button
+          onClick={toggleTheme}
+          title={themeTooltip}
+          aria-label={themeTooltip}
+          className="p-1.5 rounded hover:bg-basilisk-gray-700/50 focus:bg-basilisk-gray-700/50 focus:outline-none focus:ring-2 focus:ring-basilisk-white/30 transition-colors text-basilisk-gray-300 hover:text-basilisk-white"
+        >
+          {isLight ? <SunIcon /> : <MoonIcon />}
+        </button>
 
         {/* Start Audio Button */}
         <Button

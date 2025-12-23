@@ -8,11 +8,13 @@ import * as StrudelWeb from '@strudel/web';
 import { samples } from '@strudel/webaudio';
 import CodeMirror from '@uiw/react-codemirror';
 import { AudioWaveform, Music } from 'lucide-react';
-import { useState, useEffect, useRef, useCallback } from 'react';
+import { useState, useEffect, useRef, useCallback, useMemo } from 'react';
 
 import { basiliskSyntaxTheme, transparentEditorTheme } from '../config/editorTheme';
+import { useTheme } from '../contexts/ThemeContext';
 import { useWidgetUpdates } from '../hooks/useWidgetUpdates';
 import * as StrudelEngine from '../services/strudelEngine';
+import { basiliskDark } from '../themes/codemirrorDark';
 import { registerPatternMethods } from '../utils/patternWidgetRegistration';
 
 import { SoundBrowserTray } from './sound-browser';
@@ -101,6 +103,7 @@ type Props = {
 export const StrudelRepl = ({ className, engineReady, onHalt, onExecute, onSave, statusLabel, soundBrowser, userLibrary, panelState }: Props): React.ReactElement => {
     const [code, setCode] = useState(defaultCode);
     const [userLibraryPlaying, setUserLibraryPlaying] = useState<string | null>(null);
+    const { theme } = useTheme();
 
     // Ref for CodeMirror editor to enable text insertion
     const editorRef = useRef<ReactCodeMirrorRef>(null);
@@ -255,9 +258,45 @@ export const StrudelRepl = ({ className, engineReady, onHalt, onExecute, onSave,
         StrudelEngine.hushAudio();
     };
 
+    // Theme-aware styling
+    // Light = original REPL (no glassmorphism), Dark = transparent/muted glassmorphism
+    const isLightTheme = theme === 'light';
+
+    // Theme-aware CodeMirror extensions
+    // Light mode: original syntax theme, Dark mode: muted colors for Hydra visibility
+    const editorExtensions = useMemo(() => {
+        const baseExtensions = [javascript(), transparentEditorTheme];
+        const themeExtensions = isLightTheme
+            ? [basiliskSyntaxTheme]
+            : basiliskDark;
+        // Note: sliderPlugin and widgetPlugin have type issues but work at runtime
+        // eslint-disable-next-line @typescript-eslint/no-explicit-any
+        return [...baseExtensions, ...themeExtensions, sliderPlugin as any, widgetPlugin as any];
+    }, [isLightTheme]);
+
+    // Container: light has no special styling, dark gets glassmorphism
+    const containerClass = isLightTheme
+        ? `flex flex-col h-full w-full ${className ?? ''}`
+        : `flex flex-col h-full w-full backdrop-blur-md rounded-lg border ${className ?? ''}`;
+
+    const containerStyle: React.CSSProperties | undefined = isLightTheme
+        ? undefined
+        : {
+            backgroundColor: 'rgba(0, 0, 0, 0.4)',
+            borderColor: 'rgba(255, 255, 255, 0.1)',
+          };
+
+    // Header: light uses original Tailwind classes, dark uses glassmorphism
+    const headerClass = isLightTheme
+        ? 'bg-basilisk-gray-800/50 border-b border-basilisk-gray-700'
+        : 'bg-black/40 border-b border-white/10 rounded-t-lg';
+
     return (
-        <div className={`flex flex-col h-full w-full ${className ?? ''}`}>
-            <div className="drag-handle h-10 flex items-center justify-between px-3 bg-basilisk-gray-800/50 border-b border-basilisk-gray-700 cursor-move flex-shrink-0">
+        <div
+            className={containerClass}
+            style={containerStyle}
+        >
+            <div className={`drag-handle h-10 flex items-center justify-between px-3 cursor-move flex-shrink-0 ${headerClass}`}>
                 <div className="flex items-center gap-2 text-xs">
                     <span className="text-basilisk-gray-400">{engineReady ? '●' : '○'}</span>
                     <span className="text-basilisk-gray-400">{statusLabel ?? 'Editor'}</span>
@@ -291,7 +330,7 @@ export const StrudelRepl = ({ className, engineReady, onHalt, onExecute, onSave,
                     ref={editorRef}
                     value={code}
                     height="100%"
-                    extensions={[javascript(), transparentEditorTheme, basiliskSyntaxTheme, sliderPlugin, widgetPlugin]}
+                    extensions={editorExtensions}
                     onChange={(val) => setCode(val)}
                     className="h-full font-mono"
                     basicSetup={CODE_MIRROR_SETUP}
