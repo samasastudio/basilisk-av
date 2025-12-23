@@ -32,7 +32,7 @@ interface ThemeProviderProps {
 }
 
 export const ThemeProvider = ({ children }: ThemeProviderProps): React.ReactElement => {
-  const [theme, setTheme] = useState<Theme>(getInitialTheme);
+  const [theme, setTheme] = useState<Theme>(() => getInitialTheme());
 
   // Persist theme to localStorage and update document class
   useEffect(() => {
