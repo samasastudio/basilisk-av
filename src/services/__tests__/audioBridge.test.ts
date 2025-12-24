@@ -1,3 +1,5 @@
+/* eslint-disable @typescript-eslint/no-explicit-any */
+// any: Test file requires casting Vitest mocks to 'any' for mockImplementation and mockClear type assertions
 import { describe, it, expect, vi, beforeEach, afterEach } from 'vitest';
 
 import * as AudioBridge from '../audioBridge';

@@ -1,7 +1,9 @@
-/* eslint-disable no-console, no-param-reassign, @typescript-eslint/prefer-optional-chain, @typescript-eslint/no-explicit-any */
+/* eslint-disable no-console, no-param-reassign, @typescript-eslint/prefer-optional-chain, @typescript-eslint/no-explicit-any, complexity, max-lines */
 // Console logging is essential for visualization debugging
 // param-reassign needed for canvas context modifications
 // any types required for Strudel pattern API
+// complexity: getSpiralConfig method is complex due to multiple visualization options and config variations
+// max-lines: File contains multiple visualization types (pianoroll, punchcard, spiral) with shared utilities
 // @ts-expect-error - @strudel/draw has no type definitions
 import { __pianoroll, getTheme } from '@strudel/draw';
 
