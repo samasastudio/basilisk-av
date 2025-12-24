@@ -40,8 +40,8 @@ export interface StrudelState {
  * Strudel REPL instance type
  */
 export interface StrudelRepl {
-  evaluate: (code: string) => void;
-  stop: () => void;
+  evaluate?: (code: string) => void;
+  stop?: () => void;
 }
 
 /**

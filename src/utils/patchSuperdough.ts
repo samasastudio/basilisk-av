@@ -30,7 +30,7 @@ if (typeof window !== 'undefined') {
     let interceptedContext: AudioContext | null = null;
     let bridge: HydraBridge | null = null;
 
-    AudioNode.prototype.connect = function(this: AudioNode, ...args: AudioNodeConnectArgs): AudioNode | void {
+    AudioNode.prototype.connect = function(this: AudioNode, ...args: AudioNodeConnectArgs): AudioNode {
         const destination = args[0];
 
         // Detect connections to AudioContext destination

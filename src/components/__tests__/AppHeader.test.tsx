@@ -9,9 +9,7 @@ import type { EngineStatus } from '../../types/engine';
 import type { ReactNode } from 'react';
 
 // Wrapper to provide ThemeContext
-const renderWithTheme = (ui: ReactNode) => {
-  return render(<ThemeProvider>{ui}</ThemeProvider>);
-};
+const renderWithTheme = (ui: ReactNode) => render(<ThemeProvider>{ui}</ThemeProvider>);
 
 describe('AppHeader', () => {
   const defaultProps = {

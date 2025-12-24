@@ -56,7 +56,7 @@ export const REPLWindow = ({
   const replContainerRef = useRef<HTMLDivElement>(null);
 
   // Close active panel when clicking outside REPL
-  useClickAway(replContainerRef, panelState.closePanel, isAnyPanelOpen);
+  useClickAway(replContainerRef as React.RefObject<HTMLElement>, panelState.closePanel, isAnyPanelOpen);
 
   return (
     <Rnd

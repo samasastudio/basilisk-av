@@ -1,51 +1,33 @@
+/* eslint-disable react-refresh/only-export-components */
 import React, { createContext, useContext, useState, useEffect, useCallback } from 'react';
+
+import { getInitialTheme, persistTheme } from './themeUtils';
+
+import type { Theme } from './themeUtils';
 import type { ReactNode } from 'react';
 
-export type Theme = 'dark' | 'light';
+
+
+// Re-export Theme type for convenience
+export type { Theme };
 
 interface ThemeContextValue {
   theme: Theme;
   toggleTheme: () => void;
 }
 
-const ThemeContext = createContext<ThemeContextValue | null>(null);
-
-const THEME_STORAGE_KEY = 'basilisk-theme';
-
-/**
- * Get initial theme from localStorage or default to 'light'
- * Light = original solid dark REPL appearance
- * Dark = muted/transparent glassmorphism appearance
- */
-const getInitialTheme = (): Theme => {
-  if (typeof window === 'undefined') return 'light';
-
-  const stored = localStorage.getItem(THEME_STORAGE_KEY);
-  if (stored === 'light' || stored === 'dark') {
-    return stored;
-  }
-  return 'light'; // Default to light (original solid dark REPL appearance)
-};
-
 interface ThemeProviderProps {
   children: ReactNode;
 }
+
+const ThemeContext = createContext<ThemeContextValue | null>(null);
 
 export const ThemeProvider = ({ children }: ThemeProviderProps): React.ReactElement => {
   const [theme, setTheme] = useState<Theme>(() => getInitialTheme());
 
   // Persist theme to localStorage and update document class
   useEffect(() => {
-    localStorage.setItem(THEME_STORAGE_KEY, theme);
-
-    // Update document class for CSS fallbacks
-    if (theme === 'dark') {
-      document.documentElement.classList.add('dark');
-      document.documentElement.classList.remove('light');
-    } else {
-      document.documentElement.classList.add('light');
-      document.documentElement.classList.remove('dark');
-    }
+    persistTheme(theme);
   }, [theme]);
 
   const toggleTheme = useCallback(() => {

@@ -19,7 +19,7 @@ vi.mock('../../utils/patchSuperdough', () => ({
 
 // Mock window.samples
 beforeEach(() => {
-  window.samples = vi.fn((path: string) => `samples:${path}`);
+  window.samples = vi.fn(async (path: string) => `samples:${path}`);
   window.repl = undefined;
   vi.clearAllMocks();
 });
@@ -87,7 +87,7 @@ describe('useStrudelEngine', () => {
 
     // Verify prebake function calls window.samples
     const prebakeFunction = vi.mocked(initStrudel).mock.calls[0][0].prebake;
-    const prebakeResult = prebakeFunction();
+    const prebakeResult = await prebakeFunction();
     expect(window.samples).toHaveBeenCalledWith('github:tidalcycles/dirt-samples');
     expect(prebakeResult).toBe('samples:github:tidalcycles/dirt-samples');
   });

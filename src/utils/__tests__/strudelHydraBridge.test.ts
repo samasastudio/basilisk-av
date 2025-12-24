@@ -11,24 +11,9 @@ const fillMockFrequencyData = (dataArray: Uint8Array): void => {
 };
 
 // Mock AudioContext type for testing
-interface MockAnalyserNode {
-  fftSize: number;
-  smoothingTimeConstant: number;
-  frequencyBinCount: number;
-  connect: ReturnType<typeof vi.fn>;
-  disconnect: ReturnType<typeof vi.fn>;
-  getByteFrequencyData: ReturnType<typeof vi.fn>;
-}
-
-interface MockGainNode {
-  gain: { value: number };
-  connect: ReturnType<typeof vi.fn>;
-  disconnect: ReturnType<typeof vi.fn>;
-}
-
 interface MockAudioContext {
-  createAnalyser: ReturnType<typeof vi.fn<[], MockAnalyserNode>>;
-  createGain: ReturnType<typeof vi.fn<[], MockGainNode>>;
+  createAnalyser: ReturnType<typeof vi.fn>;
+  createGain: ReturnType<typeof vi.fn>;
   destination: Record<string, never>;
 }
 

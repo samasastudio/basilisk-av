@@ -136,7 +136,7 @@ describe('useSoundPreview', () => {
   });
 
   it('should handle evaluate errors', () => {
-    mockRepl.evaluate.mockImplementation(() => {
+    (mockRepl.evaluate as ReturnType<typeof vi.fn>).mockImplementation(() => {
       throw new Error('Evaluation failed');
     });
 

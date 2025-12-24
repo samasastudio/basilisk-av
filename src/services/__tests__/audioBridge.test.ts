@@ -126,7 +126,7 @@ describe('audioBridge service', () => {
       const mockImplementation = (array: Uint8Array): void => {
         array.set(mockFFTData);
       };
-      mockContext.mockAnalyser.getByteFrequencyData.mockImplementation(mockImplementation);
+      (mockContext.mockAnalyser.getByteFrequencyData as any).mockImplementation(mockImplementation);
 
       // Call tick manually
       bridge?.tick();
@@ -145,7 +145,7 @@ describe('audioBridge service', () => {
       const bridge = AudioBridge.initHydraBridge(mockContext);
 
       // Clear any RAF calls from initialization
-      mockContext.mockAnalyser.getByteFrequencyData.mockClear();
+      (mockContext.mockAnalyser.getByteFrequencyData as any).mockClear();
 
       // Enable test mode
       if (bridge) bridge.testMode = true;
@@ -280,7 +280,7 @@ describe('audioBridge service', () => {
 
     it('calls setBins and returns true when bridge active', () => {
       const mockSetBins = vi.fn();
-      window.a = { fft: [0, 0, 0, 0], setBins: mockSetBins } as HydraBridge;
+      window.a = { fft: [0, 0, 0, 0], setBins: mockSetBins } as unknown as HydraBridge;
 
       const result = AudioBridge.setBinCount(8);
 
@@ -296,13 +296,13 @@ describe('audioBridge service', () => {
     });
 
     it('returns false when tick method missing', () => {
-      window.a = { fft: [0, 0, 0, 0] } as HydraBridge;
+      window.a = { fft: [0, 0, 0, 0] } as unknown as HydraBridge;
       expect(AudioBridge.updateFFT()).toBe(false);
     });
 
     it('calls tick and returns true when bridge active', () => {
       const mockTick = vi.fn();
-      window.a = { fft: [0, 0, 0, 0], tick: mockTick } as HydraBridge;
+      window.a = { fft: [0, 0, 0, 0], tick: mockTick } as unknown as HydraBridge;
 
       const result = AudioBridge.updateFFT();
 
@@ -324,7 +324,7 @@ describe('audioBridge service', () => {
 
     it('calls disconnect, removes window.a, and returns true', () => {
       const mockDisconnect = vi.fn();
-      window.a = { fft: [0, 0, 0, 0], disconnect: mockDisconnect } as HydraBridge;
+      window.a = { fft: [0, 0, 0, 0], disconnect: mockDisconnect } as unknown as HydraBridge;
 
       const result = AudioBridge.disconnectBridge();
 

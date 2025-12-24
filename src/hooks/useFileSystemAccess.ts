@@ -76,7 +76,8 @@ const scanDirectory = async (
 ): Promise<SampleItem[]> => {
   const items: SampleItem[] = [];
 
-  for await (const entry of handle.values()) {
+  // eslint-disable-next-line @typescript-eslint/no-explicit-any
+  for await (const entry of handle as any) {
     const itemPath = basePath ? `${basePath}/${entry.name}` : entry.name;
 
     if (entry.kind === 'directory') {
@@ -148,6 +149,11 @@ export const useFileSystemAccess = (): UseFileSystemAccessReturn => {
     setError(null);
 
     try {
+      if (!window.showDirectoryPicker) {
+        setError('File System Access API is not available');
+        return false;
+      }
+
       const handle = await window.showDirectoryPicker({
         mode: 'read',
         startIn: 'music'
