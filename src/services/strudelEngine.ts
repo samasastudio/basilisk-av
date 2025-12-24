@@ -203,7 +203,7 @@ export const hushAudio = (repl?: StrudelRepl): boolean => {
  *
  * @returns The REPL instance or undefined if not initialized
  */
-export const getReplInstance = (): StrudelRepl | undefined => window.repl;
+export const getReplInstance = (): StrudelRepl | undefined => window.repl as StrudelRepl | undefined;
 
 /**
  * Get the global AudioContext instance from window.replAudio.

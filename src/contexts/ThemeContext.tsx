@@ -1,4 +1,5 @@
 import React, { createContext, useContext, useState, useEffect, useCallback } from 'react';
+
 import type { ReactNode } from 'react';
 
 export type Theme = 'dark' | 'light';
@@ -68,6 +69,7 @@ export const ThemeProvider = ({ children }: ThemeProviderProps): React.ReactElem
  * Hook to access theme state and toggle function
  * @throws Error if used outside ThemeProvider
  */
+// eslint-disable-next-line react-refresh/only-export-components
 export const useTheme = (): ThemeContextValue => {
   const context = useContext(ThemeContext);
   if (!context) {

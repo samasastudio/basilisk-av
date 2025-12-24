@@ -97,5 +97,3 @@ osc(2, 0.01, 0)
 s("bd sd*2, hh*8, ~ ~ ~ sd")`
   }
 ];
-
-export { patternPresets };

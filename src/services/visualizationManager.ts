@@ -456,8 +456,8 @@ class VisualizationManager {
       margin: size / stretch, // Strudel: margin = size / stretch (passed to spiralSegment)
       thickness,
       cap,
-      activeColor: (options.activeColor as string) || theme.foreground || '#ffffff',
-      inactiveColor: (options.inactiveColor as string) || theme.gutterForeground || '#8a919966',
+      activeColor: (options.activeColor as string) ?? theme.foreground ?? '#ffffff',
+      inactiveColor: (options.inactiveColor as string) ?? theme.gutterForeground ?? '#8a919966',
       colorizeInactive: (options.colorizeInactive as boolean) ?? false,
       playheadColor: (options.playheadColor as string) || '#ffffff',
       playheadLength: (options.playheadLength as number) || DEFAULT_SPIRAL_PLAYHEAD_LENGTH,

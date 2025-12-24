@@ -76,6 +76,9 @@ const scanDirectory = async (
 ): Promise<SampleItem[]> => {
   const items: SampleItem[] = [];
 
+  // @ts-expect-error - FileSystemDirectoryHandle.values() is part of the File System Access API
+  // but TypeScript's DOM lib doesn't include it. This is a standard async iterator method
+  // supported in Chrome 86+ and Edge 86+ for directory enumeration.
   for await (const entry of handle.values()) {
     const itemPath = basePath ? `${basePath}/${entry.name}` : entry.name;
 
@@ -148,7 +151,11 @@ export const useFileSystemAccess = (): UseFileSystemAccessReturn => {
     setError(null);
 
     try {
-      const handle = await window.showDirectoryPicker({
+      // Non-null assertion is safe here because we check isSupported (which verifies
+      // showDirectoryPicker exists) before this code path executes. The function returns
+      // early with an error if the API is not supported.
+      // eslint-disable-next-line @typescript-eslint/no-non-null-assertion
+      const handle = await window.showDirectoryPicker!({
         mode: 'read',
         startIn: 'music'
       });

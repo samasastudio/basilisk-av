@@ -19,7 +19,7 @@ vi.mock('../../utils/patchSuperdough', () => ({
 
 // Mock window.samples
 beforeEach(() => {
-  window.samples = vi.fn((path: string) => `samples:${path}`);
+  window.samples = vi.fn((path: string) => Promise.resolve(`samples:${path}`));
   window.repl = undefined;
   vi.clearAllMocks();
 });
