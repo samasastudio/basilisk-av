@@ -1,7 +1,9 @@
-/* eslint-disable no-console, no-param-reassign, @typescript-eslint/prefer-optional-chain, @typescript-eslint/no-explicit-any */
+/* eslint-disable no-console, no-param-reassign, @typescript-eslint/prefer-optional-chain, @typescript-eslint/no-explicit-any, max-lines */
 // Console logging is essential for visualization debugging
 // param-reassign needed for canvas context modifications
 // any types required for Strudel pattern API
+// max-lines: This file manages all visualization types (scope, spectrum, pianoroll, punchcard, spiral)
+// and consolidating them here maintains cohesion for the visualization subsystem
 // @ts-expect-error - @strudel/draw has no type definitions
 import { __pianoroll, getTheme } from '@strudel/draw';
 
@@ -28,6 +30,23 @@ const POLAR_ANGLE_OFFSET = 90;
 const DEGREES_PER_ROTATION = 360;
 /** Radians per degree */
 const RADIANS_PER_DEGREE = Math.PI / 180; // eslint-disable-line @typescript-eslint/no-magic-numbers
+
+/**
+ * Helper to extract a typed option with a fallback default.
+ * Reduces complexity in config parsing methods.
+ */
+const getOption = <T>(options: Record<string, unknown>, key: string, defaultValue: T): T =>
+  (options[key] as T | undefined) ?? defaultValue;
+
+/**
+ * Helper to extract a typed option with fallback chain (option -> theme -> default).
+ */
+const getOptionWithThemeFallback = (
+  options: Record<string, unknown>,
+  key: string,
+  themeValue: string | undefined,
+  defaultValue: string
+): string => (options[key] as string | undefined) ?? themeValue ?? defaultValue;
 
 /**
  * Visualization widget configuration
@@ -440,31 +459,28 @@ class VisualizationManager {
     cy: number;
   } {
     const theme = getTheme();
-
-    const stretch = (options.stretch as number) || DEFAULT_SPIRAL_STRETCH;
+    const stretch = getOption(options, 'stretch', DEFAULT_SPIRAL_STRETCH);
     // Use size parameter (like Strudel) - size controls spiral diameter
     // The `size` option passed here has already been divided by SPIRAL_SIZE_DIVISOR in patternWidgetRegistration
-    const size = (options.size as number) || DEFAULT_SPIRAL_SIZE;
-    const thickness = (options.thickness as number) || size / 2;
-    // Strudel defaults to 'butt' cap style (not 'round')
-    const cap = (options.cap as CanvasLineCap) || 'butt';
+    const size = getOption(options, 'size', DEFAULT_SPIRAL_SIZE);
+    const thickness = getOption(options, 'thickness', size / 2);
 
     return {
       stretch,
-      inset: (options.inset as number) || DEFAULT_SPIRAL_INSET,
-      lookBehind: (options.lookBehind as number) || SPIRAL_LOOK_BEHIND,
+      inset: getOption(options, 'inset', DEFAULT_SPIRAL_INSET),
+      lookBehind: getOption(options, 'lookBehind', SPIRAL_LOOK_BEHIND),
       margin: size / stretch, // Strudel: margin = size / stretch (passed to spiralSegment)
       thickness,
-      cap,
-      activeColor: (options.activeColor as string) || theme.foreground || '#ffffff',
-      inactiveColor: (options.inactiveColor as string) || theme.gutterForeground || '#8a919966',
-      colorizeInactive: (options.colorizeInactive as boolean) ?? false,
-      playheadColor: (options.playheadColor as string) || '#ffffff',
-      playheadLength: (options.playheadLength as number) || DEFAULT_SPIRAL_PLAYHEAD_LENGTH,
-      playheadThickness: (options.playheadThickness as number) || thickness,
-      steady: (options.steady as number) ?? 1,
-      fade: (options.fade as boolean) ?? true,
-      padding: (options.padding as number) || 0,
+      cap: getOption<CanvasLineCap>(options, 'cap', 'butt'), // Strudel defaults to 'butt'
+      activeColor: getOptionWithThemeFallback(options, 'activeColor', theme.foreground, '#ffffff'),
+      inactiveColor: getOptionWithThemeFallback(options, 'inactiveColor', theme.gutterForeground, '#8a919966'),
+      colorizeInactive: getOption(options, 'colorizeInactive', false),
+      playheadColor: getOption(options, 'playheadColor', '#ffffff'),
+      playheadLength: getOption(options, 'playheadLength', DEFAULT_SPIRAL_PLAYHEAD_LENGTH),
+      playheadThickness: getOption(options, 'playheadThickness', thickness),
+      steady: getOption(options, 'steady', 1),
+      fade: getOption(options, 'fade', true),
+      padding: getOption(options, 'padding', 0),
       cx: canvasWidth / 2,
       cy: canvasHeight / 2,
     };

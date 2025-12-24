@@ -1,7 +1,7 @@
 import { renderHook } from '@testing-library/react';
 import { describe, it, expect, vi, beforeEach, afterEach } from 'vitest';
 
-import { useGlobalKeyboardShortcuts, KeyboardShortcut } from '../useGlobalKeyboardShortcuts';
+import { useGlobalKeyboardShortcuts, type KeyboardShortcut } from '../useGlobalKeyboardShortcuts';
 
 describe('useGlobalKeyboardShortcuts', () => {
   let addEventListenerSpy: ReturnType<typeof vi.spyOn>;

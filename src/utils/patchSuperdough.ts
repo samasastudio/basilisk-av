@@ -30,6 +30,9 @@ if (typeof window !== 'undefined') {
     let interceptedContext: AudioContext | null = null;
     let bridge: HydraBridge | null = null;
 
+    // @ts-expect-error - AudioNode.connect has complex overloads that return AudioNode for node
+    // connections and void for AudioParam connections. Our wrapper returns AudioNode | void to
+    // handle both cases, but TypeScript's strict overload typing doesn't accept this union.
     AudioNode.prototype.connect = function(this: AudioNode, ...args: AudioNodeConnectArgs): AudioNode | void {
         const destination = args[0];
 

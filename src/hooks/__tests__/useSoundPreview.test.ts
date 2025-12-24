@@ -5,6 +5,12 @@ import * as StrudelEngine from '../../services/strudelEngine';
 import { useSoundPreview } from '../useSoundPreview';
 
 import type { StrudelRepl } from '../../services/strudelEngine';
+import type { Mock } from 'vitest';
+
+interface MockStrudelRepl {
+  evaluate: Mock<(code: string) => void>;
+  stop: Mock<() => void>;
+}
 
 // Mock StrudelEngine
 vi.mock('../../services/strudelEngine', () => ({
@@ -13,7 +19,7 @@ vi.mock('../../services/strudelEngine', () => ({
 }));
 
 describe('useSoundPreview', () => {
-  let mockRepl: StrudelRepl;
+  let mockRepl: MockStrudelRepl;
 
   beforeEach(() => {
     vi.clearAllMocks();
@@ -24,7 +30,7 @@ describe('useSoundPreview', () => {
       stop: vi.fn()
     };
 
-    vi.mocked(StrudelEngine.getReplInstance).mockReturnValue(mockRepl);
+    vi.mocked(StrudelEngine.getReplInstance).mockReturnValue(mockRepl as unknown as StrudelRepl);
   });
 
   afterEach(() => {

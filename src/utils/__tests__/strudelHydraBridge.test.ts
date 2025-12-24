@@ -2,6 +2,8 @@ import { describe, it, expect, vi, beforeEach } from 'vitest';
 
 import { initHydraBridge } from '../../services/audioBridge';
 
+import type { Mock } from 'vitest';
+
 // Mock frequency data filler
 const fillMockFrequencyData = (dataArray: Uint8Array): void => {
   for (let i = 0; i < dataArray.length; i++) {
@@ -15,20 +17,20 @@ interface MockAnalyserNode {
   fftSize: number;
   smoothingTimeConstant: number;
   frequencyBinCount: number;
-  connect: ReturnType<typeof vi.fn>;
-  disconnect: ReturnType<typeof vi.fn>;
-  getByteFrequencyData: ReturnType<typeof vi.fn>;
+  connect: Mock;
+  disconnect: Mock;
+  getByteFrequencyData: Mock;
 }
 
 interface MockGainNode {
   gain: { value: number };
-  connect: ReturnType<typeof vi.fn>;
-  disconnect: ReturnType<typeof vi.fn>;
+  connect: Mock;
+  disconnect: Mock;
 }
 
 interface MockAudioContext {
-  createAnalyser: ReturnType<typeof vi.fn<[], MockAnalyserNode>>;
-  createGain: ReturnType<typeof vi.fn<[], MockGainNode>>;
+  createAnalyser: Mock<() => MockAnalyserNode>;
+  createGain: Mock<() => MockGainNode>;
   destination: Record<string, never>;
 }
 

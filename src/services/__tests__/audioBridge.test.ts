@@ -3,23 +3,44 @@ import { describe, it, expect, vi, beforeEach, afterEach } from 'vitest';
 import * as AudioBridge from '../audioBridge';
 
 import type { HydraBridge } from '../audioBridge';
+import type { Mock } from 'vitest';
+
+interface MockAnalyserNode {
+  fftSize: number;
+  smoothingTimeConstant: number;
+  frequencyBinCount: number;
+  getByteFrequencyData: Mock<(array: Uint8Array) => void>;
+  connect: Mock;
+  disconnect: Mock;
+}
+
+interface MockGainNode {
+  gain: { value: number };
+  connect: Mock;
+  disconnect: Mock;
+}
+
+interface MockAudioContext extends AudioContext {
+  mockAnalyser: MockAnalyserNode;
+  mockGainNode: MockGainNode;
+}
 
 // Mock Web Audio API
-const createMockAudioContext = () => {
-  const mockAnalyser = {
+const createMockAudioContext = (): MockAudioContext => {
+  const mockAnalyser: MockAnalyserNode = {
     fftSize: 0,
     smoothingTimeConstant: 0,
     frequencyBinCount: 512,
     getByteFrequencyData: vi.fn(),
     connect: vi.fn(),
     disconnect: vi.fn(),
-  } as unknown as AnalyserNode;
+  };
 
-  const mockGainNode = {
+  const mockGainNode: MockGainNode = {
     gain: { value: 1.0 },
     connect: vi.fn(),
     disconnect: vi.fn(),
-  } as unknown as GainNode;
+  };
 
   const mockDestination = {} as AudioDestinationNode;
 
@@ -29,10 +50,7 @@ const createMockAudioContext = () => {
     destination: mockDestination,
     mockAnalyser,
     mockGainNode,
-  } as unknown as AudioContext & {
-    mockAnalyser: typeof mockAnalyser;
-    mockGainNode: typeof mockGainNode;
-  };
+  } as unknown as MockAudioContext;
 };
 
 describe('audioBridge service', () => {
@@ -280,7 +298,7 @@ describe('audioBridge service', () => {
 
     it('calls setBins and returns true when bridge active', () => {
       const mockSetBins = vi.fn();
-      window.a = { fft: [0, 0, 0, 0], setBins: mockSetBins } as HydraBridge;
+      window.a = { fft: [0, 0, 0, 0], setBins: mockSetBins } as unknown as HydraBridge;
 
       const result = AudioBridge.setBinCount(8);
 
@@ -302,7 +320,7 @@ describe('audioBridge service', () => {
 
     it('calls tick and returns true when bridge active', () => {
       const mockTick = vi.fn();
-      window.a = { fft: [0, 0, 0, 0], tick: mockTick } as HydraBridge;
+      window.a = { fft: [0, 0, 0, 0], tick: mockTick } as unknown as HydraBridge;
 
       const result = AudioBridge.updateFFT();
 
@@ -324,7 +342,7 @@ describe('audioBridge service', () => {
 
     it('calls disconnect, removes window.a, and returns true', () => {
       const mockDisconnect = vi.fn();
-      window.a = { fft: [0, 0, 0, 0], disconnect: mockDisconnect } as HydraBridge;
+      window.a = { fft: [0, 0, 0, 0], disconnect: mockDisconnect } as unknown as HydraBridge;
 
       const result = AudioBridge.disconnectBridge();
 
