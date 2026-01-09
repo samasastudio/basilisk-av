@@ -1,4 +1,11 @@
-# grabbed from hydra site
+// Initialize Hydra
+await initHydra({
+  width: window.innerWidth,
+  height: window.innerHeight
+})
+
+// Audio-reactive feedback loop with noise modulation
+
 
 voronoi(8,1)
 .mult(osc(10,0.1,()=>Math.sin(time)*3).saturate(3).kaleid(200))
@@ -12,4 +19,3 @@ voronoi(8,1)
 
 
 speed = 0.1
-
