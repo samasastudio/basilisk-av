@@ -22,3 +22,4 @@ noise(1, .2)
   .out(o1)
 
 render(o0)
+

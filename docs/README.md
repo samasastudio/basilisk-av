@@ -30,7 +30,6 @@ Developer standards, tooling setup, and contribution guidelines.
 ### [current-specs/](current-specs/)
 Active feature specifications currently in development.
 
-- [DARK_MODE_SPEC.md](current-specs/DARK_MODE_SPEC.md)
 - [HYDRA_AUTO_INIT_SPEC.md](current-specs/HYDRA_AUTO_INIT_SPEC.md)
 - [INLINE_VIZ_REMOVAL_SPEC.md](current-specs/INLINE_VIZ_REMOVAL_SPEC.md)
 
