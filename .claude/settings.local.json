@@ -28,7 +28,9 @@
       "Bash(git checkout:*)",
       "Skill(agentic-development)",
       "Skill(agentic-development:*)",
-      "Bash(grep:*)"
+      "Bash(grep:*)",
+      "Bash(gh pr view:*)",
+      "Bash(gh pr diff:*)"
     ],
     "deny": [],
     "ask": []

@@ -11,6 +11,3 @@ osc(3.762, () => (a.fft[3] * 0.05) + 0.01, -3.794)
     .colorama(() => a.fft[0] / 1e4)
     .pixelate(128)
     .out();
-
-// Audio pattern
-s("bd sd, hh*4")
