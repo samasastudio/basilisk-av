@@ -1,0 +1,64 @@
+=== Basilisk AV - Development Progress ===
+
+Last Updated: 2026-01-10
+Current Phase: 6 (UX Polish & Production Mode)
+Total Features: 35
+Passing: 30
+
+---
+
+=== CURRENT STATE ===
+
+WHAT'S DONE:
+- Inline visualizations: _scope, _pianoroll, _punchcard, _spiral, _spectrum (6 features)
+- Dark mode: theme context, toggle, REPL/header/HUD styling, CSS fallbacks (7 features)
+- Sound Browser: list, search, preview, toggle button, insert (5 features)
+- User Library: button, panel, exclusivity, link, preview, insert, search (7 features)
+- Shared: SamplePanel base component (1 feature)
+- Keyboard: halt (Escape), engine start (Ctrl+Shift+Space), hide REPL (Ctrl+H) (3 features)
+- Ctrl+S saves script, Shift+Enter executes code
+
+WHAT'S LEFT (5 features):
+1. p6-shortcut-help - Help overlay listing all shortcuts
+2. p6-hud-fft-bands - Show all 4 bands (currently only a.fft[0])
+3. p6-hud-fps - FPS counter
+4. p6-hud-cpu - CPU usage display
+5. p6-hud-toggle - HUD visible in production (currently DEV only)
+
+KEY FILES:
+- src/components/HydraCanvas.tsx - HUD lives here, only shows in import.meta.env.DEV
+- src/hooks/useHydraHUD.ts - Only tracks a.fft[0]
+- src/App.tsx - Keyboard shortcuts defined here
+- src/hooks/useGlobalKeyboardShortcuts.ts - Shortcut infrastructure
+
+---
+
+=== SESSION HISTORY ===
+
+2026-01-08: Audit revealed 17 features already implemented but marked pending. Updated features.json.
+
+2026-01-08: Playwright MCP integration, User Library planning, USER_LIBRARY_SPEC.md created.
+
+2025-12-21: Dark mode complete (7 features). Inspired by hydra.ojack.xyz glassmorphism.
+
+2025-12-21: Spiral visualization fixes - ctx.save/restore, flat caps, theme colors.
+
+2025-12-20: Spiral uses custom renderSpiral, spectrum uses analyze().draw().
+
+2025-12-18: Inline viz infrastructure, scope, pianoroll, punchcard.
+
+---
+
+=== ARCHITECTURE NOTES ===
+
+Inline viz rendering:
+- _scope, _pianoroll, _punchcard, _spiral → visualizationManager
+- _spectrum → Strudel's analyze().draw() (skip in viz manager)
+
+Sound Browser: useSoundBrowser hook → SoundBrowserTray → SoundSampleGrid
+User Library: useUserLibrary hook → UserLibraryTray → DirectoryTree
+Panel exclusivity: usePanelExclusivity manages which panel is open
+
+Git commits for reference:
+- 180d0d5: spiral look behind tuning
+- f8fb63b: spiral/spectrum rendering fix

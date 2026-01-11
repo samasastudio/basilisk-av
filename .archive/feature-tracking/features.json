@@ -1,0 +1,951 @@
+{
+  "$schema": "./features.schema.json",
+  "version": "1.0.0",
+  "description": "Basilisk AV Feature Tracking",
+  "meta": {
+    "project": "basilisk-av",
+    "currentPhase": 6,
+    "lastUpdated": "2026-01-10",
+    "notes": "Phase 6 audit complete. 30/35 features implemented. Remaining: help overlay, production HUD enhancements."
+  },
+  "features": [
+    {
+      "id": "p6-inline-viz-infrastructure",
+      "name": "Inline Visualization Infrastructure",
+      "phase": 6,
+      "category": "inline-viz",
+      "status": "complete",
+      "description": "Core infrastructure for inline visualization widgets",
+      "completedDate": "2025-12-18",
+      "files": ["src/services/visualizationManager.ts", "src/hooks/useWidgetUpdates.ts", "src/services/strudelEngine.ts", "src/components/StrudelRepl.tsx"],
+      "verificationCriteria": [
+        {
+          "description": "VisualizationManager singleton exists and is exported",
+          "type": "code-exists",
+          "verified": true
+        },
+        {
+          "description": "Widget registration via registerWidget() method",
+          "type": "code-exists",
+          "verified": true
+        },
+        {
+          "description": "Animation loop queries pattern via getCurrentPattern()",
+          "type": "code-exists",
+          "verified": true
+        },
+        {
+          "description": "Time synchronization via getCurrentTime()",
+          "type": "code-exists",
+          "verified": true
+        },
+        {
+          "description": "Audio analyser connected for audio-reactive visualizations",
+          "type": "code-exists",
+          "verified": true
+        },
+        {
+          "description": "Console logs show '[VizManager] Registering widget:' on widget creation",
+          "type": "manual-test",
+          "verified": true
+        }
+      ],
+      "passes": true
+    },
+    {
+      "id": "p6-inline-scope",
+      "name": "Inline Scope Visualization (._scope())",
+      "phase": 6,
+      "category": "inline-viz",
+      "status": "complete",
+      "description": "Oscilloscope waveform visualization using Web Audio API analyser",
+      "completedDate": "2025-12-18",
+      "files": ["src/services/visualizationManager.ts"],
+      "testCommand": "s(\"bd sd hh sd\")._scope()",
+      "verificationCriteria": [
+        {
+          "description": "Canvas element appears inline below the code",
+          "type": "manual-test",
+          "verified": true
+        },
+        {
+          "description": "Oscilloscope waveform displays (NOT a black canvas)",
+          "type": "manual-test",
+          "verified": true
+        },
+        {
+          "description": "Waveform updates in real-time (~60fps via requestAnimationFrame)",
+          "type": "manual-test",
+          "verified": true
+        },
+        {
+          "description": "Waveform reflects audio output accurately",
+          "type": "manual-test",
+          "verified": true
+        },
+        {
+          "description": "Console shows: '[VizManager] Drawing scope to canvas'",
+          "type": "console-log",
+          "verified": true
+        },
+        {
+          "description": "Re-evaluating pattern updates the visualization",
+          "type": "manual-test",
+          "verified": true
+        }
+      ],
+      "passes": true
+    },
+    {
+      "id": "p6-inline-pianoroll",
+      "name": "Inline Pianoroll Visualization (._pianoroll())",
+      "phase": 6,
+      "category": "inline-viz",
+      "status": "complete",
+      "description": "Horizontal piano roll showing note events over time",
+      "completedDate": "2025-12-18",
+      "files": ["src/services/visualizationManager.ts"],
+      "testCommand": "note(\"c e g\")._pianoroll({ cycles: 2 })",
+      "verificationCriteria": [
+        {
+          "description": "Canvas element appears inline below the code",
+          "type": "manual-test",
+          "verified": true
+        },
+        {
+          "description": "Piano roll displays notes (NOT a black canvas)",
+          "type": "manual-test",
+          "verified": true
+        },
+        {
+          "description": "Notes appear at correct MIDI pitches (C, E, G as horizontal bars)",
+          "type": "manual-test",
+          "verified": true
+        },
+        {
+          "description": "Playhead (white vertical line) scrolls showing current position",
+          "type": "manual-test",
+          "verified": true
+        },
+        {
+          "description": "Notes are visible with active/inactive colors",
+          "type": "manual-test",
+          "verified": true
+        },
+        {
+          "description": "Console shows: '[VizManager] Drawing pianoroll - haps: [N]'",
+          "type": "console-log",
+          "verified": true
+        },
+        {
+          "description": "Works with both note() and n() patterns",
+          "type": "manual-test",
+          "verified": true
+        }
+      ],
+      "passes": true
+    },
+    {
+      "id": "p6-inline-punchcard",
+      "name": "Inline Punchcard Visualization (._punchcard())",
+      "phase": 6,
+      "category": "inline-viz",
+      "status": "complete",
+      "description": "Vertical piano roll (punchcard style) showing note events",
+      "completedDate": "2025-12-18",
+      "files": ["src/services/visualizationManager.ts"],
+      "testCommand": "note(\"c a f e\").euclid(5,8)._punchcard()",
+      "verificationCriteria": [
+        {
+          "description": "Canvas element appears inline below the code",
+          "type": "manual-test",
+          "verified": true
+        },
+        {
+          "description": "Punchcard displays (vertical pianoroll orientation)",
+          "type": "manual-test",
+          "verified": true
+        },
+        {
+          "description": "Events show as colored bars",
+          "type": "manual-test",
+          "verified": true
+        },
+        {
+          "description": "Console shows: '[VizManager] Drawing punchcard'",
+          "type": "console-log",
+          "verified": true
+        }
+      ],
+      "passes": true
+    },
+    {
+      "id": "p6-inline-spiral",
+      "name": "Inline Spiral Visualization (._spiral())",
+      "phase": 6,
+      "category": "inline-viz",
+      "status": "complete",
+      "completedDate": "2025-12-21",
+      "description": "Spiral visualization showing pattern events as arcs on a spiral",
+      "files": ["src/services/visualizationManager.ts"],
+      "testCommand": "note(\"c e g b\")._spiral()",
+      "verificationCriteria": [
+        {
+          "description": "Canvas element appears inline below the code",
+          "type": "manual-test",
+          "verified": true
+        },
+        {
+          "description": "Spiral visualization renders (NOT placeholder text)",
+          "type": "manual-test",
+          "verified": true
+        },
+        {
+          "description": "Events appear as arc segments along spiral arms",
+          "type": "manual-test",
+          "verified": true
+        },
+        {
+          "description": "Spiral rotates with playback time",
+          "type": "manual-test",
+          "verified": true
+        },
+        {
+          "description": "Console shows: '[VizManager] Drawing spiral - haps: [N]'",
+          "type": "console-log",
+          "verified": true
+        },
+        {
+          "description": "Re-evaluating pattern updates the visualization",
+          "type": "manual-test",
+          "verified": true
+        }
+      ],
+      "passes": true
+    },
+    {
+      "id": "p6-inline-spectrum",
+      "name": "Inline Spectrum Visualization (._spectrum())",
+      "phase": 6,
+      "category": "inline-viz",
+      "status": "complete",
+      "completedDate": "2025-12-20",
+      "description": "Frequency spectrum analyzer (FFT) visualization",
+      "files": ["src/services/visualizationManager.ts", "src/services/strudelEngine.ts", "src/hooks/useWidgetUpdates.ts", "src/utils/patternWidgetRegistration.ts"],
+      "testCommand": "s(\"bd sd hh sd\")._spectrum()",
+      "verificationCriteria": [
+        {
+          "description": "_spectrum method exists on Pattern.prototype",
+          "type": "code-exists",
+          "verified": true
+        },
+        {
+          "description": "'_spectrum' type added to WidgetConfig in strudelEngine.ts",
+          "type": "code-exists",
+          "verified": true
+        },
+        {
+          "description": "'_spectrum' registered via registerWidgetType()",
+          "type": "code-exists",
+          "verified": true
+        },
+        {
+          "description": "Canvas element appears inline below the code",
+          "type": "manual-test",
+          "verified": true
+        },
+        {
+          "description": "Spectrum analyzer displays scrolling spectrogram",
+          "type": "manual-test",
+          "verified": true
+        },
+        {
+          "description": "Spectrogram updates in real-time with audio playback",
+          "type": "manual-test",
+          "verified": true
+        },
+        {
+          "description": "Low frequencies at bottom, high frequencies at top",
+          "type": "manual-test",
+          "verified": true
+        }
+      ],
+      "passes": true
+    },
+    {
+      "id": "p6-theme-context",
+      "name": "Theme Context Provider",
+      "phase": 6,
+      "category": "dark-mode",
+      "status": "complete",
+      "description": "React context for theme state management with localStorage persistence",
+      "completedDate": "2025-12-21",
+      "files": ["src/contexts/ThemeContext.tsx", "src/App.tsx"],
+      "verificationCriteria": [
+        {
+          "description": "ThemeProvider wraps App component",
+          "type": "code-exists",
+          "verified": true
+        },
+        {
+          "description": "useTheme hook returns theme and toggleTheme",
+          "type": "code-exists",
+          "verified": true
+        },
+        {
+          "description": "Theme persists after page reload",
+          "type": "manual-test",
+          "verified": true
+        },
+        {
+          "description": "Default theme is light (original solid REPL)",
+          "type": "manual-test",
+          "verified": true
+        }
+      ],
+      "passes": true
+    },
+    {
+      "id": "p6-theme-toggle-button",
+      "name": "Theme Toggle Button",
+      "phase": 6,
+      "category": "dark-mode",
+      "status": "complete",
+      "description": "Sun/Moon toggle button in header to switch themes",
+      "completedDate": "2025-12-21",
+      "files": ["src/components/AppHeader.tsx", "src/components/__tests__/AppHeader.test.tsx"],
+      "verificationCriteria": [
+        {
+          "description": "Toggle button visible in AppHeader",
+          "type": "manual-test",
+          "verified": true
+        },
+        {
+          "description": "Button shows sun icon in light mode (click to go dark)",
+          "type": "manual-test",
+          "verified": true
+        },
+        {
+          "description": "Button shows moon icon in dark mode (click to go light)",
+          "type": "manual-test",
+          "verified": true
+        },
+        {
+          "description": "Click toggles between themes",
+          "type": "manual-test",
+          "verified": true
+        },
+        {
+          "description": "Tooltip indicates current action",
+          "type": "manual-test",
+          "verified": true
+        }
+      ],
+      "passes": true
+    },
+    {
+      "id": "p6-repl-dark-background",
+      "name": "REPL Dark Mode Styling",
+      "phase": 6,
+      "category": "dark-mode",
+      "status": "complete",
+      "description": "REPL window uses semi-transparent glassmorphism in dark mode",
+      "completedDate": "2025-12-21",
+      "files": ["src/components/StrudelRepl.tsx"],
+      "verificationCriteria": [
+        {
+          "description": "Dark mode REPL has rgba(0,0,0,0.4) background with glassmorphism",
+          "type": "manual-test",
+          "verified": true
+        },
+        {
+          "description": "Hydra visuals visible through REPL background in dark mode",
+          "type": "manual-test",
+          "verified": true
+        },
+        {
+          "description": "Light mode REPL uses original Tailwind classes (no glassmorphism)",
+          "type": "manual-test",
+          "verified": true
+        },
+        {
+          "description": "Backdrop blur applied only in dark mode",
+          "type": "manual-test",
+          "verified": true
+        },
+        {
+          "description": "Border and rounded corners only in dark mode",
+          "type": "manual-test",
+          "verified": true
+        }
+      ],
+      "passes": true
+    },
+    {
+      "id": "p6-codemirror-dark-theme",
+      "name": "CodeMirror Dark Theme",
+      "phase": 6,
+      "category": "dark-mode",
+      "status": "complete",
+      "description": "Custom CodeMirror theme with muted syntax colors for dark mode",
+      "completedDate": "2025-12-21",
+      "files": ["src/themes/codemirrorDark.ts", "src/components/StrudelRepl.tsx"],
+      "verificationCriteria": [
+        {
+          "description": "Dark mode editor has light text on transparent background",
+          "type": "manual-test",
+          "verified": true
+        },
+        {
+          "description": "Keywords highlighted in muted purple (#c792ea)",
+          "type": "manual-test",
+          "verified": true
+        },
+        {
+          "description": "Strings highlighted in muted green (#c3e88d)",
+          "type": "manual-test",
+          "verified": true
+        },
+        {
+          "description": "Comments styled italic gray (#6a737d)",
+          "type": "manual-test",
+          "verified": true
+        },
+        {
+          "description": "Cursor visible as white",
+          "type": "manual-test",
+          "verified": true
+        },
+        {
+          "description": "Selection uses semi-transparent white",
+          "type": "manual-test",
+          "verified": true
+        },
+        {
+          "description": "Active line has subtle highlight",
+          "type": "manual-test",
+          "verified": true
+        }
+      ],
+      "passes": true
+    },
+    {
+      "id": "p6-header-dark-adaptation",
+      "name": "Header Dark Mode Styling",
+      "phase": 6,
+      "category": "dark-mode",
+      "status": "complete",
+      "description": "AppHeader uses transparent glassmorphism in dark mode",
+      "completedDate": "2025-12-21",
+      "files": ["src/components/AppHeader.tsx"],
+      "verificationCriteria": [
+        {
+          "description": "Light mode header retains current styling",
+          "type": "manual-test",
+          "verified": true
+        },
+        {
+          "description": "Dark mode header uses rgba(0,0,0,0.4) background",
+          "type": "manual-test",
+          "verified": true
+        },
+        {
+          "description": "Dark mode header border uses rgba(255,255,255,0.1)",
+          "type": "manual-test",
+          "verified": true
+        },
+        {
+          "description": "Button text/icons visible in both modes",
+          "type": "manual-test",
+          "verified": true
+        },
+        {
+          "description": "Backdrop blur applied in dark mode",
+          "type": "manual-test",
+          "verified": true
+        }
+      ],
+      "passes": true
+    },
+    {
+      "id": "p6-hud-dark-styling",
+      "name": "HUD Dark Mode Styling",
+      "phase": 6,
+      "category": "dark-mode",
+      "status": "complete",
+      "description": "HUD uses semi-transparent background in dark mode",
+      "completedDate": "2025-12-21",
+      "files": ["src/components/HydraCanvas.tsx"],
+      "verificationCriteria": [
+        {
+          "description": "Light mode HUD retains current styling",
+          "type": "manual-test",
+          "verified": true
+        },
+        {
+          "description": "Dark mode HUD uses rgba(0,0,0,0.4) background",
+          "type": "manual-test",
+          "verified": true
+        },
+        {
+          "description": "Dark mode HUD text uses muted gray (#a0a0a0)",
+          "type": "manual-test",
+          "verified": true
+        },
+        {
+          "description": "FFT visualizers visible in both modes",
+          "type": "manual-test",
+          "verified": true
+        }
+      ],
+      "passes": true
+    },
+    {
+      "id": "p6-dark-mode-css-fallbacks",
+      "name": "Dark Mode CSS Fallbacks",
+      "phase": 6,
+      "category": "dark-mode",
+      "status": "complete",
+      "description": "CSS overrides for Strudel REPL components",
+      "completedDate": "2025-12-21",
+      "files": ["src/styles/dark-mode.css", "src/main.tsx"],
+      "verificationCriteria": [
+        {
+          "description": "CSS file with .dark class overrides exists",
+          "type": "code-exists",
+          "verified": true
+        },
+        {
+          "description": "Strudel REPL editor inherits dark styles",
+          "type": "manual-test",
+          "verified": true
+        },
+        {
+          "description": "No style conflicts or flickering",
+          "type": "manual-test",
+          "verified": true
+        },
+        {
+          "description": "Gutter background transparent in dark mode",
+          "type": "manual-test",
+          "verified": true
+        }
+      ],
+      "passes": true
+    },
+    {
+      "id": "p6-sample-panel-base",
+      "name": "Sample Panel Base Component",
+      "phase": 6,
+      "category": "shared-components",
+      "status": "complete",
+      "description": "Shared base component for Sound Browser and User Library panels",
+      "completedDate": "2025-01-08",
+      "files": ["src/components/shared/SamplePanel.tsx", "src/components/shared/SampleSearch.tsx"],
+      "passes": true
+    },
+    {
+      "id": "p6-sound-list",
+      "name": "Sound Browser List",
+      "phase": 6,
+      "category": "sound-browser",
+      "status": "complete",
+      "description": "Sound menu displaying all loaded Strudel samples",
+      "completedDate": "2025-01-08",
+      "files": ["src/components/sound-browser/SoundBrowserTray.tsx", "src/components/sound-browser/SoundSampleGrid.tsx", "src/components/sound-browser/SoundCategoryChips.tsx"],
+      "passes": true
+    },
+    {
+      "id": "p6-sound-search",
+      "name": "Sound Browser Search",
+      "phase": 6,
+      "category": "sound-browser",
+      "status": "complete",
+      "description": "Searchable/filterable sound list",
+      "completedDate": "2025-01-08",
+      "files": ["src/components/sound-browser/SoundSearch.tsx"],
+      "passes": true
+    },
+    {
+      "id": "p6-sound-preview",
+      "name": "Sound Browser Preview",
+      "phase": 6,
+      "category": "sound-browser",
+      "status": "complete",
+      "description": "Preview sounds on click",
+      "completedDate": "2025-01-08",
+      "files": ["src/hooks/useSoundPreview.ts"],
+      "passes": true
+    },
+    {
+      "id": "p6-sound-toggle-button",
+      "name": "Sound Browser Toggle Button",
+      "phase": 6,
+      "category": "sound-browser",
+      "status": "complete",
+      "description": "Music icon button to toggle Sound Browser panel",
+      "completedDate": "2025-01-08",
+      "files": ["src/components/StrudelRepl.tsx"],
+      "passes": true
+    },
+    {
+      "id": "p6-sound-insert",
+      "name": "Sound Browser Insert",
+      "phase": 6,
+      "category": "sound-browser",
+      "status": "complete",
+      "description": "Insert sample name into editor on double-click",
+      "completedDate": "2025-01-08",
+      "files": ["src/components/StrudelRepl.tsx"],
+      "passes": true
+    },
+    {
+      "id": "p6-user-library-button",
+      "name": "User Library Toggle Button",
+      "phase": 6,
+      "category": "user-library",
+      "status": "complete",
+      "description": "User Library toggle button in header with waveform icon",
+      "completedDate": "2025-01-08",
+      "files": ["src/components/StrudelRepl.tsx"],
+      "passes": true
+    },
+    {
+      "id": "p6-user-library-panel",
+      "name": "User Library Panel",
+      "phase": 6,
+      "category": "user-library",
+      "status": "complete",
+      "description": "User Library panel displaying user's linked sample directories",
+      "completedDate": "2025-01-08",
+      "files": ["src/components/user-library/UserLibraryTray.tsx", "src/components/user-library/DirectoryTree.tsx"],
+      "passes": true
+    },
+    {
+      "id": "p6-panel-exclusivity",
+      "name": "Panel Mutual Exclusivity",
+      "phase": 6,
+      "category": "user-library",
+      "status": "complete",
+      "description": "Only one panel (Sound Browser or User Library) open at a time",
+      "completedDate": "2025-01-08",
+      "files": ["src/hooks/usePanelExclusivity.ts"],
+      "passes": true
+    },
+    {
+      "id": "p6-user-library-link",
+      "name": "User Library Directory Link",
+      "phase": 6,
+      "category": "user-library",
+      "status": "complete",
+      "description": "Link master user directory of sounds (local or CDN)",
+      "completedDate": "2025-01-08",
+      "files": ["src/components/user-library/LinkDirectoryPrompt.tsx", "src/components/user-library/CDNUrlInput.tsx", "src/hooks/useFileSystemAccess.ts", "src/hooks/useCDNSamples.ts"],
+      "passes": true
+    },
+    {
+      "id": "p6-user-library-preview",
+      "name": "User Library Preview",
+      "phase": 6,
+      "category": "user-library",
+      "status": "complete",
+      "description": "Preview user samples on click via Web Audio API",
+      "completedDate": "2025-01-08",
+      "files": ["src/components/StrudelRepl.tsx"],
+      "passes": true
+    },
+    {
+      "id": "p6-user-library-insert",
+      "name": "User Library Insert",
+      "phase": 6,
+      "category": "user-library",
+      "status": "complete",
+      "description": "Insert user sample path into editor on double-click",
+      "completedDate": "2025-01-08",
+      "files": ["src/components/StrudelRepl.tsx"],
+      "passes": true
+    },
+    {
+      "id": "p6-user-library-search",
+      "name": "User Library Search",
+      "phase": 6,
+      "category": "user-library",
+      "status": "complete",
+      "description": "Search user samples with real-time filtering",
+      "completedDate": "2025-01-08",
+      "files": ["src/hooks/useUserLibrary.ts", "src/components/shared/SampleSearch.tsx"],
+      "passes": true
+    },
+    {
+      "id": "p6-shortcut-engine-start",
+      "name": "Engine Start Shortcut",
+      "phase": 6,
+      "category": "keyboard",
+      "status": "complete",
+      "description": "Ctrl+Shift+Space to start Strudel engine",
+      "completedDate": "2025-01-08",
+      "files": ["src/App.tsx", "src/hooks/useGlobalKeyboardShortcuts.ts"],
+      "passes": true
+    },
+    {
+      "id": "p6-shortcut-halt",
+      "name": "Emergency Halt Shortcut",
+      "phase": 6,
+      "category": "keyboard",
+      "status": "complete",
+      "description": "Escape key immediately stops all audio",
+      "completedDate": "2025-01-08",
+      "files": ["src/App.tsx", "src/hooks/useGlobalKeyboardShortcuts.ts"],
+      "passes": true
+    },
+    {
+      "id": "p6-shortcut-hide-repl",
+      "name": "Hide REPL Shortcut",
+      "phase": 6,
+      "category": "keyboard",
+      "status": "complete",
+      "description": "Ctrl+H toggles REPL visibility",
+      "completedDate": "2025-01-08",
+      "files": ["src/App.tsx", "src/hooks/useREPLVisibility.ts"],
+      "passes": true
+    },
+    {
+      "id": "p6-shortcut-help",
+      "name": "Keyboard Shortcut Help Overlay",
+      "phase": 6,
+      "category": "keyboard",
+      "status": "pending",
+      "description": "Help overlay showing all available keyboard shortcuts",
+      "priority": "low",
+      "dependencies": ["p6-shortcut-engine-start", "p6-shortcut-halt", "p6-shortcut-hide-repl"],
+      "verificationCriteria": [
+        {
+          "description": "Shortcut (e.g., ?) opens help overlay",
+          "type": "manual-test",
+          "verified": false
+        },
+        {
+          "description": "Overlay lists all available shortcuts",
+          "type": "manual-test",
+          "verified": false
+        },
+        {
+          "description": "Overlay dismisses on Escape or click-away",
+          "type": "manual-test",
+          "verified": false
+        },
+        {
+          "description": "Overlay styled consistently with glassmorphism",
+          "type": "manual-test",
+          "verified": false
+        },
+        {
+          "description": "Shortcuts grouped by category",
+          "type": "manual-test",
+          "verified": false
+        }
+      ],
+      "passes": false
+    },
+    {
+      "id": "p6-hud-fft-bands",
+      "name": "HUD FFT Bands Display",
+      "phase": 6,
+      "category": "production-hud",
+      "status": "pending",
+      "description": "Compact FFT analyzer showing all 4 a.fft bands",
+      "priority": "medium",
+      "dependencies": [],
+      "verificationCriteria": [
+        {
+          "description": "4 mini visualizers shown (a.fft[0-3])",
+          "type": "manual-test",
+          "verified": false
+        },
+        {
+          "description": "Each bar responds to its frequency band",
+          "type": "manual-test",
+          "verified": false
+        },
+        {
+          "description": "Visualizers update in real-time",
+          "type": "manual-test",
+          "verified": false
+        },
+        {
+          "description": "Positioned non-intrusively (corner)",
+          "type": "manual-test",
+          "verified": false
+        },
+        {
+          "description": "Labels identify each band",
+          "type": "manual-test",
+          "verified": false
+        }
+      ],
+      "notes": "Currently only shows a.fft[0]. Needs expansion to all 4 bands.",
+      "passes": false
+    },
+    {
+      "id": "p6-hud-cpu",
+      "name": "HUD CPU Display",
+      "phase": 6,
+      "category": "production-hud",
+      "status": "pending",
+      "description": "CPU/processing power percentage display",
+      "priority": "low",
+      "dependencies": [],
+      "verificationCriteria": [
+        {
+          "description": "CPU percentage displayed in HUD",
+          "type": "manual-test",
+          "verified": false
+        },
+        {
+          "description": "Updates at reasonable interval (1-2s)",
+          "type": "manual-test",
+          "verified": false
+        },
+        {
+          "description": "Warns visually if CPU high (>80%)",
+          "type": "manual-test",
+          "verified": false
+        },
+        {
+          "description": "Uses Performance API accurately",
+          "type": "code-exists",
+          "verified": false
+        }
+      ],
+      "passes": false
+    },
+    {
+      "id": "p6-hud-fps",
+      "name": "HUD FPS Counter",
+      "phase": 6,
+      "category": "production-hud",
+      "status": "pending",
+      "description": "FPS counter display",
+      "priority": "medium",
+      "dependencies": [],
+      "verificationCriteria": [
+        {
+          "description": "FPS counter visible in HUD",
+          "type": "manual-test",
+          "verified": false
+        },
+        {
+          "description": "Shows current frame rate",
+          "type": "manual-test",
+          "verified": false
+        },
+        {
+          "description": "Updates smoothly (rolling average)",
+          "type": "manual-test",
+          "verified": false
+        },
+        {
+          "description": "Warns if FPS drops below 30",
+          "type": "manual-test",
+          "verified": false
+        }
+      ],
+      "passes": false
+    },
+    {
+      "id": "p6-hud-toggle",
+      "name": "HUD Toggle Visibility",
+      "phase": 6,
+      "category": "production-hud",
+      "status": "pending",
+      "description": "Toggle HUD visibility in production mode",
+      "priority": "medium",
+      "dependencies": ["p6-hud-fft-bands"],
+      "verificationCriteria": [
+        {
+          "description": "Button or shortcut toggles HUD",
+          "type": "manual-test",
+          "verified": false
+        },
+        {
+          "description": "HUD completely hidden when off",
+          "type": "manual-test",
+          "verified": false
+        },
+        {
+          "description": "Preference persists via localStorage",
+          "type": "manual-test",
+          "verified": false
+        },
+        {
+          "description": "Works in production (not just DEV mode)",
+          "type": "manual-test",
+          "verified": false
+        }
+      ],
+      "notes": "Currently HUD only visible in import.meta.env.DEV mode",
+      "passes": false
+    },
+    {
+      "id": "p6-hud-styling",
+      "name": "HUD Minimal Styling",
+      "phase": 6,
+      "category": "production-hud",
+      "status": "pending",
+      "description": "Minimal non-intrusive HUD design",
+      "priority": "low",
+      "dependencies": ["p6-hud-fft-bands", "p6-hud-fps"],
+      "verificationCriteria": [
+        {
+          "description": "HUD uses glassmorphism consistent with REPL",
+          "type": "manual-test",
+          "verified": false
+        },
+        {
+          "description": "Semi-transparent, doesn't block visuals",
+          "type": "manual-test",
+          "verified": false
+        },
+        {
+          "description": "Monochrome palette per basilisk-style",
+          "type": "manual-test",
+          "verified": false
+        },
+        {
+          "description": "Compact layout, minimal footprint",
+          "type": "manual-test",
+          "verified": false
+        }
+      ],
+      "passes": false
+    }
+  ],
+  "summary": {
+    "total": 35,
+    "complete": 30,
+    "pending": 5,
+    "blocked": 0
+  },
+  "testingInstructions": {
+    "prerequisites": [
+      "Start the dev server: npm run dev",
+      "Open http://localhost:5174 in browser",
+      "Click 'Start Audio' button",
+      "Open browser DevTools Console (F12) to view debug logs"
+    ],
+    "testPatterns": {
+      "_scope": "s(\"bd sd hh sd\")._scope()",
+      "_pianoroll": "note(\"c e g\")._pianoroll({ cycles: 2 })",
+      "_punchcard": "note(\"c a f e\").euclid(5,8)._punchcard()",
+      "_spiral": "note(\"c e g b\")._spiral()",
+      "_spectrum": "s(\"bd sd hh sd\")._spectrum()"
+    },
+    "keyboardShortcuts": {
+      "Escape": "Emergency halt - stops all audio",
+      "Ctrl+Shift+Space": "Start Strudel engine",
+      "Ctrl+H": "Toggle REPL visibility",
+      "Ctrl+S": "Save script to file",
+      "Shift+Enter": "Execute code (in editor)"
+    }
+  }
+}
