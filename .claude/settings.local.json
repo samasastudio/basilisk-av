@@ -30,7 +30,9 @@
       "Skill(agentic-development:*)",
       "Bash(grep:*)",
       "Bash(gh pr view:*)",
-      "Bash(gh pr diff:*)"
+      "Bash(gh pr diff:*)",
+      "Bash(gh issue create:*)",
+      "Bash(gh issue edit:*)"
     ],
     "deny": [],
     "ask": []

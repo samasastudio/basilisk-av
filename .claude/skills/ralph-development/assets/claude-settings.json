@@ -1,10 +1,4 @@
 {
-  "mcpServers": {
-    "playwright": {
-      "command": "npx",
-      "args": ["@playwright/mcp@0.0.52", "--headless"]
-    }
-  },
   "permissions": {
     "allow": [
       "Bash(C:\\Program Files\\Git\\usr\\bin\\bash.exe:*)",
@@ -16,8 +10,5 @@
   },
   "hooks": {
     "shell": "C:\\Program Files\\Git\\usr\\bin\\bash.exe"
-  },
-  "env": {
-    "NODE_ENV": "development"
   }
 }
