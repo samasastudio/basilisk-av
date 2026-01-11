@@ -1,3 +1,4 @@
+import { initHydra } from '@strudel/hydra';
 import { useState } from 'react';
 
 import * as StrudelEngine from '../services/strudelEngine';
@@ -22,6 +23,8 @@ export interface UseStrudelEngineReturn {
   hydraStatus: string;
   /** Error message from last failed initialization, or null if no error */
   initError: string | null;
+  /** Error message if Hydra failed to initialize, or null if successful */
+  hydraError: string | null;
   /** Initialize the audio engine (idempotent - safe to call multiple times) */
   startEngine: () => Promise<void>;
   /** Play a test pattern to verify audio is working */
@@ -47,6 +50,7 @@ export const useStrudelEngine = (): UseStrudelEngineReturn => {
   const [hydraLinked, setHydraLinked] = useState(false);
   const [hydraStatus, setHydraStatus] = useState('none');
   const [initError, setInitError] = useState<string | null>(null);
+  const [hydraError, setHydraError] = useState<string | null>(null);
 
   // Derived boolean states for backward compatibility
   const engineInitialized = isEngineReady(engineStatus);
@@ -54,6 +58,7 @@ export const useStrudelEngine = (): UseStrudelEngineReturn => {
 
   /**
    * Initialize the Strudel audio engine and register audio bridge callback.
+   * Also auto-initializes Hydra for visuals.
    * Prevents duplicate initialization attempts using state machine.
    */
   const startEngine = async (): Promise<void> => {
@@ -61,6 +66,7 @@ export const useStrudelEngine = (): UseStrudelEngineReturn => {
 
     setEngineStatus('initializing');
     setInitError(null);
+    setHydraError(null);
 
     try {
       // Register bridge initializer callback (invoked when audio first connects)
@@ -77,6 +83,20 @@ export const useStrudelEngine = (): UseStrudelEngineReturn => {
       const repl = await StrudelEngine.initializeStrudel();
 
       window.repl = repl;
+
+      // Auto-initialize Hydra with current window dimensions
+      try {
+        await initHydra({
+          width: window.innerWidth,
+          height: window.innerHeight
+        });
+      } catch (hydraInitError) {
+        const hydraErrorMessage = hydraInitError instanceof Error ? hydraInitError.message : 'Unknown error';
+        console.warn('Hydra initialization failed, audio-only mode:', hydraInitError);
+        setHydraError(`Hydra failed to initialize: ${hydraErrorMessage}`);
+        // Continue - audio should still work
+      }
+
       setEngineStatus('ready');
     } catch (error) {
       const errorMessage = error instanceof Error ? error.message : 'Unknown error';
@@ -122,6 +142,7 @@ export const useStrudelEngine = (): UseStrudelEngineReturn => {
     hydraLinked,
     hydraStatus,
     initError,
+    hydraError,
     startEngine,
     playTestPattern,
     hushAudio,
