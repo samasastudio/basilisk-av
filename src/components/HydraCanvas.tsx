@@ -37,7 +37,7 @@ export const HydraCanvas = ({ showStartupText }: Props): React.ReactElement => {
     <div className="fixed inset-0 z-0 bg-basilisk-black" id="hydra-container">
       {showStartupText && (
         <div className="w-full h-full flex items-center justify-center text-basilisk-gray-400 text-sm font-sans pointer-events-none">
-          Run code with <code className="mx-1 px-2 py-1 bg-basilisk-gray-800 rounded font-mono">await initHydra()</code> to start visuals
+          Press <code className="mx-1 px-2 py-1 bg-basilisk-gray-800 rounded font-mono">Ctrl+Shift+Space</code> or click <code className="mx-1 px-2 py-1 bg-basilisk-gray-800 rounded font-mono">Start Audio</code> to begin
         </div>
       )}
 

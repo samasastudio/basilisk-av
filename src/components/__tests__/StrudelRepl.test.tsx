@@ -269,4 +269,46 @@ describe('StrudelRepl', () => {
     renderWithTheme(<StrudelRepl {...defaultProps} engineReady={false} />);
     expect(screen.getByText('○')).toBeInTheDocument();
   });
+
+  // Default code tests for Hydra auto-initialization feature
+  describe('default code', () => {
+    it('does not contain initHydra call', () => {
+      renderWithTheme(<StrudelRepl {...defaultProps} />);
+      const editor = screen.getByTestId('codemirror-editor') as HTMLTextAreaElement;
+      const code = editor.value;
+
+      expect(code).not.toContain('initHydra');
+      expect(code).not.toContain('await initHydra');
+    });
+
+    it('contains Hydra visual functions', () => {
+      renderWithTheme(<StrudelRepl {...defaultProps} />);
+      const editor = screen.getByTestId('codemirror-editor') as HTMLTextAreaElement;
+      const code = editor.value;
+
+      // Should contain Hydra functions
+      expect(code).toContain('src(o0)');
+      expect(code).toContain('noise(');
+      expect(code).toContain('.out(');
+      expect(code).toContain('render(o0)');
+    });
+
+    it('contains Strudel audio patterns', () => {
+      renderWithTheme(<StrudelRepl {...defaultProps} />);
+      const editor = screen.getByTestId('codemirror-editor') as HTMLTextAreaElement;
+      const code = editor.value;
+
+      // Should contain Strudel patterns
+      expect(code).toContain('s("');
+    });
+
+    it('contains FFT reactive code', () => {
+      renderWithTheme(<StrudelRepl {...defaultProps} />);
+      const editor = screen.getByTestId('codemirror-editor') as HTMLTextAreaElement;
+      const code = editor.value;
+
+      // Should contain a.fft for audio reactivity
+      expect(code).toContain('a.fft');
+    });
+  });
 });

@@ -28,8 +28,11 @@ describe('App - Baseline Behavior', () => {
 
   it('shows startup text by default', () => {
     render(<App />);
-    expect(screen.getByText(/Run code with/i)).toBeInTheDocument();
-    expect(screen.getByText(/await initHydra()/i)).toBeInTheDocument();
+    expect(screen.getByText(/Press/i)).toBeInTheDocument();
+    expect(screen.getByText('Ctrl+Shift+Space')).toBeInTheDocument();
+    // "Start Audio" appears as both startup text (in code tag) and button
+    // Verify at least one instance is present
+    expect(screen.getAllByText('Start Audio').length).toBeGreaterThanOrEqual(1);
   });
 
   it('shows engine as stopped initially', () => {

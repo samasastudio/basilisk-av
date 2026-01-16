@@ -1,3 +1,4 @@
+import { initHydra } from '@strudel/hydra';
 import { initStrudel } from '@strudel/web';
 import { renderHook, act, waitFor } from '@testing-library/react';
 import { describe, it, expect, beforeEach, vi } from 'vitest';
@@ -11,6 +12,10 @@ import { useStrudelEngine } from '../useStrudelEngine';
 vi.mock('@strudel/web', () => ({
   initStrudel: vi.fn(),
   registerWidgetType: vi.fn(),
+}));
+
+vi.mock('@strudel/hydra', () => ({
+  initHydra: vi.fn(),
 }));
 
 vi.mock('../../utils/patchSuperdough', () => ({
@@ -33,6 +38,7 @@ describe('useStrudelEngine', () => {
     expect(result.current.hydraLinked).toBe(false);
     expect(result.current.hydraStatus).toBe('none');
     expect(result.current.initError).toBe(null);
+    expect(result.current.hydraError).toBe(null);
     expect(result.current.startEngine).toBeInstanceOf(Function);
     expect(result.current.playTestPattern).toBeInstanceOf(Function);
     expect(result.current.hushAudio).toBeInstanceOf(Function);
@@ -392,5 +398,145 @@ describe('useStrudelEngine', () => {
 
     consoleErrorSpy.mockRestore();
     alertSpy.mockRestore();
+  });
+
+  // Hydra auto-initialization tests
+  describe('Hydra auto-initialization', () => {
+    it('calls initHydra during startEngine after REPL init', async () => {
+      const mockRepl = { evaluate: vi.fn(), stop: vi.fn() };
+      vi.mocked(initStrudel).mockResolvedValue(mockRepl);
+      vi.mocked(initHydra).mockResolvedValue(undefined);
+
+      const { result } = renderHook(() => useStrudelEngine());
+
+      await act(async () => {
+        await result.current.startEngine();
+      });
+
+      expect(initHydra).toHaveBeenCalled();
+      expect(result.current.engineInitialized).toBe(true);
+    });
+
+    it('calls initHydra with correct window dimensions', async () => {
+      const mockRepl = { evaluate: vi.fn(), stop: vi.fn() };
+      vi.mocked(initStrudel).mockResolvedValue(mockRepl);
+      vi.mocked(initHydra).mockResolvedValue(undefined);
+
+      // Mock window dimensions
+      Object.defineProperty(window, 'innerWidth', { value: 1920, writable: true });
+      Object.defineProperty(window, 'innerHeight', { value: 1080, writable: true });
+
+      const { result } = renderHook(() => useStrudelEngine());
+
+      await act(async () => {
+        await result.current.startEngine();
+      });
+
+      expect(initHydra).toHaveBeenCalledWith({
+        width: 1920,
+        height: 1080
+      });
+    });
+
+    it('handles Hydra init error gracefully and still reaches ready state', async () => {
+      const consoleWarnSpy = vi.spyOn(console, 'warn').mockImplementation(() => {});
+      const mockRepl = { evaluate: vi.fn(), stop: vi.fn() };
+      vi.mocked(initStrudel).mockResolvedValue(mockRepl);
+      vi.mocked(initHydra).mockRejectedValue(new Error('WebGL not supported'));
+
+      const { result } = renderHook(() => useStrudelEngine());
+
+      await act(async () => {
+        await result.current.startEngine();
+      });
+
+      // Engine should still be ready even if Hydra failed
+      expect(result.current.engineInitialized).toBe(true);
+      expect(result.current.hydraError).toBe('Hydra failed to initialize: WebGL not supported');
+      expect(consoleWarnSpy).toHaveBeenCalledWith(
+        'Hydra initialization failed, audio-only mode:',
+        expect.any(Error)
+      );
+
+      consoleWarnSpy.mockRestore();
+    });
+
+    it('sets hydraError state with user-friendly message on failure', async () => {
+      vi.spyOn(console, 'warn').mockImplementation(() => {});
+      const mockRepl = { evaluate: vi.fn(), stop: vi.fn() };
+      vi.mocked(initStrudel).mockResolvedValue(mockRepl);
+      vi.mocked(initHydra).mockRejectedValue(new Error('Canvas context lost'));
+
+      const { result } = renderHook(() => useStrudelEngine());
+
+      await act(async () => {
+        await result.current.startEngine();
+      });
+
+      expect(result.current.hydraError).toBe('Hydra failed to initialize: Canvas context lost');
+    });
+
+    it('does not call initHydra if engine already initialized', async () => {
+      const mockRepl = { evaluate: vi.fn(), stop: vi.fn() };
+      vi.mocked(initStrudel).mockResolvedValue(mockRepl);
+      vi.mocked(initHydra).mockResolvedValue(undefined);
+
+      const { result } = renderHook(() => useStrudelEngine());
+
+      // First initialization
+      await act(async () => {
+        await result.current.startEngine();
+      });
+
+      expect(initHydra).toHaveBeenCalledTimes(1);
+
+      // Try to initialize again
+      await act(async () => {
+        await result.current.startEngine();
+      });
+
+      // Should not call initHydra again
+      expect(initHydra).toHaveBeenCalledTimes(1);
+    });
+
+    it('clears hydraError at start of new initialization attempt', async () => {
+      vi.spyOn(console, 'warn').mockImplementation(() => {});
+      vi.spyOn(console, 'error').mockImplementation(() => {});
+      vi.spyOn(window, 'alert').mockImplementation(() => {});
+
+      const mockRepl = { evaluate: vi.fn(), stop: vi.fn() };
+
+      // First: Strudel fails (so engine status becomes 'error', allowing retry)
+      vi.mocked(initStrudel).mockRejectedValueOnce(new Error('Strudel error'));
+
+      const { result } = renderHook(() => useStrudelEngine());
+
+      await act(async () => {
+        await result.current.startEngine();
+      });
+
+      expect(result.current.initError).toBe('Strudel error');
+      expect(result.current.engineStatus).toBe('error');
+
+      // Reset error to allow retry
+      act(() => {
+        result.current.resetError();
+      });
+
+      expect(result.current.engineStatus).toBe('idle');
+
+      // Second: Both succeed - hydraError should be cleared at start
+      vi.mocked(initStrudel).mockResolvedValueOnce(mockRepl);
+      vi.mocked(initHydra).mockResolvedValueOnce(undefined);
+
+      await act(async () => {
+        await result.current.startEngine();
+      });
+
+      // Both initError and hydraError should be null after successful init
+      expect(result.current.initError).toBe(null);
+      expect(result.current.hydraError).toBe(null);
+      expect(result.current.engineInitialized).toBe(true);
+    });
   });
 });

@@ -22,13 +22,21 @@ describe('HydraCanvas', () => {
 
   it('shows startup text when showStartupText is true', () => {
     renderWithTheme(<HydraCanvas showStartupText={true} />);
-    expect(screen.getByText(/Run code with/i)).toBeInTheDocument();
-    expect(screen.getByText('await initHydra()')).toBeInTheDocument();
+    expect(screen.getByText(/Press/i)).toBeInTheDocument();
+    expect(screen.getByText('Ctrl+Shift+Space')).toBeInTheDocument();
+    expect(screen.getByText('Start Audio')).toBeInTheDocument();
+  });
+
+  it('shows new startup text without initHydra mention', () => {
+    renderWithTheme(<HydraCanvas showStartupText={true} />);
+    // Should NOT mention initHydra anymore
+    expect(screen.queryByText(/initHydra/i)).not.toBeInTheDocument();
+    expect(screen.queryByText(/await initHydra/i)).not.toBeInTheDocument();
   });
 
   it('hides startup text when showStartupText is false', () => {
     renderWithTheme(<HydraCanvas showStartupText={false} />);
-    expect(screen.queryByText(/Run code with/i)).not.toBeInTheDocument();
+    expect(screen.queryByText(/Press/i)).not.toBeInTheDocument();
   });
 
   it('renders with correct background classes', () => {

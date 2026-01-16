@@ -1,8 +1,11 @@
 {
   "iteration": 0,
   "startedAt": null,
-  "lastUpdated": null,
-  "phase": "idle",
+  "lastUpdated": "2025-01-11T00:00:00Z",
+  "phase": "ready",
+  "specFile": ".ralph/specs/hydra-auto-init.md",
+  "featureId": "FEAT-51",
+  "maxIterations": 30,
   "filesModified": [],
   "filesCreated": [],
   "testsStatus": {
@@ -13,7 +16,7 @@
   },
   "lintStatus": "unknown",
   "buildStatus": "unknown",
-  "currentFocus": null,
+  "currentFocus": "Phase 1: useStrudelEngine.ts auto-init logic",
   "blockers": [],
-  "completionEstimate": null
+  "completionEstimate": "30 iterations"
 }
