@@ -26,6 +26,7 @@ dist-ssr
 
 # Playwright MCP temp files
 .playwright-mcp/
+test-results/
 
 # Research notes
 Strudel_Inline_Visualization_*.md
