@@ -23,6 +23,25 @@ npm run dev
 
 Open `http://localhost:5173` in your browser.
 
+## Environment Configuration
+
+Basilisk AV supports optional environment variables for auto-loading a startup script and sound library. Copy `.env.example` to `.env.local` and set the values you want.
+
+```bash
+# Default Strudel script to load on startup (optional)
+# Path relative to public/ directory or absolute URL
+VITE_DEFAULT_SCRIPT=/scripts/my-startup.js
+
+# Default sound library to auto-load (optional)
+# Must be a URL to a CDN-style sample library with samples.json manifest
+VITE_DEFAULT_SOUND_LIBRARY=https://cdn.example.com/samples
+```
+
+Notes:
+- Relative paths (e.g. `/scripts/startup.js`) resolve to Vite's `public/` directory.
+- Absolute URLs are fetched directly.
+- File system paths are not supported by browsers.
+
 ## Usage
 
 ### 1. Start the Audio Engine

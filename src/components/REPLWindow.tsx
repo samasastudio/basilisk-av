@@ -1,13 +1,16 @@
-import { useRef } from 'react';
+import { useRef, useMemo } from 'react';
 import { Rnd } from 'react-rnd';
 
 import { useClickAway } from '../hooks/useClickAway';
+import { useDefaultSoundLibrary } from '../hooks/useDefaultSoundLibrary';
 import { usePanelExclusivity } from '../hooks/usePanelExclusivity';
 import { useREPLWindow } from '../hooks/useREPLWindow';
 import { useSoundBrowser } from '../hooks/useSoundBrowser';
 import { useUserLibrary } from '../hooks/useUserLibrary';
 
 import { StrudelRepl } from './StrudelRepl';
+
+import type { DefaultAssetsState, DefaultScriptState } from '../types/defaultAssets';
 
 type Props = {
   /** Whether the audio engine is ready to execute code */
@@ -18,6 +21,8 @@ type Props = {
   onExecute: () => void;
   /** Callback to save the current script */
   onSave: (code: string) => void;
+  /** Default script state (content, loading, error) */
+  defaultScript: DefaultScriptState;
 };
 
 /**
@@ -29,7 +34,8 @@ export const REPLWindow = ({
   engineReady,
   onHalt,
   onExecute,
-  onSave
+  onSave,
+  defaultScript,
 }: Props): React.ReactElement => {
   // Panel exclusivity state (manages which panel is open)
   const panelState = usePanelExclusivity();
@@ -40,6 +46,18 @@ export const REPLWindow = ({
   // User library state (uses panel exclusivity for visibility)
   // Pass engineReady so samples are registered when audio engine starts
   const userLibrary = useUserLibrary({ panelState, engineReady });
+  const defaultLibrary = useDefaultSoundLibrary(userLibrary);
+
+  // Combine script and library states into a single assets object
+  const defaultAssets: DefaultAssetsState = useMemo(() => ({
+    script: defaultScript,
+    library: {
+      isLoading: defaultLibrary.isUsingDefault && defaultLibrary.isLoading,
+      error: defaultLibrary.error,
+      source: defaultLibrary.libraryUrl,
+      retry: defaultLibrary.retry ?? undefined,
+    },
+  }), [defaultScript, defaultLibrary]);
 
   // Check if any panel is open (for window sizing and click-away)
   const isAnyPanelOpen = panelState.activePanel !== 'none';
@@ -85,6 +103,7 @@ export const REPLWindow = ({
           soundBrowser={soundBrowser}
           userLibrary={userLibrary}
           panelState={panelState}
+          defaultAssets={defaultAssets}
         />
       </div>
     </Rnd>
