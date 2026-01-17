@@ -70,10 +70,22 @@ vi.mock('../../hooks/useREPLWindow', () => ({
 
 // Mock StrudelRepl component
 vi.mock('../StrudelRepl', () => ({
-  StrudelRepl: ({ engineReady, statusLabel }: { engineReady: boolean; statusLabel: string }) => (
+  StrudelRepl: ({
+    engineReady,
+    statusLabel,
+    initialCode,
+    isLoadingInitialCode,
+  }: {
+    engineReady: boolean;
+    statusLabel: string;
+    initialCode?: string | null;
+    isLoadingInitialCode?: boolean;
+  }) => (
     <div data-testid="strudel-repl">
       Status: {statusLabel}
       Engine: {engineReady ? 'ready' : 'not ready'}
+      <div>Initial: {initialCode ?? 'none'}</div>
+      <div>Loading: {isLoadingInitialCode ? 'yes' : 'no'}</div>
     </div>
   )
 }));
@@ -109,6 +121,19 @@ describe('REPLWindow', () => {
   it('passes correct statusLabel when engine is stopped', () => {
     renderWithQueryClient(<REPLWindow {...defaultProps} engineReady={false} />);
     expect(screen.getByText(/Status: stopped/i)).toBeInTheDocument();
+  });
+
+  it('passes initial code and loading state to StrudelRepl', () => {
+    renderWithQueryClient(
+      <REPLWindow
+        {...defaultProps}
+        initialCode="// default script"
+        isLoadingInitialCode={true}
+      />
+    );
+
+    expect(screen.getByText('Initial: // default script')).toBeInTheDocument();
+    expect(screen.getByText(/Loading: yes/i)).toBeInTheDocument();
   });
 
   it('has z-30 className on Rnd wrapper', () => {

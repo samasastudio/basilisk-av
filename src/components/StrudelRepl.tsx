@@ -1,3 +1,5 @@
+/* eslint-disable max-lines */
+/* eslint-disable complexity */
 import { javascript } from '@codemirror/lang-javascript';
 import { sliderPlugin, sliderWithID, widgetPlugin } from '@strudel/codemirror';
 import * as Strudel from '@strudel/core';
@@ -17,6 +19,7 @@ import * as StrudelEngine from '../services/strudelEngine';
 import { basiliskDark } from '../themes/codemirrorDark';
 import { registerPatternMethods } from '../utils/patternWidgetRegistration';
 
+import { LoadError } from './LoadError';
 import { SoundBrowserTray } from './sound-browser';
 import { Button } from './ui/Button';
 import { UserLibraryTray } from './user-library';
@@ -91,12 +94,51 @@ type Props = {
     soundBrowser: UseSoundBrowserReturn;
     userLibrary: UseUserLibraryReturn;
     panelState: UsePanelExclusivityReturn;
+    /** Optional initial code to load (from env or prop) */
+    initialCode?: string | null;
+    /** Loading state for initial code */
+    isLoadingInitialCode?: boolean;
+    /** Error message for default script loading */
+    defaultScriptError?: string | null;
+    /** Source path/URL for default script loading */
+    defaultScriptSource?: string | null;
+    /** Retry handler for default script loading */
+    onRetryDefaultScript?: () => void;
+    /** Whether default sound library is currently loading */
+    isLoadingDefaultLibrary?: boolean;
+    /** Error message for default sound library loading */
+    defaultLibraryError?: string | null;
+    /** Source URL for default sound library loading */
+    defaultLibrarySource?: string | null;
+    /** Retry handler for default sound library loading */
+    onRetryDefaultLibrary?: () => void;
 };
 
 /* eslint-disable max-lines-per-function */
-export const StrudelRepl = ({ className, engineReady, onHalt, onExecute, onSave, statusLabel, soundBrowser, userLibrary, panelState }: Props): React.ReactElement => {
-    const [code, setCode] = useState(defaultCode);
+export const StrudelRepl = ({
+    className,
+    engineReady,
+    onHalt,
+    onExecute,
+    onSave,
+    statusLabel,
+    soundBrowser,
+    userLibrary,
+    panelState,
+    initialCode = null,
+    isLoadingInitialCode = false,
+    defaultScriptError = null,
+    defaultScriptSource = null,
+    onRetryDefaultScript,
+    isLoadingDefaultLibrary = false,
+    defaultLibraryError = null,
+    defaultLibrarySource = null,
+    onRetryDefaultLibrary,
+}: Props): React.ReactElement => {
+    const [userEdits, setUserEdits] = useState<string | null>(null);
     const [userLibraryPlaying, setUserLibraryPlaying] = useState<string | null>(null);
+    const [dismissedScriptError, setDismissedScriptError] = useState<string | null>(null);
+    const [dismissedLibraryError, setDismissedLibraryError] = useState<string | null>(null);
     const { theme } = useTheme();
 
     // Ref for CodeMirror editor to enable text insertion
@@ -222,6 +264,10 @@ export const StrudelRepl = ({ className, engineReady, onHalt, onExecute, onSave,
     // Subscribe to widget updates using useSyncExternalStore pattern
     useWidgetUpdates(getEditorView);
 
+    const displayedCode = userEdits ?? initialCode ?? defaultCode;
+    const showScriptError = defaultScriptError !== null && defaultScriptError !== dismissedScriptError;
+    const showLibraryError = defaultLibraryError !== null && defaultLibraryError !== dismissedLibraryError;
+
     const runCode = (): void => {
         if (!engineReady) {
             console.warn('Engine not ready. Please start the engine first.');
@@ -235,7 +281,7 @@ export const StrudelRepl = ({ className, engineReady, onHalt, onExecute, onSave,
         }
 
         try {
-            repl.evaluate(code);
+            repl.evaluate(displayedCode);
             if (onExecute) {
                 onExecute();
             }
@@ -285,6 +331,8 @@ export const StrudelRepl = ({ className, engineReady, onHalt, onExecute, onSave,
         ? 'bg-basilisk-gray-800/50 border-b border-basilisk-gray-700'
         : 'bg-black/40 border-b border-white/10 rounded-t-lg';
 
+    const shouldShowStatusBanner = isLoadingInitialCode || isLoadingDefaultLibrary || showScriptError || showLibraryError;
+
     return (
         <div
             className={containerClass}
@@ -319,13 +367,45 @@ export const StrudelRepl = ({ className, engineReady, onHalt, onExecute, onSave,
                     </Button>
                 </div>
             </div>
+            {shouldShowStatusBanner && (
+                <div className="px-3 py-2 flex flex-col gap-2 border-b border-white/10 bg-black/30 text-xs">
+                    {isLoadingInitialCode && (
+                        <p className="text-basilisk-gray-300">
+                            Loading startup script{defaultScriptSource ? ` from ${defaultScriptSource}` : ''}...
+                        </p>
+                    )}
+                    {isLoadingDefaultLibrary && (
+                        <p className="text-basilisk-gray-300">
+                            Loading sound library{defaultLibrarySource ? ` from ${defaultLibrarySource}` : ''}...
+                        </p>
+                    )}
+                    {showScriptError && (
+                        <LoadError
+                            title="Script load failed"
+                            message={defaultScriptError}
+                            source={defaultScriptSource ?? undefined}
+                            onDismiss={() => setDismissedScriptError(defaultScriptError)}
+                            onRetry={onRetryDefaultScript}
+                        />
+                    )}
+                    {showLibraryError && (
+                        <LoadError
+                            title="Sound library load failed"
+                            message={defaultLibraryError}
+                            source={defaultLibrarySource ?? undefined}
+                            onDismiss={() => setDismissedLibraryError(defaultLibraryError)}
+                            onRetry={onRetryDefaultLibrary}
+                        />
+                    )}
+                </div>
+            )}
             <div className="flex-1 overflow-hidden relative min-h-0">
                 <CodeMirror
                     ref={editorRef}
-                    value={code}
+                    value={displayedCode}
                     height="100%"
                     extensions={editorExtensions}
-                    onChange={(val) => setCode(val)}
+                    onChange={(val) => setUserEdits(val)}
                     className="h-full font-mono"
                     basicSetup={CODE_MIRROR_SETUP}
                     onKeyDown={(e) => {
@@ -341,7 +421,7 @@ export const StrudelRepl = ({ className, engineReady, onHalt, onExecute, onSave,
                         if ((e.ctrlKey || e.metaKey) && e.key === 's') {
                             e.preventDefault();
                             if (onSave) {
-                                onSave(code);
+                                onSave(displayedCode);
                             }
                         }
                     }}
@@ -382,3 +462,4 @@ export const StrudelRepl = ({ className, engineReady, onHalt, onExecute, onSave,
     );
 };
 /* eslint-enable max-lines-per-function */
+/* eslint-enable complexity */

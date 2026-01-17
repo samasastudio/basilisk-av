@@ -6,6 +6,7 @@ import { AppHeader } from './components/AppHeader';
 import { HydraCanvas } from './components/HydraCanvas';
 import { REPLWindow } from './components/REPLWindow';
 import { ThemeProvider } from './contexts/ThemeContext';
+import { useDefaultScript } from './hooks/useDefaultScript';
 import { useGlobalKeyboardShortcuts } from './hooks/useGlobalKeyboardShortcuts';
 import { usePersistedState } from './hooks/usePersistedState';
 import { useREPLVisibility } from './hooks/useREPLVisibility';
@@ -15,20 +16,8 @@ import { focusREPL } from './utils/focusREPL';
 
 import type { KeyboardShortcut } from './hooks/useGlobalKeyboardShortcuts';
 
-export const App = (): React.ReactElement => {
+const AppContent = (): React.ReactElement => {
   const [hasExecutedCode, setHasExecutedCode] = useState(false);
-
-  // Create a client for TanStack Query inside the App component for proper isolation
-  const queryClient = useMemo(() => new QueryClient({
-    defaultOptions: {
-      queries: {
-        staleTime: Infinity, // Data never becomes stale (like our cache)
-        gcTime: Infinity, // Keep in cache forever (was cacheTime in v4)
-        retry: 3,
-        refetchOnWindowFocus: false,
-      },
-    },
-  }), []);
 
   const {
     engineStatus,
@@ -38,6 +27,14 @@ export const App = (): React.ReactElement => {
     startEngine,
     hushAudio,
   } = useStrudelEngine();
+
+  const {
+    content: defaultScriptContent,
+    isLoading: isLoadingScript,
+    error: defaultScriptError,
+    source: defaultScriptSource,
+    retry: retryDefaultScript,
+  } = useDefaultScript();
 
   const { isVisible: replVisible, toggleVisible: toggleRepl } = useREPLVisibility();
   const [hudVisible, setHudVisible] = usePersistedState<boolean>('basilisk-hud-visible', true);
@@ -99,27 +96,50 @@ export const App = (): React.ReactElement => {
   };
 
   return (
+    <div className="w-screen h-screen bg-basilisk-black text-basilisk-white overflow-hidden relative">
+      <HydraCanvas showStartupText={!hasExecutedCode} isHUDVisible={hudVisible} />
+
+      <AppHeader
+        engineStatus={engineStatus}
+        hydraLinked={hydraLinked}
+        hydraStatus={hydraStatus}
+        onStartEngine={startEngine}
+      />
+
+      {replVisible && (
+        <REPLWindow
+          engineReady={engineInitialized}
+          onHalt={hushAudio}
+          onExecute={() => setHasExecutedCode(true)}
+          onSave={handleSaveScript}
+          initialCode={defaultScriptContent}
+          isLoadingInitialCode={isLoadingScript}
+          defaultScriptError={defaultScriptError}
+          defaultScriptSource={defaultScriptSource}
+          onRetryDefaultScript={retryDefaultScript ?? undefined}
+        />
+      )}
+    </div>
+  );
+};
+
+export const App = (): React.ReactElement => {
+  // Create a client for TanStack Query inside the App component for proper isolation
+  const queryClient = useMemo(() => new QueryClient({
+    defaultOptions: {
+      queries: {
+        staleTime: Infinity, // Data never becomes stale (like our cache)
+        gcTime: Infinity, // Keep in cache forever (was cacheTime in v4)
+        retry: 3,
+        refetchOnWindowFocus: false,
+      },
+    },
+  }), []);
+
+  return (
     <ThemeProvider>
       <QueryClientProvider client={queryClient}>
-        <div className="w-screen h-screen bg-basilisk-black text-basilisk-white overflow-hidden relative">
-          <HydraCanvas showStartupText={!hasExecutedCode} isHUDVisible={hudVisible} />
-
-          <AppHeader
-            engineStatus={engineStatus}
-            hydraLinked={hydraLinked}
-            hydraStatus={hydraStatus}
-            onStartEngine={startEngine}
-          />
-
-          {replVisible && (
-            <REPLWindow
-              engineReady={engineInitialized}
-              onHalt={hushAudio}
-              onExecute={() => setHasExecutedCode(true)}
-              onSave={handleSaveScript}
-            />
-          )}
-        </div>
+        <AppContent />
       </QueryClientProvider>
     </ThemeProvider>
   );

@@ -2,6 +2,7 @@ import { useRef } from 'react';
 import { Rnd } from 'react-rnd';
 
 import { useClickAway } from '../hooks/useClickAway';
+import { useDefaultSoundLibrary } from '../hooks/useDefaultSoundLibrary';
 import { usePanelExclusivity } from '../hooks/usePanelExclusivity';
 import { useREPLWindow } from '../hooks/useREPLWindow';
 import { useSoundBrowser } from '../hooks/useSoundBrowser';
@@ -18,6 +19,16 @@ type Props = {
   onExecute: () => void;
   /** Callback to save the current script */
   onSave: (code: string) => void;
+  /** Optional initial code to load (from env or prop) */
+  initialCode?: string | null;
+  /** Loading state for initial code */
+  isLoadingInitialCode?: boolean;
+  /** Error message for default script loading */
+  defaultScriptError?: string | null;
+  /** Source path/URL for default script loading */
+  defaultScriptSource?: string | null;
+  /** Retry handler for default script loading */
+  onRetryDefaultScript?: () => void;
 };
 
 /**
@@ -29,7 +40,12 @@ export const REPLWindow = ({
   engineReady,
   onHalt,
   onExecute,
-  onSave
+  onSave,
+  initialCode = null,
+  isLoadingInitialCode = false,
+  defaultScriptError = null,
+  defaultScriptSource = null,
+  onRetryDefaultScript,
 }: Props): React.ReactElement => {
   // Panel exclusivity state (manages which panel is open)
   const panelState = usePanelExclusivity();
@@ -40,6 +56,7 @@ export const REPLWindow = ({
   // User library state (uses panel exclusivity for visibility)
   // Pass engineReady so samples are registered when audio engine starts
   const userLibrary = useUserLibrary({ panelState, engineReady });
+  const defaultLibrary = useDefaultSoundLibrary(userLibrary);
 
   // Check if any panel is open (for window sizing and click-away)
   const isAnyPanelOpen = panelState.activePanel !== 'none';
@@ -85,6 +102,15 @@ export const REPLWindow = ({
           soundBrowser={soundBrowser}
           userLibrary={userLibrary}
           panelState={panelState}
+          initialCode={initialCode}
+          isLoadingInitialCode={isLoadingInitialCode}
+          defaultScriptError={defaultScriptError}
+          defaultScriptSource={defaultScriptSource}
+          onRetryDefaultScript={onRetryDefaultScript}
+          isLoadingDefaultLibrary={defaultLibrary.isUsingDefault && defaultLibrary.isLoading}
+          defaultLibraryError={defaultLibrary.error}
+          defaultLibrarySource={defaultLibrary.libraryUrl}
+          onRetryDefaultLibrary={defaultLibrary.retry ?? undefined}
         />
       </div>
     </Rnd>

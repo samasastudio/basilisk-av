@@ -154,7 +154,16 @@ describe('StrudelRepl', () => {
     statusLabel: 'ready',
     soundBrowser: mockSoundBrowser,
     userLibrary: mockUserLibrary,
-    panelState: mockPanelState
+    panelState: mockPanelState,
+    initialCode: null,
+    isLoadingInitialCode: false,
+    defaultScriptError: null,
+    defaultScriptSource: null,
+    onRetryDefaultScript: undefined,
+    isLoadingDefaultLibrary: false,
+    defaultLibraryError: null,
+    defaultLibrarySource: null,
+    onRetryDefaultLibrary: undefined
   };
 
   it('renders the editor', () => {
@@ -225,6 +234,33 @@ describe('StrudelRepl', () => {
     fireEvent.keyDown(editor, { key: 's', ctrlKey: true });
 
     expect(onSave).toHaveBeenCalledWith(currentCode);
+  });
+
+  it('uses initialCode when provided', () => {
+    renderWithTheme(<StrudelRepl {...defaultProps} initialCode="// loaded script" />);
+    const editor = screen.getByTestId('codemirror-editor') as HTMLTextAreaElement;
+    expect(editor.value).toBe('// loaded script');
+  });
+
+  it('keeps user edits when initialCode changes', () => {
+    const { rerender } = renderWithTheme(<StrudelRepl {...defaultProps} initialCode="// loaded script" />);
+    const editor = screen.getByTestId('codemirror-editor') as HTMLTextAreaElement;
+
+    fireEvent.change(editor, { target: { value: '// user edits' } });
+
+    rerender(
+      <ThemeProvider>
+        <StrudelRepl {...defaultProps} initialCode="// new script" />
+      </ThemeProvider>
+    );
+
+    const updatedEditor = screen.getByTestId('codemirror-editor') as HTMLTextAreaElement;
+    expect(updatedEditor.value).toBe('// user edits');
+  });
+
+  it('shows loading state when initial code is loading', () => {
+    renderWithTheme(<StrudelRepl {...defaultProps} isLoadingInitialCode={true} />);
+    expect(screen.getByText(/Loading startup script/i)).toBeInTheDocument();
   });
 
   it('renders Execute button', () => {
