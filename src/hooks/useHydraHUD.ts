@@ -4,17 +4,27 @@ import { getBridgeFFT } from '../services/audioBridge';
 import '../types/hydra';
 
 /**
- * Hook for managing the Hydra HUD (Heads-Up Display) in development mode.
+ * No-op subscribe function for when HUD is disabled.
+ * Returns an empty cleanup function.
+ */
+const noopSubscribe = (): (() => void) => () => {};
+
+/**
+ * Returns 0 when HUD is disabled.
+ */
+const getEmptySnapshot = (): number => 0;
+
+/**
+ * Hook for managing the Hydra HUD (Heads-Up Display).
  * Subscribes to window.a.fft[0] updates via requestAnimationFrame.
  *
- * Only runs in development mode (import.meta.env.DEV).
- *
+ * @param enabled - Whether the HUD subscription is active (default: true)
  * @returns Object containing the current HUD value (0-1 range)
  */
-export const useHydraHUD = (): { hudValue: number } => {
+export const useHydraHUD = (enabled: boolean = true): { hudValue: number } => {
   const hudValue = useSyncExternalStore(
-    subscribe,
-    getSnapshot,
+    enabled ? subscribe : noopSubscribe,
+    enabled ? getSnapshot : getEmptySnapshot,
     getServerSnapshot
   );
 
@@ -23,17 +33,11 @@ export const useHydraHUD = (): { hudValue: number } => {
 
 /**
  * Subscribe to FFT updates via requestAnimationFrame.
- * Only subscribes in development mode.
  *
  * Implements change detection to avoid unnecessary React re-renders
  * when the FFT value hasn't actually changed.
  */
 const subscribe = (onStoreChange: () => void): (() => void) => {
-  // In production, return no-op unsubscribe
-  if (!import.meta.env.DEV) {
-    return () => {};
-  }
-
   let frameId: number | null = null;
   let lastValue: number | null = null;
 
