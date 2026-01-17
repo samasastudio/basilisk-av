@@ -7,6 +7,7 @@ import { HydraCanvas } from './components/HydraCanvas';
 import { REPLWindow } from './components/REPLWindow';
 import { ThemeProvider } from './contexts/ThemeContext';
 import { useGlobalKeyboardShortcuts } from './hooks/useGlobalKeyboardShortcuts';
+import { usePersistedState } from './hooks/usePersistedState';
 import { useREPLVisibility } from './hooks/useREPLVisibility';
 import { useStrudelEngine } from './hooks/useStrudelEngine';
 import { downloadFile, generateScriptFilename } from './utils/downloadFile';
@@ -39,6 +40,7 @@ export const App = (): React.ReactElement => {
   } = useStrudelEngine();
 
   const { isVisible: replVisible, toggleVisible: toggleRepl } = useREPLVisibility();
+  const [hudVisible, setHudVisible] = usePersistedState<boolean>('basilisk-hud-visible', true);
 
   // Define keyboard shortcuts with inline actions to avoid recreating on visibility changes
   const shortcuts: KeyboardShortcut[] = useMemo(() => [
@@ -70,6 +72,13 @@ export const App = (): React.ReactElement => {
       allowInEditor: true, // Ctrl+H works everywhere
     },
     {
+      key: 'h',
+      ctrl: true,
+      shift: true,
+      action: () => setHudVisible(prev => !prev),
+      allowInEditor: true, // Ctrl+Shift+H works everywhere
+    },
+    {
       key: 's',
       ctrl: true,
       action: () => {
@@ -79,7 +88,7 @@ export const App = (): React.ReactElement => {
       },
       allowInEditor: true, // Only works in editor where save makes sense
     },
-  ], [hushAudio, startEngine, toggleRepl, replVisible]);
+  ], [hushAudio, startEngine, toggleRepl, replVisible, setHudVisible]);
 
   useGlobalKeyboardShortcuts(shortcuts);
 
@@ -93,7 +102,7 @@ export const App = (): React.ReactElement => {
     <ThemeProvider>
       <QueryClientProvider client={queryClient}>
         <div className="w-screen h-screen bg-basilisk-black text-basilisk-white overflow-hidden relative">
-          <HydraCanvas showStartupText={!hasExecutedCode} />
+          <HydraCanvas showStartupText={!hasExecutedCode} isHUDVisible={hudVisible} />
 
           <AppHeader
             engineStatus={engineStatus}

@@ -8,14 +8,16 @@ const PERCENTAGE_MAX = 100;
 type Props = {
   /** Whether to show the startup instruction text */
   showStartupText: boolean;
+  /** Whether to show the HUD overlay */
+  isHUDVisible: boolean;
 };
 
 /**
  * Full-screen Hydra canvas container with optional startup text and dev HUD.
  * Renders as the background layer (z-0) for the entire application.
  */
-export const HydraCanvas = ({ showStartupText }: Props): React.ReactElement => {
-  const { hudValue } = useHydraHUD();
+export const HydraCanvas = ({ showStartupText, isHUDVisible }: Props): React.ReactElement => {
+  const { hudValue } = useHydraHUD(isHUDVisible);
   const { theme } = useTheme();
 
   const isLight = theme === 'light';
@@ -41,21 +43,24 @@ export const HydraCanvas = ({ showStartupText }: Props): React.ReactElement => {
         </div>
       )}
 
-      {/* Dev HUD - Only visible in development mode */}
-      {import.meta.env.DEV && (
-        <div className={hudClass} style={hudStyle}>
-          <div className="flex items-center justify-between font-sans gap-3">
-            <span className="opacity-70">a.fft[0]</span>
-            <span className="font-mono">{hudValue.toFixed(HUD_DECIMAL_PLACES)}</span>
-          </div>
-          <div className="mt-1.5 h-1.5 w-32 bg-basilisk-gray-700 overflow-hidden rounded">
-            <div
-              className="h-full bg-basilisk-white transition-all duration-200"
-              style={{ width: `${Math.min(PERCENTAGE_MAX, Math.max(0, hudValue * PERCENTAGE_MAX))}%` }}
-            />
-          </div>
+      <div
+        className={`${hudClass} transition-opacity duration-150 ${
+          isHUDVisible ? 'opacity-100' : 'opacity-0 pointer-events-none'
+        }`}
+        style={hudStyle}
+        data-testid="hydra-hud"
+      >
+        <div className="flex items-center justify-between font-sans gap-3">
+          <span className="opacity-70">a.fft[0]</span>
+          <span className="font-mono">{hudValue.toFixed(HUD_DECIMAL_PLACES)}</span>
         </div>
-      )}
+        <div className="mt-1.5 h-1.5 w-32 bg-basilisk-gray-700 overflow-hidden rounded">
+          <div
+            className="h-full bg-basilisk-white transition-all duration-200"
+            style={{ width: `${Math.min(PERCENTAGE_MAX, Math.max(0, hudValue * PERCENTAGE_MAX))}%` }}
+          />
+        </div>
+      </div>
     </div>
   );
 };

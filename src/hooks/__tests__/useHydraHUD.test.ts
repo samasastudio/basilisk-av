@@ -65,15 +65,27 @@ describe('useHydraHUD', () => {
     cancelMock.mockRestore();
   });
 
-  it('does not run in production mode', () => {
-    // Set production mode in a fresh test
-    vi.unstubAllGlobals();
-    vi.stubGlobal('import.meta', { env: { DEV: false } });
+  it('does not subscribe when enabled is false', () => {
+    const rafMock = vi.spyOn(window, 'requestAnimationFrame');
 
-    const { result } = renderHook(() => useHydraHUD());
+    const { result } = renderHook(() => useHydraHUD(false));
 
-    // Hook should still return an object, but won't update values in production
-    expect(result.current).toHaveProperty('hudValue');
+    // Hook should return hudValue of 0 and not start RAF loop
+    expect(result.current.hudValue).toBe(0);
+    expect(rafMock).not.toHaveBeenCalled();
+
+    rafMock.mockRestore();
+  });
+
+  it('returns 0 when disabled even if window.a has values', () => {
+    window.a = {
+      fft: [0.8, 0.6, 0.4, 0.2]
+    } as unknown as HydraBridge;
+
+    const { result } = renderHook(() => useHydraHUD(false));
+
+    // Should return 0 because disabled, not the actual FFT value
+    expect(result.current.hudValue).toBe(0);
   });
 
   it('implements change detection to minimize re-renders', async () => {
