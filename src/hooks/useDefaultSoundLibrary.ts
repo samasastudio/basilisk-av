@@ -1,4 +1,4 @@
-import { useEffect, useRef } from 'react';
+import { useQuery } from '@tanstack/react-query';
 
 import type { UseUserLibraryReturn } from './useUserLibrary';
 
@@ -26,10 +26,8 @@ const normalizeUrl = (url: string): string => url.replace(/\/$/, '');
 /**
  * Hook to auto-load a sound library from environment variable.
  *
- * Uses lazy initialization pattern - triggers linkCDN on first render when conditions are met.
- * No useEffect needed because:
+ * Uses React Query to trigger a one-time CDN link when configured.
  * - linkCDN manages its own loading/error state in useUserLibrary
- * - ref tracks whether we've attempted load (survives re-renders)
  * - Sample registration is handled by useUserLibrary when engine becomes ready
  *
  * @param userLibrary - The useUserLibrary return object
@@ -38,37 +36,50 @@ const normalizeUrl = (url: string): string => url.replace(/\/$/, '');
 export const useDefaultSoundLibrary = (
   userLibrary: UseUserLibraryReturn
 ): UseDefaultSoundLibraryReturn => {
-  const hasAttemptedLoad = useRef(false);
   const rawLibraryUrl = import.meta.env.VITE_DEFAULT_SOUND_LIBRARY as string | undefined;
   const libraryUrl = rawLibraryUrl ? normalizeUrl(rawLibraryUrl) : null;
 
-  useEffect(() => {
-    if (!libraryUrl || hasAttemptedLoad.current || userLibrary.source !== null) {
-      return;
-    }
-    hasAttemptedLoad.current = true;
-    void userLibrary.linkCDN(libraryUrl);
-  }, [libraryUrl, userLibrary]);
+  const {
+    isLoading: isLoadingDefault,
+    error: defaultError,
+    refetch,
+  } = useQuery({
+    queryKey: ['defaultSoundLibrary', libraryUrl],
+    queryFn: async () => {
+      if (!libraryUrl) {
+        throw new Error('No default sound library configured');
+      }
+      const success = await userLibrary.linkCDN(libraryUrl);
+      if (!success) {
+        throw new Error(userLibrary.error ?? 'Failed to load sound library');
+      }
+      return success;
+    },
+    enabled: Boolean(libraryUrl) && userLibrary.source === null,
+    staleTime: Infinity,
+    gcTime: Infinity,
+    retry: false,
+  });
 
   const isUsingDefault = Boolean(
     libraryUrl &&
     userLibrary.source === 'cdn' &&
-    (userLibrary.cdnUrl === libraryUrl || userLibrary.isLoading)
+    (userLibrary.cdnUrl === libraryUrl || isLoadingDefault || Boolean(defaultError))
   );
 
-  const retry = libraryUrl ? (): Promise<boolean> => {
-    hasAttemptedLoad.current = true;
-    return userLibrary.linkCDN(libraryUrl);
-  } : null;
+  const defaultErrorMessage = defaultError instanceof Error ? defaultError.message : userLibrary.error;
+  const effectiveError = isUsingDefault ? defaultErrorMessage : null;
+
+  const retry = libraryUrl ? (): Promise<unknown> => refetch() : null;
 
   return {
     libraryUrl,
     isConfigured: Boolean(libraryUrl),
-    isLoading: isUsingDefault ? userLibrary.isLoading : false,
-    error: isUsingDefault ? userLibrary.error : null,
+    isLoading: isUsingDefault ? userLibrary.isLoading || isLoadingDefault : false,
+    error: effectiveError,
     registeredCount: userLibrary.registeredCount,
     isRegistered: userLibrary.isRegistered,
     isUsingDefault,
-    retry,
+    retry: retry as (() => Promise<boolean>) | null,
   };
 };

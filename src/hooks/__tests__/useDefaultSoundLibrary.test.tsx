@@ -1,9 +1,28 @@
+import { QueryClient, QueryClientProvider } from '@tanstack/react-query';
 import { renderHook } from '@testing-library/react';
 import { describe, it, expect, vi, beforeEach, afterEach } from 'vitest';
 
 import { useDefaultSoundLibrary } from '../useDefaultSoundLibrary';
 
 import type { UseUserLibraryReturn } from '../useUserLibrary';
+import type { ReactNode } from 'react';
+
+const createTestQueryClient = (): QueryClient =>
+  new QueryClient({
+    defaultOptions: {
+      queries: {
+        retry: false,
+        gcTime: 0,
+      },
+    },
+  });
+
+const createWrapper = (queryClient: QueryClient) => {
+  const Wrapper = ({ children }: { children: ReactNode }): React.ReactElement => (
+    <QueryClientProvider client={queryClient}>{children}</QueryClientProvider>
+  );
+  return Wrapper;
+};
 
 const createUserLibrary = (overrides: Partial<UseUserLibraryReturn> = {}): UseUserLibraryReturn => ({
   isOpen: false,
@@ -49,16 +68,22 @@ describe('useDefaultSoundLibrary', () => {
   it('links CDN when env var is set and no source is selected', () => {
     vi.stubEnv('VITE_DEFAULT_SOUND_LIBRARY', 'https://cdn.example.com/samples/');
     const userLibrary = createUserLibrary();
+    const queryClient = createTestQueryClient();
 
-    renderHook(() => useDefaultSoundLibrary(userLibrary));
+    renderHook(() => useDefaultSoundLibrary(userLibrary), {
+      wrapper: createWrapper(queryClient),
+    });
 
     expect(userLibrary.linkCDN).toHaveBeenCalledWith('https://cdn.example.com/samples');
   });
 
   it('does not link CDN when env var is not set', () => {
     const userLibrary = createUserLibrary();
+    const queryClient = createTestQueryClient();
 
-    renderHook(() => useDefaultSoundLibrary(userLibrary));
+    renderHook(() => useDefaultSoundLibrary(userLibrary), {
+      wrapper: createWrapper(queryClient),
+    });
 
     expect(userLibrary.linkCDN).not.toHaveBeenCalled();
   });
@@ -66,8 +91,11 @@ describe('useDefaultSoundLibrary', () => {
   it('does not override existing user library source', () => {
     vi.stubEnv('VITE_DEFAULT_SOUND_LIBRARY', 'https://cdn.example.com/samples');
     const userLibrary = createUserLibrary({ source: 'cdn', cdnUrl: 'https://cdn.example.com/other' });
+    const queryClient = createTestQueryClient();
 
-    renderHook(() => useDefaultSoundLibrary(userLibrary));
+    renderHook(() => useDefaultSoundLibrary(userLibrary), {
+      wrapper: createWrapper(queryClient),
+    });
 
     expect(userLibrary.linkCDN).not.toHaveBeenCalled();
   });
@@ -75,8 +103,11 @@ describe('useDefaultSoundLibrary', () => {
   it('only attempts to load once', () => {
     vi.stubEnv('VITE_DEFAULT_SOUND_LIBRARY', 'https://cdn.example.com/samples');
     const userLibrary = createUserLibrary();
+    const queryClient = createTestQueryClient();
 
-    const { rerender } = renderHook(() => useDefaultSoundLibrary(userLibrary));
+    const { rerender } = renderHook(() => useDefaultSoundLibrary(userLibrary), {
+      wrapper: createWrapper(queryClient),
+    });
 
     rerender();
 
@@ -91,8 +122,11 @@ describe('useDefaultSoundLibrary', () => {
       isLoading: true,
       error: 'Network error',
     });
+    const queryClient = createTestQueryClient();
 
-    const { result } = renderHook(() => useDefaultSoundLibrary(userLibrary));
+    const { result } = renderHook(() => useDefaultSoundLibrary(userLibrary), {
+      wrapper: createWrapper(queryClient),
+    });
 
     expect(result.current.isUsingDefault).toBe(true);
     expect(result.current.isLoading).toBe(true);
