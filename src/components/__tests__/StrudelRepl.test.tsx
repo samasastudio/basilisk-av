@@ -4,6 +4,8 @@ import { describe, it, expect, vi } from 'vitest';
 import { ThemeProvider } from '../../contexts/ThemeContext';
 import { StrudelRepl } from '../StrudelRepl';
 
+import type { DefaultAssetsState } from '../../types/defaultAssets';
+
 // Helper to render with ThemeProvider
 const renderWithTheme = (ui: React.ReactElement) =>
   render(<ThemeProvider>{ui}</ThemeProvider>);
@@ -146,6 +148,22 @@ describe('StrudelRepl', () => {
     getSampleUrl: vi.fn()
   };
 
+  const createDefaultAssets = (overrides: Partial<DefaultAssetsState> = {}): DefaultAssetsState => ({
+    script: {
+      content: null,
+      isLoading: false,
+      error: null,
+      source: null,
+      ...overrides.script,
+    },
+    library: {
+      isLoading: false,
+      error: null,
+      source: null,
+      ...overrides.library,
+    },
+  });
+
   const defaultProps = {
     engineReady: true,
     onHalt: vi.fn(),
@@ -155,15 +173,7 @@ describe('StrudelRepl', () => {
     soundBrowser: mockSoundBrowser,
     userLibrary: mockUserLibrary,
     panelState: mockPanelState,
-    initialCode: null,
-    isLoadingInitialCode: false,
-    defaultScriptError: null,
-    defaultScriptSource: null,
-    onRetryDefaultScript: undefined,
-    isLoadingDefaultLibrary: false,
-    defaultLibraryError: null,
-    defaultLibrarySource: null,
-    onRetryDefaultLibrary: undefined
+    defaultAssets: createDefaultAssets(),
   };
 
   it('renders the editor', () => {
@@ -211,6 +221,7 @@ describe('StrudelRepl', () => {
         soundBrowser={mockSoundBrowser}
         userLibrary={mockUserLibrary}
         panelState={mockPanelState}
+        defaultAssets={createDefaultAssets()}
       />
     );
 
@@ -237,20 +248,33 @@ describe('StrudelRepl', () => {
   });
 
   it('uses initialCode when provided', () => {
-    renderWithTheme(<StrudelRepl {...defaultProps} initialCode="// loaded script" />);
+    renderWithTheme(
+      <StrudelRepl
+        {...defaultProps}
+        defaultAssets={createDefaultAssets({ script: { content: '// loaded script', isLoading: false, error: null, source: null } })}
+      />
+    );
     const editor = screen.getByTestId('codemirror-editor') as HTMLTextAreaElement;
     expect(editor.value).toBe('// loaded script');
   });
 
   it('keeps user edits when initialCode changes', () => {
-    const { rerender } = renderWithTheme(<StrudelRepl {...defaultProps} initialCode="// loaded script" />);
+    const { rerender } = renderWithTheme(
+      <StrudelRepl
+        {...defaultProps}
+        defaultAssets={createDefaultAssets({ script: { content: '// loaded script', isLoading: false, error: null, source: null } })}
+      />
+    );
     const editor = screen.getByTestId('codemirror-editor') as HTMLTextAreaElement;
 
     fireEvent.change(editor, { target: { value: '// user edits' } });
 
     rerender(
       <ThemeProvider>
-        <StrudelRepl {...defaultProps} initialCode="// new script" />
+        <StrudelRepl
+          {...defaultProps}
+          defaultAssets={createDefaultAssets({ script: { content: '// new script', isLoading: false, error: null, source: null } })}
+        />
       </ThemeProvider>
     );
 
@@ -259,7 +283,12 @@ describe('StrudelRepl', () => {
   });
 
   it('shows loading state when initial code is loading', () => {
-    renderWithTheme(<StrudelRepl {...defaultProps} isLoadingInitialCode={true} />);
+    renderWithTheme(
+      <StrudelRepl
+        {...defaultProps}
+        defaultAssets={createDefaultAssets({ script: { content: null, isLoading: true, error: null, source: null } })}
+      />
+    );
     expect(screen.getByText(/Loading startup script/i)).toBeInTheDocument();
   });
 

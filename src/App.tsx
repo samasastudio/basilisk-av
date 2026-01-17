@@ -15,6 +15,7 @@ import { downloadFile, generateScriptFilename } from './utils/downloadFile';
 import { focusREPL } from './utils/focusREPL';
 
 import type { KeyboardShortcut } from './hooks/useGlobalKeyboardShortcuts';
+import type { DefaultScriptState } from './types/defaultAssets';
 
 const AppContent = (): React.ReactElement => {
   const [hasExecutedCode, setHasExecutedCode] = useState(false);
@@ -28,13 +29,15 @@ const AppContent = (): React.ReactElement => {
     hushAudio,
   } = useStrudelEngine();
 
-  const {
-    content: defaultScriptContent,
-    isLoading: isLoadingScript,
-    error: defaultScriptError,
-    source: defaultScriptSource,
-    retry: retryDefaultScript,
-  } = useDefaultScript();
+  const defaultScriptResult = useDefaultScript();
+
+  const defaultScript: DefaultScriptState = useMemo(() => ({
+    content: defaultScriptResult.content,
+    isLoading: defaultScriptResult.isLoading,
+    error: defaultScriptResult.error,
+    source: defaultScriptResult.source,
+    retry: defaultScriptResult.retry ?? undefined,
+  }), [defaultScriptResult]);
 
   const { isVisible: replVisible, toggleVisible: toggleRepl } = useREPLVisibility();
   const [hudVisible, setHudVisible] = usePersistedState<boolean>('basilisk-hud-visible', true);
@@ -112,11 +115,7 @@ const AppContent = (): React.ReactElement => {
           onHalt={hushAudio}
           onExecute={() => setHasExecutedCode(true)}
           onSave={handleSaveScript}
-          initialCode={defaultScriptContent}
-          isLoadingInitialCode={isLoadingScript}
-          defaultScriptError={defaultScriptError}
-          defaultScriptSource={defaultScriptSource}
-          onRetryDefaultScript={retryDefaultScript ?? undefined}
+          defaultScript={defaultScript}
         />
       )}
     </div>

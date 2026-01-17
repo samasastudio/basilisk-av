@@ -1,5 +1,4 @@
-/* eslint-disable max-lines */
-/* eslint-disable complexity */
+/* eslint-disable max-lines -- Large component with many Strudel/Hydra integrations; status banner extracted to AssetStatusBanner.tsx */
 import { javascript } from '@codemirror/lang-javascript';
 import { sliderPlugin, sliderWithID, widgetPlugin } from '@strudel/codemirror';
 import * as Strudel from '@strudel/core';
@@ -19,7 +18,7 @@ import * as StrudelEngine from '../services/strudelEngine';
 import { basiliskDark } from '../themes/codemirrorDark';
 import { registerPatternMethods } from '../utils/patternWidgetRegistration';
 
-import { LoadError } from './LoadError';
+import { AssetStatusBanner } from './AssetStatusBanner';
 import { SoundBrowserTray } from './sound-browser';
 import { Button } from './ui/Button';
 import { UserLibraryTray } from './user-library';
@@ -27,6 +26,7 @@ import { UserLibraryTray } from './user-library';
 import type { UsePanelExclusivityReturn } from '../hooks/usePanelExclusivity';
 import type { UseSoundBrowserReturn } from '../hooks/useSoundBrowser';
 import type { UseUserLibraryReturn } from '../hooks/useUserLibrary';
+import type { DefaultAssetsState } from '../types/defaultAssets';
 import type { SampleItem } from '../types/userLibrary';
 import type { ReactCodeMirrorRef } from '@uiw/react-codemirror';
 
@@ -94,24 +94,8 @@ type Props = {
     soundBrowser: UseSoundBrowserReturn;
     userLibrary: UseUserLibraryReturn;
     panelState: UsePanelExclusivityReturn;
-    /** Optional initial code to load (from env or prop) */
-    initialCode?: string | null;
-    /** Loading state for initial code */
-    isLoadingInitialCode?: boolean;
-    /** Error message for default script loading */
-    defaultScriptError?: string | null;
-    /** Source path/URL for default script loading */
-    defaultScriptSource?: string | null;
-    /** Retry handler for default script loading */
-    onRetryDefaultScript?: () => void;
-    /** Whether default sound library is currently loading */
-    isLoadingDefaultLibrary?: boolean;
-    /** Error message for default sound library loading */
-    defaultLibraryError?: string | null;
-    /** Source URL for default sound library loading */
-    defaultLibrarySource?: string | null;
-    /** Retry handler for default sound library loading */
-    onRetryDefaultLibrary?: () => void;
+    /** Combined state for default script and sound library */
+    defaultAssets: DefaultAssetsState;
 };
 
 /* eslint-disable max-lines-per-function */
@@ -125,20 +109,10 @@ export const StrudelRepl = ({
     soundBrowser,
     userLibrary,
     panelState,
-    initialCode = null,
-    isLoadingInitialCode = false,
-    defaultScriptError = null,
-    defaultScriptSource = null,
-    onRetryDefaultScript,
-    isLoadingDefaultLibrary = false,
-    defaultLibraryError = null,
-    defaultLibrarySource = null,
-    onRetryDefaultLibrary,
+    defaultAssets,
 }: Props): React.ReactElement => {
     const [userEdits, setUserEdits] = useState<string | null>(null);
     const [userLibraryPlaying, setUserLibraryPlaying] = useState<string | null>(null);
-    const [dismissedScriptError, setDismissedScriptError] = useState<string | null>(null);
-    const [dismissedLibraryError, setDismissedLibraryError] = useState<string | null>(null);
     const { theme } = useTheme();
 
     // Ref for CodeMirror editor to enable text insertion
@@ -264,9 +238,7 @@ export const StrudelRepl = ({
     // Subscribe to widget updates using useSyncExternalStore pattern
     useWidgetUpdates(getEditorView);
 
-    const displayedCode = userEdits ?? initialCode ?? defaultCode;
-    const showScriptError = defaultScriptError !== null && defaultScriptError !== dismissedScriptError;
-    const showLibraryError = defaultLibraryError !== null && defaultLibraryError !== dismissedLibraryError;
+    const displayedCode = userEdits ?? defaultAssets.script.content ?? defaultCode;
 
     const runCode = (): void => {
         if (!engineReady) {
@@ -331,7 +303,6 @@ export const StrudelRepl = ({
         ? 'bg-basilisk-gray-800/50 border-b border-basilisk-gray-700'
         : 'bg-black/40 border-b border-white/10 rounded-t-lg';
 
-    const shouldShowStatusBanner = isLoadingInitialCode || isLoadingDefaultLibrary || showScriptError || showLibraryError;
 
     return (
         <div
@@ -367,38 +338,7 @@ export const StrudelRepl = ({
                     </Button>
                 </div>
             </div>
-            {shouldShowStatusBanner && (
-                <div className="px-3 py-2 flex flex-col gap-2 border-b border-white/10 bg-black/30 text-xs">
-                    {isLoadingInitialCode && (
-                        <p className="text-basilisk-gray-300">
-                            Loading startup script{defaultScriptSource ? ` from ${defaultScriptSource}` : ''}...
-                        </p>
-                    )}
-                    {isLoadingDefaultLibrary && (
-                        <p className="text-basilisk-gray-300">
-                            Loading sound library{defaultLibrarySource ? ` from ${defaultLibrarySource}` : ''}...
-                        </p>
-                    )}
-                    {showScriptError && (
-                        <LoadError
-                            title="Script load failed"
-                            message={defaultScriptError}
-                            source={defaultScriptSource ?? undefined}
-                            onDismiss={() => setDismissedScriptError(defaultScriptError)}
-                            onRetry={onRetryDefaultScript}
-                        />
-                    )}
-                    {showLibraryError && (
-                        <LoadError
-                            title="Sound library load failed"
-                            message={defaultLibraryError}
-                            source={defaultLibrarySource ?? undefined}
-                            onDismiss={() => setDismissedLibraryError(defaultLibraryError)}
-                            onRetry={onRetryDefaultLibrary}
-                        />
-                    )}
-                </div>
-            )}
+            <AssetStatusBanner assets={defaultAssets} />
             <div className="flex-1 overflow-hidden relative min-h-0">
                 <CodeMirror
                     ref={editorRef}
@@ -462,4 +402,3 @@ export const StrudelRepl = ({
     );
 };
 /* eslint-enable max-lines-per-function */
-/* eslint-enable complexity */
