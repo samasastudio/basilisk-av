@@ -4,6 +4,7 @@ import { describe, it, expect, vi } from 'vitest';
 
 import { REPLWindow } from '../REPLWindow';
 
+import type { DefaultAssetsState, DefaultScriptState } from '../../types/defaultAssets';
 import type { ReactElement } from 'react';
 
 // Helper to create a fresh QueryClient for each test
@@ -70,20 +71,39 @@ vi.mock('../../hooks/useREPLWindow', () => ({
 
 // Mock StrudelRepl component
 vi.mock('../StrudelRepl', () => ({
-  StrudelRepl: ({ engineReady, statusLabel }: { engineReady: boolean; statusLabel: string }) => (
+  StrudelRepl: ({
+    engineReady,
+    statusLabel,
+    defaultAssets,
+  }: {
+    engineReady: boolean;
+    statusLabel: string;
+    defaultAssets: DefaultAssetsState;
+  }) => (
     <div data-testid="strudel-repl">
       Status: {statusLabel}
       Engine: {engineReady ? 'ready' : 'not ready'}
+      <div>Initial: {defaultAssets.script.content ?? 'none'}</div>
+      <div>Loading: {defaultAssets.script.isLoading ? 'yes' : 'no'}</div>
     </div>
   )
 }));
 
 describe('REPLWindow', () => {
+  const createDefaultScript = (overrides: Partial<DefaultScriptState> = {}): DefaultScriptState => ({
+    content: null,
+    isLoading: false,
+    error: null,
+    source: null,
+    ...overrides,
+  });
+
   const defaultProps = {
     engineReady: false,
     onHalt: vi.fn(),
     onExecute: vi.fn(),
-    onSave: vi.fn()
+    onSave: vi.fn(),
+    defaultScript: createDefaultScript(),
   };
 
   it('renders Rnd wrapper', () => {
@@ -109,6 +129,21 @@ describe('REPLWindow', () => {
   it('passes correct statusLabel when engine is stopped', () => {
     renderWithQueryClient(<REPLWindow {...defaultProps} engineReady={false} />);
     expect(screen.getByText(/Status: stopped/i)).toBeInTheDocument();
+  });
+
+  it('passes initial code and loading state to StrudelRepl', () => {
+    renderWithQueryClient(
+      <REPLWindow
+        {...defaultProps}
+        defaultScript={createDefaultScript({
+          content: '// default script',
+          isLoading: true,
+        })}
+      />
+    );
+
+    expect(screen.getByText('Initial: // default script')).toBeInTheDocument();
+    expect(screen.getByText(/Loading: yes/i)).toBeInTheDocument();
   });
 
   it('has z-30 className on Rnd wrapper', () => {
