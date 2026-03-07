@@ -6,17 +6,6 @@ A flat, flexible inventory of features organized by domain. Pick what excites yo
 
 ## 🔥 Up Next
 
-### Strudel Inline Visuals
-Complete implementation of all Strudel visual feedback functions:
-- `_pianoroll()` — Piano roll notation
-- `_punchcard()` — Rhythmic grid
-- `_spiral()` — Circular time display
-- `_pitchwheel()` — Pitch visualization
-- `_scope()` — Oscilloscope waveform
-- `_spectrum()` — FFT frequency display
-
-*See Strudel_Inline_Visualization_Architecture doc for implementation details.*
-
 ### MIDI I/O
 Full MIDI integration for hardware control and DAW communication:
 - Receive MIDI CC/notes from controllers
@@ -24,23 +13,11 @@ Full MIDI integration for hardware control and DAW communication:
 - MIDI clock sync (send/receive)
 - MIDI learn for parameter mapping
 
-### Environment Auto-Load
-Streamline startup with ENV configuration:
-- `BASILISK_SAMPLES_DIR` — Auto-link sample directory on launch
-- `BASILISK_SCRIPT` — Auto-load script file into REPL
-- Skip manual setup for consistent environments
-
 ### Fullscreen REPL
 Expand REPL to fill viewport:
 - Toggle button or shortcut
 - Hide header when fullscreen
 - Quick exit (Esc)
-
-### Dark Mode
-System-wide dark theme:
-- Toggle in header or settings
-- Persist preference
-- Respect system preference as default
 
 ### Multi-Window / External Display
 Pop Hydra canvas to separate window:
@@ -62,6 +39,9 @@ Core platform is functional:
 - Sound Browser (Strudel samples)
 - User Library (personal samples)
 - 150+ tests, clean ESLint
+- Inline Strudel visualizations (`_pianoroll`, `_punchcard`, `_spiral`, `_scope`, `_spectrum`)
+- Environment auto-load (default script + sound library via env vars)
+- Dark mode (system toggle, persisted preference, OS default)
 
 ---
 
@@ -248,11 +228,8 @@ Social and collaborative features.
 ## Quick Reference
 
 **Priority (Up Next section):**
-- Strudel inline visuals
 - MIDI I/O
-- Environment auto-load
 - Fullscreen REPL
-- Dark mode
 - Multi-window display
 
 **Ready to build now (no dependencies):**
@@ -265,5 +242,4 @@ Social and collaborative features.
 **Quick wins:**
 - Keyboard shortcuts (small, self-contained)
 - HUD components (isolated)
-- Dark mode (CSS-focused)
-- ENV auto-load (config only)
+- Fullscreen REPL (layout-focused)

@@ -22,10 +22,15 @@ const localStorageMock = (() => {
   };
 })();
 
-Object.defineProperty(window, 'localStorage', { value: localStorageMock });
+Object.defineProperty(window, 'localStorage', {
+  configurable: true,
+  writable: true,
+  value: localStorageMock,
+});
 
 // Mock window.matchMedia (used by some UI components)
 Object.defineProperty(window, 'matchMedia', {
+  configurable: true,
   writable: true,
   value: vi.fn().mockImplementation(query => ({
     matches: false,
@@ -40,9 +45,8 @@ Object.defineProperty(window, 'matchMedia', {
 });
 
 // Mock window.requestAnimationFrame (used by HUD animation)
-// Don't call the callback immediately to avoid infinite loops in tests
+// Do not call the callback immediately to avoid infinite loops in tests.
 global.requestAnimationFrame = vi.fn(() => 0);
-
 global.cancelAnimationFrame = vi.fn();
 
 // Mock AudioNode (used by patchSuperdough)
@@ -51,7 +55,6 @@ class MockAudioNode {
   disconnect = vi.fn();
 }
 
-// Set up the prototype with mocked methods
 MockAudioNode.prototype.connect = vi.fn();
 MockAudioNode.prototype.disconnect = vi.fn();
 
@@ -80,15 +83,14 @@ global.AudioContext = vi.fn().mockImplementation(() => ({
   state: 'running',
 }));
 
-// Suppress expected console messages in tests to reduce noise
+// Suppress expected console messages in tests to reduce noise.
 // eslint-disable-next-line no-console
 const originalConsoleLog = console.log;
 const originalConsoleWarn = console.warn;
 const originalConsoleError = console.error;
 
-// List of expected log patterns to suppress
 const suppressedPatterns = [
-  /🌀 @strudel\/core loaded 🌀/,
+  /@strudel\/core loaded/,
   /@strudel\/core was loaded more than once/,
   /\[registerPatternMethods\]/,
   /\[connectVisualizationManager\]/,
@@ -123,3 +125,4 @@ console.error = vi.fn((...args: any[]) => {
     originalConsoleError(...args);
   }
 });
+

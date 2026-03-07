@@ -24,7 +24,11 @@ const localStorageMock = (() => {
   };
 })();
 
-Object.defineProperty(window, 'localStorage', { value: localStorageMock });
+Object.defineProperty(window, 'localStorage', {
+  configurable: true,
+  writable: true,
+  value: localStorageMock,
+});
 
 describe('usePersistedState', () => {
   beforeEach(() => {
@@ -112,3 +116,4 @@ describe('usePersistedState', () => {
     expect(result2.current[0]).toBe('value2');
   });
 });
+

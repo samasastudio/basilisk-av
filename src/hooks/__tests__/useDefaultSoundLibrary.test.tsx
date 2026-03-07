@@ -78,6 +78,7 @@ describe('useDefaultSoundLibrary', () => {
   });
 
   it('does not link CDN when env var is not set', () => {
+    vi.stubEnv('VITE_DEFAULT_SOUND_LIBRARY', '');
     const userLibrary = createUserLibrary();
     const queryClient = createTestQueryClient();
 

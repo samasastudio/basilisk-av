@@ -36,6 +36,7 @@ describe('useDefaultScript', () => {
   });
 
   it('returns null content when no env var is set', () => {
+    vi.stubEnv('VITE_DEFAULT_SCRIPT', '');
     const queryClient = createTestQueryClient();
 
     const { result } = renderHook(() => useDefaultScript(), {

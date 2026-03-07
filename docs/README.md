@@ -1,37 +1,39 @@
 # Basilisk AV Documentation
 
-## Categories
+## Reference (`docs/reference/`)
 
-### [reference/](reference/)
-Core technical documentation for understanding the system architecture.
+Core technical docs for architecture and contracts.
 
-| Document | Description |
-|----------|-------------|
-| [API.md](reference/API.md) | Public API reference for `window.repl`, `window.a.fft`, and global objects |
-| [ARCHITECTURE.md](reference/ARCHITECTURE.md) | Strudel-Hydra audio bridge architecture and Web Audio routing |
+- [API.md](reference/API.md): public APIs (`window.repl`, `window.a`, key contracts)
+- [ARCHITECTURE.md](reference/ARCHITECTURE.md): Strudel + Hydra bridge internals and runtime flow
 
-### [guides/](guides/)
-End-user documentation for using Basilisk AV.
+## Development (`docs/development/`)
 
-| Document | Description |
-|----------|-------------|
-| [USER_SAMPLES_GUIDE.md](guides/USER_SAMPLES_GUIDE.md) | How to load and use custom audio samples |
+Contributor workflows and engineering standards.
 
-### [development/](development/)
-Developer standards, tooling setup, and contribution guidelines.
+- [CONTRIBUTING.md](development/CONTRIBUTING.md)
+- [TYPE_SAFETY.md](development/TYPE_SAFETY.md)
+- [ESLINT_RULES_SUMMARY.md](development/ESLINT_RULES_SUMMARY.md)
+- [PLAYWRIGHT_MCP.md](development/PLAYWRIGHT_MCP.md)
 
-| Document | Description |
-|----------|-------------|
-| [CONTRIBUTING.md](development/CONTRIBUTING.md) | Getting started, project structure, PR guidelines |
-| [TYPE_SAFETY.md](development/TYPE_SAFETY.md) | TypeScript strict mode guidelines and `any` avoidance |
-| [ESLINT_RULES_SUMMARY.md](development/ESLINT_RULES_SUMMARY.md) | ESLint rules proposal and codebase health metrics |
-| [PLAYWRIGHT_MCP.md](development/PLAYWRIGHT_MCP.md) | Automated feature verification with Playwright MCP |
+## Guides (`docs/guides/`)
 
-### [current-specs/](current-specs/)
-Active feature specifications currently in development.
+User-facing setup and usage guides.
 
-- [HYDRA_AUTO_INIT_SPEC.md](current-specs/HYDRA_AUTO_INIT_SPEC.md)
-- [INLINE_VIZ_REMOVAL_SPEC.md](current-specs/INLINE_VIZ_REMOVAL_SPEC.md)
+- [USER_SAMPLES_GUIDE.md](guides/USER_SAMPLES_GUIDE.md)
 
-### [archive/](archive/)
-Historical documentation preserved for reference. Contains completed feature specs (`archive/specs/`) and superseded exploration documents (`archive/historical/`).
+## Active Specs (`docs/specs/`)
+
+Specifications currently relevant to implementation.
+
+- [ENV_AUTO_LOAD_SPEC.md](specs/ENV_AUTO_LOAD_SPEC.md)
+- [FULLSCREEN_REPL_SPEC.md](specs/FULLSCREEN_REPL_SPEC.md)
+
+## Examples and Assets
+
+- [examples/startup-script.example.js](examples/startup-script.example.js): startup script sample
+- [assets/strudel-examples](assets/strudel-examples): reference screenshots/images
+
+## Archive (`docs/archive/`)
+
+Historical docs and superseded materials kept for reference.

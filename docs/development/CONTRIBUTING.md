@@ -489,7 +489,7 @@ Install [React DevTools](https://react.dev/learn/react-developer-tools)
 - **README.md**: User-facing features, quick start
 - **API.md**: New APIs, changed function signatures
 - **ARCHITECTURE.md**: Implementation details, architecture changes
-- **roadmap.md**: New phases, completed features
+- **ROADMAP.md**: New phases, completed features
 
 ### Writing Good Documentation
 

@@ -85,7 +85,7 @@ const selectedItem = items.find(item => item.id === selectedId) ?? null;
 | `src/utils/strudelHydraBridge.ts` | FFT bridge exposing `a.fft[0-3]` to Hydra |
 | `src/hooks/useStrudelEngine.ts` | Engine lifecycle management |
 | `BACKLOG.md` | Feature inventory with priorities |
-| `docs/ARCHITECTURE.md` | Technical deep-dive |
+| `docs/reference/ARCHITECTURE.md` | Technical deep-dive |
 
 ## Audio-Visual Bridge
 
